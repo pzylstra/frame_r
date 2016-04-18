@@ -1,0 +1,19 @@
+Package: forestflames
+Type: Package
+Title: Forest flammability model.
+Version: 0.1
+Date: 2016-04-01
+Authors@R: as.person( c(
+  "Phil Zylstra <pzylstra@uow.edu.au> [cre]",
+  "Michael Bedward <michael.bedward@gmail.com> [aut]"))
+Description: Forest flammability model blah blah blah...
+License: MIT + file LICENSE
+Depends:
+    R (>= 3.2.0)
+Imports:
+    dplyr(>= 0.4.3),
+    rscala(>= 1.0.9),
+    stringr(>= 1.0.0),
+    udunits2(>= 0.8.1)
+LazyData: TRUE
+RoxygenNote: 5.0.1
