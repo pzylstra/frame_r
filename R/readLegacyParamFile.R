@@ -9,7 +9,8 @@
 #'
 #' @return Either a nested list or single data frame of parsed data.
 #'
-#' @importFrom dplyr %>% filter group_by left_join mutate select ungroup
+#' @importFrom dplyr %>% distinct filter group_by left_join
+#'   mutate select ungroup
 #'
 #' @export
 #'
@@ -192,8 +193,6 @@ readLegacyParamFile <- function(path, flat = FALSE) {
     select(stratum, species) %>%
     distinct %>%
     mutate(param = "deadLeafMoisture", value = deadMoist$value)
-
-  browser()
 
   na0 <- function(x) replace(x, is.na(x), "0")
 
