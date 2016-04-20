@@ -9,8 +9,8 @@
 #'
 #' @return Either a nested list or single data frame of parsed data.
 #'
-#' @importFrom dplyr %>% distinct filter group_by left_join
-#'   mutate select ungroup
+#' @importFrom dplyr %>% arrange distinct filter group_by
+#'   left_join mutate select ungroup
 #'
 #' @export
 #'
@@ -217,10 +217,8 @@ readLegacyParamFile <- function(path, flat = FALSE) {
 
 
 .minus99_to_NA <- function(dat) {
-  ii <- match( "-99",
-               .munge_string(dat$value) )
-
-  if (!is.na(ii)) dat$value[ii] <- NA
+  ii <- .munge_string(dat$value) == "-99"
+  dat$value[ii] <- NA
 
   dat
 }
