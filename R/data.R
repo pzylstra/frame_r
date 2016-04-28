@@ -1,6 +1,19 @@
 #' Species trait database.
 #'
-#' Provides default parameter values for commonly referenced species.
+#' Provides default parameter values for commonly referenced species. The 
+#' following parameters are included (units, indicated where applicable,
+#' accord with \code{\link{DefaultUnits}}):
+#' \itemize{
+#'   \item propDead
+#'   \item leafForm
+#'   \item leafThickness (m)
+#'   \item leafWidth (m)
+#'   \item leafLength (m)
+#'   \item leafSeparation (m)
+#'   \item stemOrder
+#'   \item ignitionTemp (degC)
+#' }
+#' Note that this does not include all mandatory parameters (e.g. crown dimensions).
 #'
 #' @format A data frame where each row is a species; species name in
 #'   the first column; trait values in subsequent columns.
@@ -8,9 +21,14 @@
 "DefaultSpeciesParams"
 
 #' Default units for model parameters.
+#' 
+#' These units apply when none are specified by the user.
+#' 
+#' A value of \code{NA} indicates that a parameter is dimensionless (e.g. a proportional 
+#' quantity or a text value).
 #'
 #' @format A data frame with columns: section (values meta,
 #' stratum, species); param (standard parameter label);
-#' units (unit abbreviation).
+#' units (unit abbreviation or \code{NA} if dimensionless).
 #'
 "DefaultUnits"

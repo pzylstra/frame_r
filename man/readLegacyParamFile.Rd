@@ -4,18 +4,18 @@
 \alias{readLegacyParamFile}
 \title{Reads a legacy format parameters file.}
 \usage{
-readLegacyParamFile(path, flat = FALSE)
+readLegacyParamFile(path, raw = FALSE)
 }
 \arguments{
-\item{path}{full or relative path to the file}
+\item{path}{The full or relative path to the parameters file.}
 
-\item{flat}{if \code{TRUE}, return parsed data as a single
-data frame; if \code{FALSE}, return parsed data as a nested
-list for strata, species and meta-data in a form suitable to
-create Scala objects.}
+\item{raw}{(logical) Whether to return raw parsed data.}
 }
 \value{
-Either a nested list or single data frame of parsed data.
+If \code{raw} is \code{TRUE}, a data frame of parsed data
+  in raw form (useful for testing); 
+  if \code{raw} is \code{FALSE} (the default), a data frame in a form 
+  suitable to create Scala objects (e.g. with \code{\link{ffm_site}}).
 }
 \description{
 Reads a legacy format parameters file.

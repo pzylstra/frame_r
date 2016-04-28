@@ -1,27 +1,27 @@
 #' Reads a legacy format parameters file.
 #'
-#' @param path full or relative path to the file
+#' @param path The full or relative path to the parameters file.
 #'
-#' @param flat if \code{TRUE}, return parsed data as a single
-#'   data frame; if \code{FALSE}, return parsed data as a nested
-#'   list for strata, species and meta-data in a form suitable to
-#'   create Scala objects.
+#' @param raw (logical) Whether to return raw parsed data.
 #'
-#' @return Either a nested list or single data frame of parsed data.
+#' @return If \code{raw} is \code{TRUE}, a data frame of parsed data
+#'   in raw form (useful for testing); 
+#'   if \code{raw} is \code{FALSE} (the default), a data frame in a form 
+#'   suitable to create Scala objects (e.g. with \code{\link{ffm_site}}).
 #'
 #' @importFrom dplyr %>% arrange distinct filter group_by
 #'   left_join mutate select ungroup
 #'
 #' @export
 #'
-readLegacyParamFile <- function(path, flat = FALSE) {
+readLegacyParamFile <- function(path, raw = FALSE) {
   txt <- .preprocess_text(path)
   dat <- .parse_text(txt)
 
   dat <- .parse_params(dat)
 
-  if (flat) dat
-  else .nest_data2(dat)
+  if (raw) dat
+  else .format_output(dat)
 }
 
 
@@ -124,56 +124,10 @@ readLegacyParamFile <- function(path, flat = FALSE) {
   c(name = name, value = value)
 }
 
-
-# Takes a data frame of parsed parameter data and converts
-# it into nested form.
+# Formats parsed data to be suitable for Scala api functions
+# such as ffm_site.
 #
-.nest_data <- function(dat) {
-
-  # retrieve site meta-data
-  meta <- dat %>%
-    filter(meta == 1) %>%
-    .legacy_text_to_params
-
-  # retrieve dead fuel moisture from meta-data to use
-  # as 'deadLeafMoisture' param for species
-  deadMoist <- filter(meta, stringr::str_detect(param, "^deadFuel"))
-
-  # error check
-  stopifnot(nrow(deadMoist) == 1)
-
-  strata.indices <- unique( na.omit(dat$stratum) )
-
-  # build initial list of strata data frames
-  x <- lapply(strata.indices, function(i) filter(dat, stratum == i, delim == 0) )
-
-  # for each stratum, build list of species plus meta-data
-  x <- lapply(x,
-              function(stratum.dat) {
-                meta.dat <- stratum.dat %>%
-                  filter(stratum.meta == 1) %>%
-                  .legacy_text_to_params
-
-                sp.indices <- unique( na.omit(stratum.dat$species) )
-                spp <- lapply(sp.indices,
-                              function(i) {
-                                stratum.dat %>%
-                                  filter(species == i) %>%
-                                  .legacy_text_to_params %>%
-                                  rbind(c("deadLeafMoisture", deadMoist$value)) %>%
-                                  .minus99_to_NA
-                              })
-
-                list(meta = meta.dat, species = spp)
-              })
-
-
-  # return nested data
-  list(strata = x, meta = meta)
-}
-
-
-.nest_data2 <- function(dat) {
+.format_output <- function(dat) {
   dat <- dat %>%
     filter(delim == 0) %>%
     select(stratum, species, param, value) %>%
@@ -194,14 +148,13 @@ readLegacyParamFile <- function(path, flat = FALSE) {
     distinct %>%
     mutate(param = "deadLeafMoisture", value = deadMoist$value)
 
-  na0 <- function(x) replace(x, is.na(x), "0")
-
   dat %>%
     rbind(extras) %>%
-    mutate(stratum = na0(stratum), species = na0(species)) %>%
     arrange(stratum, species) %>%
-    .minus99_to_NA
+    .minus99_to_NA %>%
+    left_join(select(DefaultUnits, param, units), by="param")
 }
+
 
 # Takes a data frame with columns 'param' and 'value' and
 # matches the legacy parameter text in 'param' to names in

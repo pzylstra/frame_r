@@ -10,7 +10,20 @@
 DefaultSpeciesParams
 }
 \description{
-Provides default parameter values for commonly referenced species.
+Provides default parameter values for commonly referenced species. The 
+following parameters are included (units, indicated where applicable,
+accord with \code{\link{DefaultUnits}}):
+\itemize{
+  \item propDead
+  \item leafForm
+  \item leafThickness (m)
+  \item leafWidth (m)
+  \item leafLength (m)
+  \item leafSeparation (m)
+  \item stemOrder
+  \item ignitionTemp (degC)
+}
+Note that this does not include all mandatory parameters (e.g. crown dimensions).
 }
 \keyword{datasets}
 

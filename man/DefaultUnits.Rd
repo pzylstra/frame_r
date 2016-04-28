@@ -6,12 +6,16 @@
 \title{Default units for model parameters.}
 \format{A data frame with columns: section (values meta,
 stratum, species); param (standard parameter label);
-units (unit abbreviation).}
+units (unit abbreviation or \code{NA} if dimensionless).}
 \usage{
 DefaultUnits
 }
 \description{
-Default units for model parameters.
+These units apply when none are specified by the user.
+}
+\details{
+A value of \code{NA} indicates that a parameter is dimensionless (e.g. a proportional 
+quantity or a text value).
 }
 \keyword{datasets}
 
