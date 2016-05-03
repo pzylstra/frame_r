@@ -2,11 +2,29 @@
 % Please edit documentation in R/ffm_api_functions.R
 \name{ffm_site}
 \alias{ffm_site}
-\title{Create a Site object from a table of parameters.}
+\title{Creates a Site object from a table of parameters.}
 \usage{
 ffm_site(params)
 }
+\arguments{
+\item{params}{A data.frame or matrix of character data 
+with either four or five columns:
+\enumerate{
+  \item stratum identifier (\code{NA} for rows corresponding to
+     site meta-data such as weather variables)
+  \item species identifier (\code{NA} for rows corresponding to
+     stratum meta-data such as the level name)
+  \item param standard parameter label
+  \item value parameter value
+  \item units (optional) parameter units or \code{NA} for 
+     dimensionless parameters
+}}
+}
+\value{
+a \code{ScalaInterpreterReference} holding the
+  created Site object.
+}
 \description{
-Create a Site object from a table of parameters.
+Creates a Site object from a table of parameters.
 }
 

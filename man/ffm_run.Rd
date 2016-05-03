@@ -4,10 +4,12 @@
 \alias{ffm_run}
 \title{Run the model with the given site.}
 \usage{
-ffm_run(site)
+ffm_run(x)
 }
 \arguments{
-\item{The}{site as a ScalaInterpreterReference object.}
+\item{x}{Site data as a ScalaInterpreterReference object
+created with \code{\link{ffm_site}} or a matrix or data.frame
+valid for input to \code{ffm_site}.}
 }
 \description{
 Run the model with the given site.
