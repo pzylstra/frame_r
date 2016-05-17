@@ -26,33 +26,52 @@ ffm_site <- function(params) {
 }
 
 
-#' Run the model with the given site.
+#' Runs the model with the given site.
 #'
-#' @param x Site data as a ScalaInterpreterReference object
-#'   created with \code{\link{ffm_site}} or a matrix or data.frame
-#'   valid for input to \code{ffm_site}.
+#' @param x Site data (parameter set) as one of the following:
+#'   \itemize{
+#'     \item a ScalaInterpreterReference object created with \code{\link{ffm_site}}
+#'     \item a a matrix or data.frame valid for input to \code{ffm_site}
+#'     \item a parameter generating function.
+#'   }     
+#'   
+#' @param db Output database
+#'   
+#' @param additional arguments (see specific ffm_run functions for details)
+#' 
+#' @seealso \code{\link{ffm_run.ScalaInterpreterReference}}
+#' @seealso \code{\link{ffm_run.data.frame}}
+#' @seealso \code{\link{ffm_run.matrix}}
+#' @seealso \code{\link{ffm_run.function}}
 #'
+#'    
 #' @export
 #'
-ffm_run <- function(x, as.ref) UseMethod("ffm_run")
+ffm_run <- function(x, db, ...) UseMethod("ffm_run")
 
 
 #' Run the model with the given site object.
 #'
-#' @param site The site as a ScalaInterpreterReference object created
+#' @param site The site as a Scala reference object created
 #'   with \code{\link{ffm_site}}.
 #'   
-#' @return ???
+#' @param db Output database as a Scala reference object.
+#'   
+#' @return \code{TRUE} if the run completed and results were written to
+#'   the output database successfully; \code{FALSE} otherwise.
+#'
+#' @seealso \code{\link{ffm_create_database}}
 #'
 #' @export
 #'
-ffm_run.ScalaInterpreterReference <- function(site, as.ref=FALSE) {
+ffm_run.ScalaInterpreterReference <- function(site, db, ...) {
   stopifnot(is(site, "ScalaInterpreterReference"))
+  
+  db <- .check_db(db)
 
   res <- E$s$do('ffm.runner.Runner')$run(site)
   
-  if (as.ref) res
-  else ffm_result(res)
+  db$insertResult(res)
 }
 
 
@@ -64,8 +83,8 @@ ffm_run.ScalaInterpreterReference <- function(site, as.ref=FALSE) {
 #'
 #' @export
 #'
-ffm_run.data.frame <- function(site.params, as.ref=FALSE) {
-  ffm_run( ffm_site(site.params), as.ref )
+ffm_run.data.frame <- function(site.params, db, ...) {
+  ffm_run( ffm_site(site.params), db, ... )
 }
 
 
@@ -77,62 +96,77 @@ ffm_run.data.frame <- function(site.params, as.ref=FALSE) {
 #'
 #' @export
 #'
-ffm_run.matrix <- function(site.params, as.ref=FALSE) {
-  ffm_run( ffm_site(site.params), as.ref )
+ffm_run.matrix <- function(site.params, db, ...) {
+  ffm_run( ffm_site(site.params), db, ... )
 }
 
 
-#' Extracts data from a flammability model result object
+#' Run the model with parameters provided by a generating function.
+#'
+#' @param gen.fn A function which generates a valid parameter matrix.
+#'
+#' @export
+#'
+ffm_run.function <- function(gen.fn, db, ...) {
+  params <- gen.fn(...)
+  ffm_run.ScalaInterpreterReference( ffm_site(params), db, ... )
+}
+
+#' Creates a database manager object and file.
+#' 
+#' This function creates a Scala database manager (ffm.io.r.Database object),
+#' together with an associated SQLite database file. A reference is returned
+#' which can then be passed to \code{\link{ffm_run}} functions and used to
+#' write model results.
+#'
+#' @param path The path for the database file
+#' 
+#' @param delete.existing If \code{TRUE} (default), any existing database file
+#'   matching \code{path} is deleted if possible; if \code{FALSE}, the database
+#'   will only be created if the file does not exist.
+#'   
+#' @param use.transactions If \code{TRUE} (default), all insertions into the database
+#'   will be done within transactions (slow but safe); if \code{FALSE},
+#'   insertions will be done directly (fast but less safe).
+#'   
+#' @return A reference object (ScalaInterpreterReference) which can be 
+#'   passed to \code{\link{ffm_run}} functions.
 #' 
 #' @export
 #' 
-ffm_result <- function(res) {
-  stopifnot(is(res, "ScalaInterpreterReference"))
-  
-  # ObjF <- E$s$do('ffm.io.r.ObjectFactory')
-  
-  st.res <- .get_stratum_results(res)
-  run.res <- .get_run_results(res)
-  
-  list(stratum.results = st.res, run.results = run.res)
+ffm_create_database <- function(path, delete.existing = TRUE, use.transactions = TRUE) {
+  optionDB <- E$s$do('ffm.io.r.Database')$create(path, delete.existing, use.transactions)
+  if (optionDB$isDefined()) optionDB$get()
+  else stop("Database ", path, " could not be created")
 }
 
 
-# Converts a data.frame or numeric matrix to a matrix
-# of strings.
-.as_str_matrix <- function(dat) apply(dat, MARGIN = 2, FUN = as.character)
-
-
-.get_stratum_results <- function(res) {
-  stopifnot(is(res, "ScalaInterpreterReference"))
+#' Locate specified site meta-parameters in a parameter table.
+#' 
+#' @param params Parameter table as a matrix or data.frame of character values.
+#' @param names The name(s) of parameters to find.
+#' 
+#' @return Row numbers corresponding to the specified parameters.
+#' 
+#' @export
+#' 
+ffm_find_site_param <- function(params, names) {
+  stopifnot(is.data.frame(params) | is.matrix(params))
   
-  levels <- res$'stratumResults.map( sr => sr.level.toString ).toArray'()
-  flames <- res$'stratumResults.map(sr => Array(sr.flameLength, sr.flameAngle, sr.flameHeight)).toArray'()
+  params <- as.data.frame(params)
+  ii <- stringr::str_detect(params$param, names) & 
+    is.na(params$stratum) & is.na(params$species)
   
-  data.frame(level = levels,
-             flameLength = flames[,1],
-             flameAngle = flames[,2] * 180 / pi,
-             flameHeight = flames[,3])
+  which(ii)
 }
 
 
-.get_run_results <- function(res) {
-  .get_surface_results(res)
-}
-
-.get_surface_results <- function(res) {
-  dat <- E$s$do('ffm.io.r.ResultFormatter')$'surfaceResults'(res)
+.check_db <- function(db) {
+  if(!is(db, "ScalaInterpreterReference"))
+    stop("Output database must be supplied as a Scala reference object")
   
-  dat <- as.data.frame(dat, stringsAsFactors = FALSE)
-  colnames(dat) <- dat[1,]
-  dat <- dat[-1, ]
+  if (!(db$isOpen(TRUE)))
+    stop("Database is not open for writing results")
   
-  dat[,1] <- as.integer(dat[,1])
-  for (i in 2:ncol(dat)) dat[,i] <- as.numeric(dat[,i])
-  
-  dat$run <- dat$run + 1
-  dat$flameAngle <- dat$flameAngle * 180 / pi
-  
-  rownames(dat) <- NULL
-  dat
+  db
 }

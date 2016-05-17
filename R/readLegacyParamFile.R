@@ -9,9 +9,6 @@
 #'   if \code{raw} is \code{FALSE} (the default), a data frame in a form 
 #'   suitable to create Scala objects (e.g. with \code{\link{ffm_site}}).
 #'
-#' @importFrom dplyr %>% arrange distinct filter group_by
-#'   left_join mutate select ungroup
-#'
 #' @export
 #'
 readLegacyParamFile <- function(path, raw = FALSE) {
@@ -152,7 +149,7 @@ readLegacyParamFile <- function(path, raw = FALSE) {
     rbind(extras) %>%
     arrange(stratum, species) %>%
     .minus99_to_NA %>%
-    left_join(select(DefaultUnits, param, units), by="param")
+    left_join(select(ParamInfo, param, units), by="param")
 }
 
 
@@ -201,21 +198,3 @@ readLegacyParamFile <- function(path, raw = FALSE) {
   out
 }
 
-
-# Creates a regular expression pattern for the given string.
-#
-# Spaces in the input string are replaced by `\\s*` (treating
-# spaces as optional) and the pattern is set to be case
-# insensitive.
-#
-.make_ptn <- function(ptn) {
-  ptn <- stringr::str_replace(ptn, "\\s+", "\\\\s*")
-  stringr::regex(ptn, ignore_case = TRUE)
-}
-
-
-# Converts strings to lower case and removes spaces.
-#
-.munge_string <- function(s) {
-  s %>% tolower %>% stringr::str_replace_all("\\s+", "")
-}

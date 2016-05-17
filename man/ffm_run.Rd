@@ -2,16 +2,32 @@
 % Please edit documentation in R/ffm_api_functions.R
 \name{ffm_run}
 \alias{ffm_run}
-\title{Run the model with the given site.}
+\title{Runs the model with the given site.}
 \usage{
-ffm_run(x)
+ffm_run(x, db, ...)
 }
 \arguments{
-\item{x}{Site data as a ScalaInterpreterReference object
-created with \code{\link{ffm_site}} or a matrix or data.frame
-valid for input to \code{ffm_site}.}
+\item{x}{Site data (parameter set) as one of the following:
+\itemize{
+  \item a ScalaInterpreterReference object created with \code{\link{ffm_site}}
+  \item a a matrix or data.frame valid for input to \code{ffm_site}
+  \item a parameter generating function.
+}}
+
+\item{db}{Output database}
+
+\item{additional}{arguments (see specific ffm_run functions for details)}
 }
 \description{
-Run the model with the given site.
+Runs the model with the given site.
+}
+\seealso{
+\code{\link{ffm_run.ScalaInterpreterReference}}
+
+\code{\link{ffm_run.data.frame}}
+
+\code{\link{ffm_run.matrix}}
+
+\code{\link{ffm_run.function}}
 }
 

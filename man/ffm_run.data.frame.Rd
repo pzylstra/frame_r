@@ -5,7 +5,7 @@
 \title{Run the model with a site based on parameters in the
 given data frame.}
 \usage{
-\method{ffm_run}{data.frame}(site.params)
+\method{ffm_run}{data.frame}(site.params, db, ...)
 }
 \arguments{
 \item{site.params}{A data frame of site parameters valid for

@@ -12,7 +12,7 @@ DefaultSpeciesParams
 \description{
 Provides default parameter values for commonly referenced species. The 
 following parameters are included (units, indicated where applicable,
-accord with \code{\link{DefaultUnits}}):
+accord with \code{\link{ParamInfo}}):
 \itemize{
   \item propDead
   \item leafForm

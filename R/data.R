@@ -2,7 +2,7 @@
 #'
 #' Provides default parameter values for commonly referenced species. The 
 #' following parameters are included (units, indicated where applicable,
-#' accord with \code{\link{DefaultUnits}}):
+#' accord with \code{\link{ParamInfo}}):
 #' \itemize{
 #'   \item propDead
 #'   \item leafForm
@@ -20,15 +20,15 @@
 #'
 "DefaultSpeciesParams"
 
-#' Default units for model parameters.
+#' Valid parameters and their default units.
 #' 
-#' These units apply when none are specified by the user.
-#' 
-#' A value of \code{NA} indicates that a parameter is dimensionless (e.g. a proportional 
-#' quantity or a text value).
+#' This data frame contains all valid parameter labels with their corresponding 
+#' section (site, stratum or species) and default units.
+#' A value of \code{NA} for units indicates that a parameter is dimensionless 
+#' (e.g. a proportional quantity or a text value).
 #'
-#' @format A data frame with columns: section (values meta,
+#' @format A data frame with columns: section (values site,
 #' stratum, species); param (standard parameter label);
 #' units (unit abbreviation or \code{NA} if dimensionless).
 #'
-"DefaultUnits"
+"ParamInfo"

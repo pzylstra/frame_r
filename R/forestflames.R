@@ -10,5 +10,8 @@
 #' @name forestflames
 #'
 #' @import rscala
+#' 
+#' @importFrom dplyr %>% arrange distinct filter group_by
+#'   left_join mutate mutate_each select select_ ungroup
 #'
 NULL

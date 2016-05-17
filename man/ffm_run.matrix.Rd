@@ -5,7 +5,7 @@
 \title{Run the model with a site based on parameters in the
 given character matrix.}
 \usage{
-\method{ffm_run}{matrix}(site.params)
+\method{ffm_run}{matrix}(site.params, db, ...)
 }
 \arguments{
 \item{site.params}{A character matrix of site parameters valid for

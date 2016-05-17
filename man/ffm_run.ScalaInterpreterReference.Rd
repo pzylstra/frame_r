@@ -4,16 +4,22 @@
 \alias{ffm_run.ScalaInterpreterReference}
 \title{Run the model with the given site object.}
 \usage{
-\method{ffm_run}{ScalaInterpreterReference}(site)
+\method{ffm_run}{ScalaInterpreterReference}(site, db, ...)
 }
 \arguments{
-\item{site}{The site as a ScalaInterpreterReference object created
+\item{site}{The site as a Scala reference object created
 with \code{\link{ffm_site}}.}
+
+\item{db}{Output database as a Scala reference object.}
 }
 \value{
-???
+\code{TRUE} if the run completed and results were written to
+  the output database successfully; \code{FALSE} otherwise.
 }
 \description{
 Run the model with the given site object.
+}
+\seealso{
+\code{\link{ffm_create_database}}
 }
 

@@ -35,7 +35,7 @@ findSpecies <- function(names) {
   mkregex <- function(s) {
     parts <- stringr::str_split(s, "\\s")[[1]]
     parts <- stringr::str_c(parts, ".*", sep="")
-    stringr::regex(str_c(parts, collapse=""), ignore_case = TRUE)
+    stringr::regex( stringr::str_c(parts, collapse=""), ignore_case = TRUE )
   }
 
   finder <- function(ptn) {
@@ -120,3 +120,195 @@ getSpeciesParams <- function(names) {
   # return params
   DefaultSpeciesParams[indices[, 1], ]
 }
+
+
+#' Completes a table by adding default parameters for each species as required.
+#' 
+#' For each species in the input parameter table, this function checks which
+#' parameters have been provided and retrieves defaults for missing parameters
+#' from the default lookup table: \link{DefaultSpeciesParams}.
+#' 
+#' If a species has missing parameters but is not present in the table of
+#' default lookup table, an error is thrown.
+#' 
+#' @param tbl The input parameter table
+#' 
+#' @return The completed parameter table
+#' 
+#' @export
+#' 
+completeParams <- function(tbl) {
+  if (!.is_param_table(tbl))
+    stop("Input table must be a character matrix or data frame with 4 or 5 columns")
+  
+  tbl <- .as_str_data_frame(tbl)
+  
+  # Retrieve default parameters as required for a given species
+  # and return as additional records to add to the table
+  do_species <- function(species.id) {
+    recs <- dplyr::filter(tbl, species == species.id)
+    stratum <- recs$stratum[1]
+    species.name <- dplyr::filter(recs, param == "name")$value
+    
+    provided <- recs$param
+    required <- setdiff( colnames(DefaultSpeciesParams)[-1], provided )
+    
+    if (length(required == 0)) {
+      # Don't need to add any parameters, so return NULL
+      NULL
+    }
+    else if (isSpeciesKnown(species.name)) {
+      # Parameters required and species is known
+      #
+      dat <- getSpeciesParams(species.name) %>% select_(.dots = required)
+      nrecs <- ncol(dat)
+      
+      # return required addition parameter table records
+      data.frame(
+        stratum = rep(stratum, nrecs),
+        species = rep(species.id, nrecs),
+        param = colnames(dat),
+        value = as.character(dat[1, ]),
+        stringsAsFactors = FALSE
+      )
+      
+    } else {
+      stop(species.id, " is missing required parameters and is not in the defaults table")
+    }
+    
+  }
+  
+  ids <- .get_species_ids(tbl)
+  new.recs <- do.call(rbind, lapply(ids, do_species))
+  
+  if (nrow(new.recs) == 0) {
+    # no params added, return input
+    tbl
+    
+  } else {
+    # add a units column if one was present in the input table
+    if (ncol(tbl) == 5) {
+      units <- ParamInfo %>%
+        dplyr::filter(section == "species") %>%
+        select(param, units)
+      
+      new.recs <- left_join(new.recs, units, by = "param")
+    }
+    
+    tbl <- rbind( tbl, new.recs )
+    arrange(tbl, stratum, species)
+  }
+}
+
+#' Checks that a parameter label is valid.
+#' 
+#' A parameter label is valid if it is present in the \code{\link{ParamInfo}}
+#' table. The comparison ignores case and white-space. If a non-NULL value is
+#' supplied for \code{section} the check is restricted to parameter labels
+#' in that section (site, stratum or species).
+#' 
+#' @param param The parameter label.
+#' 
+#' @param section If not \code{NULL}, one of site, stratum or species.
+#' 
+#' @param no.match.error If \code{TRUE} an error results when a unique
+#'   match is not found for the input label; if \code{FALSE} (default)
+#'   the function returns NULL when there is no unique match.
+#' 
+#' @return \code{TRUE} is the label is valid.
+#' 
+#' @export
+#' 
+ffm_valid_param <- function(param, section=NULL, no.match.error) {
+  !is.null(.match_param_info(param, section, no.match.error=FALSE))
+}
+
+
+#' Retrieves information for a parameter label.
+#' 
+#' Searches for a row in the \code{\link{ParamInfo}} table with a matching
+#' parameter label. The comparison ignores case and white-space. 
+#' If a non-NULL value is supplied for \code{section} the check is restricted
+#' to parameter labels in that section (site, stratum or species).
+#' 
+#' @param param The parameter label.
+#' 
+#' @param section If not \code{NULL}, one of site, stratum or species.
+#' 
+#' @param no.match.error If \code{TRUE} an error results when a unique
+#'   match is not found for the input label; if \code{FALSE} (default)
+#'   the function returns NULL when there is no unique match.
+#' 
+#' @return Parameter info as a single row data frame; or \code{NULL}
+#'   if no matching label was found and \code{no.match.error} is
+#'   \code{FALSE}.
+#'   
+#' @export
+#'
+ffm_param_info <- function(param, section = NULL, no.match.error = FALSE) {
+  i <- .match_param_info(param, section, no.match.error)
+  if (!is.null(i)) ParamInfo[i, ]
+  else NULL
+}
+
+
+#' Finds parameter information for a given parameter label.
+#' 
+#' Searches for a row in the \code{\link{ParamInfo}} table with a matching
+#' parameter label. The comparison ignores case and white-space. 
+#' If a non-NULL value is supplied for \code{section} the check is restricted
+#' to parameter labels in that section (site, stratum or species).
+#' 
+#' @param param The parameter label.
+#' 
+#' @param section If not \code{NULL}, one of site, stratum or species.
+#' 
+#' @param no.match.error If \code{TRUE} an error results when a unique
+#'   match is not found for the input label; if \code{FALSE} (default)
+#'   the function returns NULL when there is no unique match.
+#' 
+#' @return The index of the matching row in \code{ParamInfo}; or \code{NULL}
+#'   if no matching label was found and \code{no.match.error} is
+#'   \code{FALSE}.
+#'
+.match_param_info <- function(param, section = NULL, no.match.error = FALSE) {
+  if (is.null(section))
+    labels <- ParamInfo$param
+  else
+    labels <- dplyr::filter(ParamInfo, section == section)$param
+    
+  ii <- stringr::str_detect(labels, .make_ptn(param))
+  n <- sum(ii)
+  
+  if (n == 1) which(ii)
+  else if (no.match.error) {
+    if (n == 0) stop(param, " not recognized as a parameter label")
+    else stop(param, " matches more than one parameter")
+  }
+  else NULL
+}
+
+
+#' Sets the value of a site meta-data parameter.
+#' 
+#' @param tbl The parameter table in which to set the value.
+#' @param param Label of the parameter to set.
+#' @param value Value of the parameter (will be converted to character).
+#' @param units (option) The units of measurement for the supplied value.
+#' 
+#' @return The updated parameter table.
+#' 
+#' @export
+#' 
+ffm_set_site_param <- function(tbl, param, value, units = NA_character_) {
+  i <- .match_param_info(param, section = "site", no.match.error = TRUE)
+  std.param <- ParamInfo[i, "param"]
+  
+  i <- match(std.param, tbl$param)
+  if (is.na(i)) stop("Input table does not contain parameter ", std.param)
+  
+  tbl[i, "value"] <- as.character(value)
+  if (!is.na(units)) tbl[i, "units"] <- units
+  tbl
+}
+
