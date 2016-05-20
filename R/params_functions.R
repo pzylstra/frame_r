@@ -135,6 +135,10 @@ getSpeciesParams <- function(names) {
 #' 
 #' @return The completed parameter table
 #' 
+#' @seealso \code{\link{ffm_param_info}}, \code{\link{ffm_set_param}},
+#'   \code{\link{ffm_set_site_param}}, \code{\link{ffm_set_stratum_param}}, 
+#'   \code{\link{ffm_set_species_param}}
+#' 
 #' @export
 #' 
 completeParams <- function(tbl) {
@@ -217,10 +221,14 @@ completeParams <- function(tbl) {
 #' 
 #' @return \code{TRUE} is the label is valid.
 #' 
+#' @seealso \code{\link{ffm_param_info}},
+#'   \code{\link{ffm_set_site_param}}, \code{\link{ffm_set_stratum_param}}, 
+#'   \code{\link{ffm_set_species_param}}
+#' 
 #' @export
 #' 
 ffm_valid_param <- function(param, section=NULL, no.match.error) {
-  !is.null(.match_param_info(param, section, no.match.error=FALSE))
+  !is.null(.match_param_by_section(param, section, no.match.error=FALSE))
 }
 
 
@@ -243,11 +251,132 @@ ffm_valid_param <- function(param, section=NULL, no.match.error) {
 #'   if no matching label was found and \code{no.match.error} is
 #'   \code{FALSE}.
 #'   
+#' @seealso \code{\link{ffm_valid_param}},
+#'   \code{\link{ffm_set_site_param}}, 
+#'   \code{\link{ffm_set_stratum_param}}, 
+#'   \code{\link{ffm_set_species_param}}
+#'   
 #' @export
 #'
 ffm_param_info <- function(param, section = NULL, no.match.error = FALSE) {
-  i <- .match_param_info(param, section, no.match.error)
+  i <- .match_param_by_section(param, section, no.match.error)
   if (!is.null(i)) ParamInfo[i, ]
+  else NULL
+}
+
+
+#' Sets the value of a site meta-data parameter.
+#' 
+#' @param tbl The parameter table in which to set the value.
+#' @param param (character) Label of the parameter to set.
+#' @param value Value of the parameter (will be converted to character).
+#' @param units (option) The units of measurement for the supplied value.
+#' 
+#' @return The updated parameter table.
+#' 
+#' @seealso \code{\link{ffm_valid_param}},
+#'   \code{\link{ffm_param_info}},
+#'   \code{\link{ffm_set_stratum_param}}, 
+#'   \code{\link{ffm_set_species_param}}
+#' 
+#' @export
+#' 
+ffm_set_site_param <- function(tbl, param, value, units = NA_character_) {
+  .set_param(tbl, stratum.id=NA, species.id=NA, param, value, units)
+}
+
+
+#' Sets the value of a stratum meta-data parameter.
+#' 
+#' @param tbl The parameter table in which to set the value.
+#' @param stratum.id (character) Stratum identifier.
+#' @param param (character) Label of the parameter to set.
+#' @param value Value of the parameter (will be converted to character).
+#' @param units (option) The units of measurement for the supplied value.
+#' 
+#' @return The updated parameter table.
+#' 
+#' @seealso \code{\link{ffm_valid_param}},
+#'   \code{\link{ffm_param_info}},
+#'   \code{\link{ffm_set_site_param}}, 
+#'   \code{\link{ffm_set_species_param}}
+#' 
+#' @export
+#' 
+ffm_set_stratum_param <- function(tbl, stratum.id, 
+                                  param, value, units = NA_character_) {
+  .set_param(tbl, stratum.id, species.id=NA, param, value, units)
+}
+
+
+#' Sets the value of a species parameter.
+#' 
+#' @param tbl The parameter table in which to set the value.
+#' @param stratum.id (character) Stratum identifier.
+#' @param species.id (character) Species identifier.
+#' @param param (character) Label of the parameter to set.
+#' @param value Value of the parameter (will be converted to character).
+#' @param units (option) The units of measurement for the supplied value.
+#' 
+#' @return The updated parameter table.
+#' 
+#' @seealso  \code{\link{ffm_valid_param}},
+#'   \code{\link{ffm_param_info}},
+#'   \code{\link{ffm_set_site_param}},
+#'   \code{\link{ffm_set_stratum_param}}
+#' 
+#' @export
+#' 
+ffm_set_species_param <- function(tbl, stratum.id, species.id, 
+                                  param, value, units = NA_character_) {
+  ffm_set_param(tbl, stratum.id, species.id, param, value, units)
+}
+
+
+############################################################################
+#
+# Non-exported helper functions
+#
+############################################################################
+
+#' Finds parameter information for a given parameter label.
+#' 
+#' Searches for a row in the \code{\link{ParamInfo}} table with a matching
+#' parameter label. The comparison ignores case and white-space. 
+#' If a non-NULL value is supplied for \code{section} the check is restricted
+#' to parameter labels in that section (site, stratum or species).
+#' 
+#' @param param The parameter label.
+#' 
+#' @param stratum.id Stratum identifier (or \code{NULL} for site meta-data).
+#' 
+#' @param species.id Species identifier (or \code{NULL} for site or stratum
+#'   meta-data).
+#' 
+#' @param no.match.error If \code{TRUE} an error results when a unique
+#'   match is not found for the input label; if \code{FALSE} (default)
+#'   the function returns NULL when there is no unique match.
+#' 
+#' @return The index of the matching row in \code{ParamInfo}; or \code{NULL}
+#'   if no matching label was found and \code{no.match.error} is
+#'   \code{FALSE}.
+#'
+.match_param_by_ids <- function(param, stratum.id, species.id, no.match.error = FALSE) {
+  section <- 
+    if (is.null(stratum.id)) "site"
+  else if (is.null(species.id)) "stratum"
+  else "species"
+  
+  labels <- dplyr::filter(ParamInfo, section == section)$param
+  
+  ii <- stringr::str_detect(labels, .make_ptn(param))
+  n <- sum(ii)
+  
+  if (n == 1) which(ii)
+  else if (no.match.error) {
+    if (n == 0) stop(param, " not recognized as a parameter label")
+    else stop(param, " matches more than one parameter")
+  }
   else NULL
 }
 
@@ -271,12 +400,12 @@ ffm_param_info <- function(param, section = NULL, no.match.error = FALSE) {
 #'   if no matching label was found and \code{no.match.error} is
 #'   \code{FALSE}.
 #'
-.match_param_info <- function(param, section = NULL, no.match.error = FALSE) {
+.match_param_by_section <- function(param, section, no.match.error = FALSE) {
   if (is.null(section))
     labels <- ParamInfo$param
   else
     labels <- dplyr::filter(ParamInfo, section == section)$param
-    
+  
   ii <- stringr::str_detect(labels, .make_ptn(param))
   n <- sum(ii)
   
@@ -289,26 +418,33 @@ ffm_param_info <- function(param, section = NULL, no.match.error = FALSE) {
 }
 
 
-#' Sets the value of a site meta-data parameter.
+#' Updates the value of a parameter in a parameter table.
 #' 
 #' @param tbl The parameter table in which to set the value.
+#' @param stratum.id Stratum identifier.
+#' @param species.id Species identifier.
 #' @param param Label of the parameter to set.
 #' @param value Value of the parameter (will be converted to character).
 #' @param units (option) The units of measurement for the supplied value.
 #' 
 #' @return The updated parameter table.
 #' 
-#' @export
-#' 
-ffm_set_site_param <- function(tbl, param, value, units = NA_character_) {
-  i <- .match_param_info(param, section = "site", no.match.error = TRUE)
+.set_param <- function(tbl, stratum.id, species.id,
+                       param, value, units = NA_character_) {
+  
+  section <- match.arg(section)
+  
+  i <- .match_param_by_ids(param, stratum.id, species.id, no.match.error = TRUE)
   std.param <- ParamInfo[i, "param"]
   
   i <- match(std.param, tbl$param)
-  if (is.na(i)) stop("Input table does not contain parameter ", std.param)
+  if (is.na(i)) 
+    stop("Input table does not contain parameter ", 
+         std.param,
+         " (", section, ")" )
   
   tbl[i, "value"] <- as.character(value)
-  if (!is.na(units)) tbl[i, "units"] <- units
+  if ( !(is.na(units) | is.null(units)) ) tbl[i, "units"] <- units
   tbl
 }
 

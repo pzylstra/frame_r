@@ -10,7 +10,7 @@
 \item{site}{The site as a Scala reference object created
 with \code{\link{ffm_site}}.}
 
-\item{db}{Output database as a Scala reference object.}
+\item{db}{Output database object or path and filename.}
 }
 \value{
 \code{TRUE} if the run completed and results were written to

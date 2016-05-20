@@ -14,12 +14,17 @@ ffm_run(x, db, ...)
   \item a parameter generating function.
 }}
 
-\item{db}{Output database}
+\item{db}{Output database object or character string for path and filename.}
 
 \item{additional}{arguments (see specific ffm_run functions for details)}
 }
 \description{
-Runs the model with the given site.
+The destination database for model results (\code{db} argument) can be specified 
+as either a database object, created with \code{\link{ffm_create_database}}, or
+a character string for the path and filename.  If \code{db} is an object, results
+are sent to the database which is then left open and available for use by subsequent
+runs. If \code{db} is a character string for path and filename, a new database is 
+created, written to, and then closed.
 }
 \seealso{
 \code{\link{ffm_run.ScalaInterpreterReference}}

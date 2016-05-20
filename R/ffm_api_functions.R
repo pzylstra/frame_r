@@ -27,6 +27,13 @@ ffm_site <- function(params) {
 
 
 #' Runs the model with the given site.
+#' 
+#' The destination database for model results (\code{db} argument) can be specified 
+#' as either a database object, created with \code{\link{ffm_create_database}}, or
+#' a character string for the path and filename.  If \code{db} is an object, results
+#' are sent to the database which is then left open and available for use by subsequent
+#' runs. If \code{db} is a character string for path and filename, a new database is 
+#' created, written to, and then closed.
 #'
 #' @param x Site data (parameter set) as one of the following:
 #'   \itemize{
@@ -35,7 +42,7 @@ ffm_site <- function(params) {
 #'     \item a parameter generating function.
 #'   }     
 #'   
-#' @param db Output database
+#' @param db Output database object or character string for path and filename.
 #'   
 #' @param additional arguments (see specific ffm_run functions for details)
 #' 
@@ -55,7 +62,7 @@ ffm_run <- function(x, db, ...) UseMethod("ffm_run")
 #' @param site The site as a Scala reference object created
 #'   with \code{\link{ffm_site}}.
 #'   
-#' @param db Output database as a Scala reference object.
+#' @param db Output database object or path and filename.
 #'   
 #' @return \code{TRUE} if the run completed and results were written to
 #'   the output database successfully; \code{FALSE} otherwise.
@@ -67,11 +74,23 @@ ffm_run <- function(x, db, ...) UseMethod("ffm_run")
 ffm_run.ScalaInterpreterReference <- function(site, db, ...) {
   stopifnot(is(site, "ScalaInterpreterReference"))
   
+  if (is.character(db)) {
+    db <- .open_db(db)
+    closeDB <- TRUE
+  } 
+  else {
+    closeDB <- FALSE
+  }
+  
   db <- .check_db(db)
 
   res <- E$s$do('ffm.runner.Runner')$run(site)
   
-  db$insertResult(res)
+  status <- db$insertResult(res)
+  
+  if (closeDB) db$close()
+  
+  status
 }
 
 
@@ -158,6 +177,12 @@ ffm_find_site_param <- function(params, names) {
     is.na(params$stratum) & is.na(params$species)
   
   which(ii)
+}
+
+
+.open_db <- function(db) {
+  if (is(db, "ScalaInterpreterReference")) db
+  else ffm_create_database(db)
 }
 
 
