@@ -27,4 +27,9 @@ together with an associated SQLite database file. A reference is returned
 which can then be passed to \code{\link{ffm_run}} functions and used to
 write model results.
 }
+\details{
+Note that the returned object is a Scala object reference for use with
+\code{\link{ffm_run}}. This is different to the more general database 
+connection object used with functions in the RSQLite package.
+}
 

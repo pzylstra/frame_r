@@ -135,8 +135,9 @@ getSpeciesParams <- function(names) {
 #' 
 #' @return The completed parameter table
 #' 
-#' @seealso \code{\link{ffm_param_info}}, \code{\link{ffm_set_param}},
-#'   \code{\link{ffm_set_site_param}}, \code{\link{ffm_set_stratum_param}}, 
+#' @seealso \code{\link{ffm_param_info}},
+#'   \code{\link{ffm_set_site_param}}, 
+#'   \code{\link{ffm_set_stratum_param}}, 
 #'   \code{\link{ffm_set_species_param}}
 #' 
 #' @export
@@ -329,7 +330,7 @@ ffm_set_stratum_param <- function(tbl, stratum.id,
 #' 
 ffm_set_species_param <- function(tbl, stratum.id, species.id, 
                                   param, value, units = NA_character_) {
-  ffm_set_param(tbl, stratum.id, species.id, param, value, units)
+  .set_param(tbl, stratum.id, species.id, param, value, units)
 }
 
 
@@ -431,8 +432,6 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
 #' 
 .set_param <- function(tbl, stratum.id, species.id,
                        param, value, units = NA_character_) {
-  
-  section <- match.arg(section)
   
   i <- .match_param_by_ids(param, stratum.id, species.id, no.match.error = TRUE)
   std.param <- ParamInfo[i, "param"]

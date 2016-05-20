@@ -137,6 +137,10 @@ ffm_run.function <- function(gen.fn, db, ...) {
 #' together with an associated SQLite database file. A reference is returned
 #' which can then be passed to \code{\link{ffm_run}} functions and used to
 #' write model results.
+#' 
+#' Note that the returned object is a Scala object reference for use with
+#' \code{\link{ffm_run}}. This is different to the more general database 
+#' connection object used with functions in the RSQLite package.
 #'
 #' @param path The path for the database file
 #' 
@@ -160,24 +164,28 @@ ffm_create_database <- function(path, delete.existing = TRUE, use.transactions =
 }
 
 
-#' Locate specified site meta-parameters in a parameter table.
+#' Attempts to free up resources used for R/Scala connection.
 #' 
-#' @param params Parameter table as a matrix or data.frame of character values.
-#' @param names The name(s) of parameters to find.
+#' This is generally for use by other package functions, but can
+#' also be run by the user. To be effective, all references to 
+#' Scala objects should be removed from the workspace first.
 #' 
-#' @return Row numbers corresponding to the specified parameters.
-#' 
+#' @param reset Whether to also re-start the Scala interpreter used
+#'   by the package (default is \code{FALSE}).
+#'
 #' @export
-#' 
-ffm_find_site_param <- function(params, names) {
-  stopifnot(is.data.frame(params) | is.matrix(params))
-  
-  params <- as.data.frame(params)
-  ii <- stringr::str_detect(params$param, names) & 
-    is.na(params$stratum) & is.na(params$species)
-  
-  which(ii)
+#'  
+ffm_cleanup <- function(reset = FALSE) {
+  rscala::intpGC(E$s)
+  if (reset) E$s <- rscala::scalaInterpreter(classpath = E$jars)
 }
+
+
+############################################################################
+#
+# Non-exported helper functions
+#
+############################################################################
 
 
 .open_db <- function(db) {

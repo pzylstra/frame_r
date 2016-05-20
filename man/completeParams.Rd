@@ -22,8 +22,9 @@ If a species has missing parameters but is not present in the table of
 default lookup table, an error is thrown.
 }
 \seealso{
-\code{\link{ffm_param_info}}, \code{\link{ffm_set_param}},
-  \code{\link{ffm_set_site_param}}, \code{\link{ffm_set_stratum_param}}, 
+\code{\link{ffm_param_info}},
+  \code{\link{ffm_set_site_param}}, 
+  \code{\link{ffm_set_stratum_param}}, 
   \code{\link{ffm_set_species_param}}
 }
 
