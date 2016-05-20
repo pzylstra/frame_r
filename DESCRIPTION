@@ -1,8 +1,8 @@
 Package: forestflames
 Type: Package
 Title: Forest flammability model.
-Version: 0.1
-Date: 2016-04-01
+Version: 0.1.1
+Date: 2016-05-20
 Authors@R: as.person( c(
   "Phil Zylstra <pzylstra@uow.edu.au> [cre]",
   "Michael Bedward <michael.bedward@gmail.com> [aut]"))
