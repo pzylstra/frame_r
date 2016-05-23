@@ -26,8 +26,6 @@
 #' findSpeciesByName("aspidistra")
 #' }
 #'
-#' @seealso \code{\link{getSpeciesParams}}, \link{DefaultSpeciesParams}
-#'
 #' @export
 #'
 findSpecies <- function(names) {
@@ -87,8 +85,6 @@ isSpeciesKnown <- function(names) {
 #' params <- getSpeciesParams(spp)
 #' }
 #'
-#' @seealso \code{\link{findSpecies}}, \link{DefaultSpeciesParams}
-#'
 #' @export
 #'
 getSpeciesParams <- function(names) {
@@ -134,11 +130,6 @@ getSpeciesParams <- function(names) {
 #' @param tbl The input parameter table
 #' 
 #' @return The completed parameter table
-#' 
-#' @seealso \code{\link{ffm_param_info}},
-#'   \code{\link{ffm_set_site_param}}, 
-#'   \code{\link{ffm_set_stratum_param}}, 
-#'   \code{\link{ffm_set_species_param}}
 #' 
 #' @export
 #' 
@@ -212,24 +203,19 @@ completeParams <- function(tbl) {
 #' supplied for \code{section} the check is restricted to parameter labels
 #' in that section (site, stratum or species).
 #' 
-#' @param param The parameter label.
+#' @param label The parameter label.
 #' 
 #' @param section If not \code{NULL}, one of site, stratum or species.
 #' 
-#' @param no.match.error If \code{TRUE} an error results when a unique
-#'   match is not found for the input label; if \code{FALSE} (default)
-#'   the function returns NULL when there is no unique match.
+#' @param single If \code{TRUE} (default) require that label only
+#'   matches a single parameter; if \code{FALSE } allow multiple matches.
 #' 
 #' @return \code{TRUE} is the label is valid.
 #' 
-#' @seealso \code{\link{ffm_param_info}},
-#'   \code{\link{ffm_set_site_param}}, \code{\link{ffm_set_stratum_param}}, 
-#'   \code{\link{ffm_set_species_param}}
-#' 
 #' @export
 #' 
-ffm_valid_param <- function(param, section=NULL, no.match.error) {
-  !is.null(.match_param_by_section(param, section, no.match.error=FALSE))
+ffm_valid_param <- function(label, section=NULL, single) {
+  !is.null(.match_param(label, section, no.match.error = FALSE, single = single))
 }
 
 
@@ -240,7 +226,7 @@ ffm_valid_param <- function(param, section=NULL, no.match.error) {
 #' If a non-NULL value is supplied for \code{section} the check is restricted
 #' to parameter labels in that section (site, stratum or species).
 #' 
-#' @param param The parameter label.
+#' @param label The parameter label.
 #' 
 #' @param section If not \code{NULL}, one of site, stratum or species.
 #' 
@@ -252,19 +238,35 @@ ffm_valid_param <- function(param, section=NULL, no.match.error) {
 #'   if no matching label was found and \code{no.match.error} is
 #'   \code{FALSE}.
 #'   
-#' @seealso \code{\link{ffm_valid_param}},
-#'   \code{\link{ffm_set_site_param}}, 
-#'   \code{\link{ffm_set_stratum_param}}, 
-#'   \code{\link{ffm_set_species_param}}
-#'   
 #' @export
 #'
-ffm_param_info <- function(param, section = NULL, no.match.error = FALSE) {
-  i <- .match_param_by_section(param, section, no.match.error)
+ffm_param_info <- function(label, section = NULL, no.match.error = FALSE) {
+  i <- .match_param(label, section, no.match.error, single = TRUE)
+
   if (!is.null(i)) ParamInfo[i, ]
   else NULL
 }
 
+#' Returns a summary of the given parameter table.
+#' 
+#' @export
+#' 
+ffm_param_table_summary <- function(tbl) {
+  u <- function(xs) unique(xs[!is.na(xs)])
+  nu <- function(xs) length(u(xs))
+  
+  # Species IDs within each stratum
+  strata.spp <- tapply(tbl$species, 
+                       tbl$stratum, 
+                       function(ids) u(ids))
+  
+  names(strata.spp) <- u(tbl$stratum)
+  
+  list(
+    nstrata = nu(tbl$stratum),
+    nspecies = nu(tbl$species),
+    strata.species = strata.spp)
+}
 
 #' Sets the value of a site meta-data parameter.
 #' 
@@ -274,11 +276,6 @@ ffm_param_info <- function(param, section = NULL, no.match.error = FALSE) {
 #' @param units (option) The units of measurement for the supplied value.
 #' 
 #' @return The updated parameter table.
-#' 
-#' @seealso \code{\link{ffm_valid_param}},
-#'   \code{\link{ffm_param_info}},
-#'   \code{\link{ffm_set_stratum_param}}, 
-#'   \code{\link{ffm_set_species_param}}
 #' 
 #' @export
 #' 
@@ -296,11 +293,6 @@ ffm_set_site_param <- function(tbl, param, value, units = NA_character_) {
 #' @param units (option) The units of measurement for the supplied value.
 #' 
 #' @return The updated parameter table.
-#' 
-#' @seealso \code{\link{ffm_valid_param}},
-#'   \code{\link{ffm_param_info}},
-#'   \code{\link{ffm_set_site_param}}, 
-#'   \code{\link{ffm_set_species_param}}
 #' 
 #' @export
 #' 
@@ -321,11 +313,6 @@ ffm_set_stratum_param <- function(tbl, stratum.id,
 #' 
 #' @return The updated parameter table.
 #' 
-#' @seealso  \code{\link{ffm_valid_param}},
-#'   \code{\link{ffm_param_info}},
-#'   \code{\link{ffm_set_site_param}},
-#'   \code{\link{ffm_set_stratum_param}}
-#' 
 #' @export
 #' 
 ffm_set_species_param <- function(tbl, stratum.id, species.id, 
@@ -342,49 +329,7 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
 
 #' Finds parameter information for a given parameter label.
 #' 
-#' Searches for a row in the \code{\link{ParamInfo}} table with a matching
-#' parameter label. The comparison ignores case and white-space. 
-#' If a non-NULL value is supplied for \code{section} the check is restricted
-#' to parameter labels in that section (site, stratum or species).
-#' 
-#' @param param The parameter label.
-#' 
-#' @param stratum.id Stratum identifier (or \code{NULL} for site meta-data).
-#' 
-#' @param species.id Species identifier (or \code{NULL} for site or stratum
-#'   meta-data).
-#' 
-#' @param no.match.error If \code{TRUE} an error results when a unique
-#'   match is not found for the input label; if \code{FALSE} (default)
-#'   the function returns NULL when there is no unique match.
-#' 
-#' @return The index of the matching row in \code{ParamInfo}; or \code{NULL}
-#'   if no matching label was found and \code{no.match.error} is
-#'   \code{FALSE}.
-#'
-.match_param_by_ids <- function(param, stratum.id, species.id, no.match.error = FALSE) {
-  section <- 
-    if (is.null(stratum.id)) "site"
-  else if (is.null(species.id)) "stratum"
-  else "species"
-  
-  labels <- dplyr::filter(ParamInfo, section == section)$param
-  
-  ii <- stringr::str_detect(labels, .make_ptn(param))
-  n <- sum(ii)
-  
-  if (n == 1) which(ii)
-  else if (no.match.error) {
-    if (n == 0) stop(param, " not recognized as a parameter label")
-    else stop(param, " matches more than one parameter")
-  }
-  else NULL
-}
-
-
-#' Finds parameter information for a given parameter label.
-#' 
-#' Searches for a row in the \code{\link{ParamInfo}} table with a matching
+#' Searches for a row or rows in the \code{\link{ParamInfo}} table with a matching
 #' parameter label. The comparison ignores case and white-space. 
 #' If a non-NULL value is supplied for \code{section} the check is restricted
 #' to parameter labels in that section (site, stratum or species).
@@ -393,15 +338,19 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
 #' 
 #' @param section If not \code{NULL}, one of site, stratum or species.
 #' 
-#' @param no.match.error If \code{TRUE} an error results when a unique
-#'   match is not found for the input label; if \code{FALSE} (default)
-#'   the function returns NULL when there is no unique match.
+#' @param no.match.error If \code{TRUE} an error results when no
+#'   match is found, or more than one match is found and \code{single}
+#'   is \code{TRUE}; if \code{FALSE} (default) the function returns 
+#'   \code{NULL} if unsuccessful.
+#'   
+#' @param single If \code{TRUE} (default) require that label only
+#'   matches a single parameter; if \code{FALSE } allow multiple matches.
 #' 
-#' @return The index of the matching row in \code{ParamInfo}; or \code{NULL}
-#'   if no matching label was found and \code{no.match.error} is
-#'   \code{FALSE}.
+#' @return The index or indices (if \code{single} is \code{FALSE}) of the 
+#'   matching row(s) in \code{ParamInfo}; otherwise \code{NULL}
+#'   if unsuccessful and \code{no.match.error} is \code{FALSE}.
 #'
-.match_param_by_section <- function(param, section, no.match.error = FALSE) {
+.match_param <- function(param, section, no.match.error = FALSE, single = TRUE) {
   if (is.null(section))
     labels <- ParamInfo$param
   else
@@ -410,12 +359,21 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
   ii <- stringr::str_detect(labels, .make_ptn(param))
   n <- sum(ii)
   
-  if (n == 1) which(ii)
-  else if (no.match.error) {
-    if (n == 0) stop(param, " not recognized as a parameter label")
-    else stop(param, " matches more than one parameter")
+  if (single) {
+    if (n == 1) which(ii)
+    else if (no.match.error) {
+      if (n == 0) stop(param, " not recognized as a parameter label")
+      else stop(param, " matches more than one parameter")
+    }
+    else NULL
+  } 
+  else {  # not limited to single
+    if (n == 0 && no.match.error)
+      stop(param, " not recognized as a parameter label")
+    else if (n > 0)
+      which(ii)
+    else NULL
   }
-  else NULL
 }
 
 
@@ -433,17 +391,53 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
 .set_param <- function(tbl, stratum.id, species.id,
                        param, value, units = NA_character_) {
   
-  i <- .match_param_by_ids(param, stratum.id, species.id, no.match.error = TRUE)
-  std.param <- ParamInfo[i, "param"]
+  section <- 
+    if (is.na(stratum.id)) "site"
+    else if (is.na(species.id)) "stratum"
+    else "species"
   
-  i <- match(std.param, tbl$param)
-  if (is.na(i)) 
+  i <- .match_param(param, section, no.match.error = TRUE, single = TRUE)
+  std.param <- ParamInfo[i, "param"]
+
+  in.scope <- .match_ids(tbl, stratum.id, species.id)
+    
+  rows <- which( tbl$param == std.param & in.scope ) 
+  if (length(rows) == 0) 
     stop("Input table does not contain parameter ", 
          std.param,
-         " (", section, ")" )
+         " (", section, ") ",
+         "for stratum=", stratum.id,
+         ", species=", species.id)
   
-  tbl[i, "value"] <- as.character(value)
-  if ( !(is.na(units) | is.null(units)) ) tbl[i, "units"] <- units
+  tbl[rows, "value"] <- as.character(value)
+  if ( !(is.na(units) | is.null(units)) ) tbl[rows, "units"] <- units
   tbl
+}
+
+.match_ids <- function(tbl, stratum.id, species.id) {
+  if (is.na(stratum.id)) {
+    if (is.na(species.id)) .match_stratum(tbl, stratum.id)
+    else stop("Missing stratum ID with non-missing species ID is not a valid combination")
+  }
+  else .match_stratum(tbl, stratum.id) & .match_species(tbl, species.id)
+}
+
+.match_stratum <- function(tbl, stratum.id) {
+  if (is.na(stratum.id)) is.na(tbl$stratum)
+  else {
+    id <- as.character(stratum.id)
+    ids <- as.character(tbl$stratum)
+    !is.na(ids) & ids == id
+  }
+}
+
+.match_species <- function(tbl, species.id) {
+  # match species NA to stratum meta-data rows
+  if (is.na(species.id)) !is.na(tbl$stratum) & is.na(tbl$species)
+  else {
+    id <- as.character(species.id)
+    ids <- as.character(tbl$species)
+    !is.na(ids) & ids == id
+  }
 }
 

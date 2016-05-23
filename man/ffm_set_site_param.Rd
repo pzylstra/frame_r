@@ -21,10 +21,4 @@ The updated parameter table.
 \description{
 Sets the value of a site meta-data parameter.
 }
-\seealso{
-\code{\link{ffm_valid_param}},
-  \code{\link{ffm_param_info}},
-  \code{\link{ffm_set_stratum_param}}, 
-  \code{\link{ffm_set_species_param}}
-}
 

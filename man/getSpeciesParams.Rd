@@ -26,7 +26,4 @@ params <- getSpeciesParams(spp)
 }
 
 }
-\seealso{
-\code{\link{findSpecies}}, \link{DefaultSpeciesParams}
-}
 

@@ -4,10 +4,10 @@
 \alias{ffm_param_info}
 \title{Retrieves information for a parameter label.}
 \usage{
-ffm_param_info(param, section = NULL, no.match.error = FALSE)
+ffm_param_info(label, section = NULL, no.match.error = FALSE)
 }
 \arguments{
-\item{param}{The parameter label.}
+\item{label}{The parameter label.}
 
 \item{section}{If not \code{NULL}, one of site, stratum or species.}
 
@@ -25,11 +25,5 @@ Searches for a row in the \code{\link{ParamInfo}} table with a matching
 parameter label. The comparison ignores case and white-space. 
 If a non-NULL value is supplied for \code{section} the check is restricted
 to parameter labels in that section (site, stratum or species).
-}
-\seealso{
-\code{\link{ffm_valid_param}},
-  \code{\link{ffm_set_site_param}}, 
-  \code{\link{ffm_set_stratum_param}}, 
-  \code{\link{ffm_set_species_param}}
 }
 

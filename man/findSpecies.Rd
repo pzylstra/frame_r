@@ -36,7 +36,4 @@ findSpeciesByName("aspidistra")
 }
 
 }
-\seealso{
-\code{\link{getSpeciesParams}}, \link{DefaultSpeciesParams}
-}
 

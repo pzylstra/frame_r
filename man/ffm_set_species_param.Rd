@@ -26,10 +26,4 @@ The updated parameter table.
 \description{
 Sets the value of a species parameter.
 }
-\seealso{
-\code{\link{ffm_valid_param}},
-  \code{\link{ffm_param_info}},
-  \code{\link{ffm_set_site_param}},
-  \code{\link{ffm_set_stratum_param}}
-}
 

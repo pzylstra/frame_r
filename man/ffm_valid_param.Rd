@@ -4,16 +4,15 @@
 \alias{ffm_valid_param}
 \title{Checks that a parameter label is valid.}
 \usage{
-ffm_valid_param(param, section = NULL, no.match.error)
+ffm_valid_param(label, section = NULL, single)
 }
 \arguments{
-\item{param}{The parameter label.}
+\item{label}{The parameter label.}
 
 \item{section}{If not \code{NULL}, one of site, stratum or species.}
 
-\item{no.match.error}{If \code{TRUE} an error results when a unique
-match is not found for the input label; if \code{FALSE} (default)
-the function returns NULL when there is no unique match.}
+\item{single}{If \code{TRUE} (default) require that label only
+matches a single parameter; if \code{FALSE } allow multiple matches.}
 }
 \value{
 \code{TRUE} is the label is valid.
@@ -23,10 +22,5 @@ A parameter label is valid if it is present in the \code{\link{ParamInfo}}
 table. The comparison ignores case and white-space. If a non-NULL value is
 supplied for \code{section} the check is restricted to parameter labels
 in that section (site, stratum or species).
-}
-\seealso{
-\code{\link{ffm_param_info}},
-  \code{\link{ffm_set_site_param}}, \code{\link{ffm_set_stratum_param}}, 
-  \code{\link{ffm_set_species_param}}
 }
 
