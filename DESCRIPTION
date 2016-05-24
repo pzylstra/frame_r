@@ -1,12 +1,19 @@
 Package: forestflames
 Type: Package
-Title: Forest flammability model.
-Version: 0.1.1
-Date: 2016-05-20
+Title: R interface to the forest flammability model of Zylstra et al.
+Version: 0.1.2
+Date: 2016-05-24
 Authors@R: as.person( c(
-  "Phil Zylstra <pzylstra@uow.edu.au> [cre]",
-  "Michael Bedward <michael.bedward@gmail.com> [aut]"))
-Description: Forest flammability model blah blah blah...
+    "Phil Zylstra <pzylstra@uow.edu.au> [cre]",
+    "Michael Bedward <michael.bedward@gmail.com> [aut]"))
+Description: This package allows the forest flammability model to be run from
+    within R. It provides functions to prepare input parameters, run model
+    simulations, and query the output database of model results. The package
+    includes a distribution of the model and its dependencies in the form of
+    Java jar files. The only additional requirement is an installation of
+    Scala (the Java-related language in which the model is programmed) on the
+    host system. See the introduction to the rscala package (used by this 
+    package) for details on installing Scala.
 License: MIT + file LICENSE
 Depends:
     R (>= 3.2.0)
