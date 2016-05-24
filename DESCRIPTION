@@ -1,7 +1,7 @@
 Package: forestflames
 Type: Package
 Title: R interface to the forest flammability model of Zylstra et al.
-Version: 0.1.2
+Version: 0.1.3
 Date: 2016-05-24
 Authors@R: as.person( c(
     "Phil Zylstra <pzylstra@uow.edu.au> [cre]",
@@ -19,7 +19,7 @@ Depends:
     R (>= 3.2.0)
 Imports:
     dplyr(>= 0.4.3),
-    rscala(>= 1.0.9),
+    rscala(>= 1.0.11),
     RSQLite(>= 1.0.0),
     stringr(>= 1.0.0)
 LazyData: TRUE
