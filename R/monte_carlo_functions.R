@@ -50,7 +50,7 @@ ffm_param_variance <- function(tbl,
   if (any(ii)) {
     # Set standard deviations to contain maximum scatter
     # 99% of the time
-    limits <- x[ii] * max.prop
+    limits <- xs[ii] * max.prop
     dxs <- rnorm(sum(ii), mean = 0, sd = limits / 3)
     
     out.of.range <- dxs > limits
