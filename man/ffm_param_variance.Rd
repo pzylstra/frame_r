@@ -5,19 +5,76 @@
 \title{Randomly perturbs values for selected numeric parameters in a table.}
 \usage{
 ffm_param_variance(tbl, max.prop = 0.1, labels = c("leafWidth",
-  "leafLength", "leafThickness", "leafSeparation"), dist = c("normal",
-  "beta"), beta.a = 1, beta.b = 1)
+  "leafLength", "leafThickness", "leafSeparation"), method = c("normal",
+  "beta", "uniform"), beta.a = 2, beta.b = 2)
+}
+\arguments{
+\item{tbl}{Input parameter table.}
+
+\item{max.prop}{The maximum absolute perturbation to apply, expressed
+as a proportion between 0 and 1.}
+
+\item{labels}{Labels of the parameters whose values are to be
+perturbed. It only makes sense to specify parameters with numeric values.}
+
+\item{beta.a}{First shape parameter for the Beta distribution. Ignored
+if \code{method} is not \code{"beta"}.}
+
+\item{beta.b}{Second shape parameter for the Beta distribution. Ignored
+if \code{method} is not \code{"beta"}.}
+}
+\value{
+A copy of the input parameter table with selected values updated.
 }
 \description{
 Given an input parameters table, this function adds random noise to 
 specified numeric parameters and returns an updated copy of the table.
-Noise can be based on a Normal (Gaussian) or Beta distribution. The 
-maximum variation is controlled by the \code{max.prop} argument. 
-When adding Gaussian noise, a random value is drawn from a Normal 
-distribution with a mean of zero and standard deviation equal to
-\code{max.prop / 3}. This results in 99% of percent of random values
-being within plus or minus \code{max.prop} times the input value.
-Any random perturbations outside this range will be discarded and 
-re-drawn (so effectively working with a truncated Normal distribution).
+Noise can be based on a Normal (Gaussian), Beta or Uniform distribution.
+The maximum absolute perturbation is controlled by the \code{max.prop} 
+argument.
+}
+\details{
+When \code{method = "normal"} (the default), random deviates are drawn
+from a Normal distribution with mean zero and standard deviation equal
+to \code{x * max.prop / 3} where \code{x} is the input parameter value. 
+This results in 99% of deviates lying within the allowed range. Any deviates
+beyond this range are discarded and re-drawn, effectively rendering the distribution
+a (slightly) truncated Normal.
+
+When \code{method = "beta"}, it is possible to generate both symmetric and
+skewed deviates depending on the values of the distribution parameters
+\code{beta.a} and \code{beta.b}. The function constrains the choice of
+parameters to both be greater than 1.0 so that a mode exists for the 
+distribution, and will issue an error message if this is not the case.
+Random deviates between 0 and 1 are drawn from the distribution and scaled
+such that the mode of the distribution corresponds to the input parameter
+value. For a symmetric distribution (\code{beta.a == beta.b}) a deviate of
+0 is scaled to \code{-max.prop * x} and a deviate of 1 is scaled to 
+\code{max.prop * x}, where \code{x} is the input parameter value. Skewed
+Beta distributions (\code{beta.a != beta.b}) give correspondingly skewed
+distributions of perturbations. Random deviates drawn from the
+distribution are scaled such that those lying on the side of the mode with
+the longest tail can approach the full range of pertubation, while those
+lying on the other side have a reduced range.
+
+When \code{method = "uniform"}, perturbations are uniformly distributed
+either side of the input parameter value.
+}
+\examples{
+\dontrun{
+# Vary leaf traits for all species with Uniform perturbations which are,
+# at most, 20\% of the input values
+tbl.updated <- ffm_param_variance(tbl, max.prop = 0.2, method = "unif")
+
+# Vary ignition temperatures by up to 10\% for all species based on Normal 
+# perturbations
+tbl.updated <- ffm_param_variance(tbl, labels = "ignitionTemp", max.prop=0.1)
+
+# Vary fuel load according to a skewed Beta distribution with mode at 0.2, 
+# and with a maximum proportional perturbation of 50\%
+tbl.updated <- ffm_param_variance(tbl, labels = "fuelLoad", max.prop = 0.5,
+                                  method = "beta", beta.a = 2, beta.b = 5)
+}
+
 }
 
