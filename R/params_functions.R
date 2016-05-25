@@ -13,22 +13,22 @@
 #' \dontrun{
 #' # Look for Acacia dealbata and Cassinia aculeata.
 #' # The search is case insensitive.
-#' index <- findSpeciesByName(c("Ac deal", "cass ac"))
+#' index <- ffm_find_species(c("Ac deal", "cass ac"))
 #'
 #' # Search for a term that matches multiple species. The
 #' # list element for "cass" will be a vector of indices of
 #' # all matching taxa:
-#' findSpeciesByName("cass")
+#' ffm_find_species("cass")
 #'
 #' # Search for a name that does not exist in the default
 #' # species parameters table. This results in \code{NA} being
 #' # returned for the index:
-#' findSpeciesByName("aspidistra")
+#' ffm_find_species("aspidistra")
 #' }
 #'
 #' @export
 #'
-findSpecies <- function(names) {
+ffm_find_species <- function(names) {
 
   mkregex <- function(s) {
     parts <- stringr::str_split(s, "\\s")[[1]]
@@ -61,8 +61,8 @@ findSpecies <- function(names) {
 #'
 #' @export
 #'
-isSpeciesKnown <- function(names) {
-  sapply(findSpecies(names),
+ffm_is_species_known <- function(names) {
+  sapply(ffm_find_species(names),
          function(indices) length(indices) == 1 && !is.na(indices))
 }
 
@@ -82,13 +82,13 @@ isSpeciesKnown <- function(names) {
 #' \dontrun{
 #' # Get default parameters for selected species:
 #' spp <- c("Poa lab", "D repens", "Hyd laxiflora")
-#' params <- getSpeciesParams(spp)
+#' params <- ffm_get_species_params(spp)
 #' }
 #'
 #' @export
 #'
-getSpeciesParams <- function(names) {
-  indices <- findSpecies(names)
+ffm_get_species_params <- function(names) {
+  indices <- ffm_find_species(names)
 
   # check for non-matches and multiple matches
   nas <- sapply(indices, anyNA)
@@ -133,7 +133,7 @@ getSpeciesParams <- function(names) {
 #' 
 #' @export
 #' 
-completeParams <- function(tbl) {
+ffm_complete_params <- function(tbl) {
   if (!.is_param_table(tbl))
     stop("Input table must be a character matrix or data frame with 4 or 5 columns")
   
@@ -153,10 +153,10 @@ completeParams <- function(tbl) {
       # Don't need to add any parameters, so return NULL
       NULL
     }
-    else if (isSpeciesKnown(species.name)) {
+    else if (ffm_is_species_known(species.name)) {
       # Parameters required and species is known
       #
-      dat <- getSpeciesParams(species.name) %>% select_(.dots = required)
+      dat <- ffm_get_species_params(species.name) %>% select_(.dots = required)
       nrecs <- ncol(dat)
       
       # return required addition parameter table records
