@@ -113,11 +113,11 @@ ffm_describe_betas <- function(beta.a = c(2, 5, 10),
 #' @param method Method used to generate perturbations.
 #'   \describe{
 #'     \item{normal}{Draw perturbations from a Normal distribution,
-#'     with zero mean and where max.prop corresponds to 3 standard
-#'     deviations.}
-#'     \item{beta}{Draw random deviates from a Beta distribution with
-#'     a mode (ie. both beta.a and beta.b are greater than 1) and scale
-#'     them to accord with \code{max.prop}.
+#'       with zero mean and where max.prop corresponds to 3 standard
+#'       deviations.}
+#'     \item{beta}{Draw random deviates from a modal Beta distribution
+#'       (ie. beta.a and beta.b both greater than 1) and scale
+#'       them to accord with \code{max.prop} }.
 #'     \item{uniform}{Draw perturbations from a Uniform distribution}.
 #'   }
 #'   
@@ -139,10 +139,16 @@ ffm_describe_betas <- function(beta.a = c(2, 5, 10),
 #' # perturbations
 #' tbl.updated <- ffm_param_variance(tbl, labels = "ignitionTemp", max.prop=0.1)
 #' 
-#' # Vary fuel load according to a skewed Beta distribution with mode at 0.2, 
-#' # and with a maximum proportional perturbation of 50%
-#' tbl.updated <- ffm_param_variance(tbl, labels = "fuelLoad", max.prop = 0.5,
-#'                                   method = "beta", beta.a = 2, beta.b = 5)
+#' # Use with the pipe operator to vary species and site parameters
+#' # separately (requires either the dplyr or maggritr package)
+#' 
+#' tbl.updated <- tbl %>%
+#'   # vary leaf traits uniformly
+#'   ffm_param_variance(max.prop = 0.2, method = "uniform") %>%
+#'   
+#'   # vary fuel load with a skew
+#'   ffm_param_variance(labels = "fuelLoad", max.prop = 0.5,
+#'                      method = "beta", beta.a = 2, beta.b = 5)
 #' }
 #' 
 #' @export
