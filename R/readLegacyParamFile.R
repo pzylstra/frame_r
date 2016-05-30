@@ -17,8 +17,10 @@ readLegacyParamFile <- function(path, raw = FALSE) {
 
   dat <- .parse_params(dat)
 
-  if (raw) dat
-  else .format_output(dat)
+  if (raw) 
+    dat
+  else
+    dat %>% .format_output() %>% .check_ignition_temps()
 }
 
 
@@ -150,6 +152,30 @@ readLegacyParamFile <- function(path, raw = FALSE) {
     arrange(stratum, species) %>%
     .minus99_to_NA %>%
     left_join(select(ParamInfo, param, units), by="param")
+}
+
+
+# Replace any missing ignition temperatures with values
+# calculated from proportion of silica free ash.
+.check_ignition_temps <- function(tbl) {
+  
+  x <- tbl %>%
+    filter(param %in% c("ignitionTemp", "propSilicaFreeAsh")) %>%
+    reshape2::dcast(stratum + species ~ param) %>%
+    filter(is.na(ignitionTemp))
+  
+  if ( nrow(x) > 0 ) {
+    x <- x %>%
+      mutate(ignitionTemp = ignitionTempPSFA( as.numeric(propSilicaFreeAsh) ) ) %>%
+      reshape2::melt(id.vars = c("stratum", "species"), 
+                     variable.name = "param", value.name = "new.value")
+    
+    tbl <- tbl %>% left_join(x) %>%
+      mutate(value = ifelse( !is.na(new.value), new.value, value) ) %>%
+      select(-new.value)
+  }
+  
+  tbl
 }
 
 
