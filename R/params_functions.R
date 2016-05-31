@@ -1,3 +1,85 @@
+#' Dissembles a parameter table into a list of components.
+#' 
+#' Given a parameter table, this function returns a list with
+#' the following named elements:
+#' \describe{
+#'   \item{site.meta}{Data frame of rows from the input table for
+#'     site attributes.}
+#'   \item{strata.meta}{Data frame of rows from the input table for
+#'     stratum meta-data.}
+#'   \item{species.values}{Data frame of species parameter values in
+#'     wide format, ie. species as rows, parameters as columns.}
+#'   \item{species.units}{Data frame of species parameter units in
+#'     wide format.}
+#' }
+#' For the \code{species.values} data frame, all columns for numeric
+#' parameters are converted from character to numeric.
+#' 
+#' @param tbl The input parameter table in standard format.
+#' 
+#' @return A list of table components.
+#' 
+#' @seealso \code{\link{ffm_assemble_table}} for the reverse process.
+#' 
+#' @export
+#' 
+ffm_dissemble_table <- function(tbl) {
+  # flag rows for species data
+  spp <- !is.na( tbl$species )
+  
+  if (!("units" %in% colnames(tbl))) tbl$units <- NA_character_
+  
+  sp.values <- tbl %>%
+    filter(spp) %>%
+    reshape2::dcast(stratum + species ~ param, value.var = "value")
+  
+  # Convert columns to numeric where applicable
+  sp.values <- as.data.frame( lapply( sp.values, .optionally_numeric), 
+                              stringsAsFactors=FALSE )
+  
+  sp.units <- tbl %>%
+    filter(spp) %>%
+    reshape2::dcast(stratum + species ~ param, value.var = "units")
+  
+  list(site.meta = filter(tbl, is.na(stratum)),
+       strata.meta = filter(tbl, !is.na(stratum), is.na(species)),
+       species.values = sp.values,
+       species.units = sp.units)
+}
+
+
+#' Assembles a parameter table from a list of elements.
+#' 
+#' This function takes a list of parameter table components as produced
+#' by \code{\link{ffm_dissemble_table}} and combines them into a single
+#' parameter table.
+#' 
+#' @param lst A list of table components.
+#' 
+#' @return A standard five column parameter table.
+#' 
+#' @export
+#' 
+ffm_assemble_table <- function(lst) {
+  vals <- lst$species.values %>%
+    reshape2::melt(id.vars = c("stratum", "species"), 
+                   variable.name="param", value.name="value") %>%
+    mutate_each(funs(as.character))
+  
+  units <- lst$species.units %>%
+    reshape2::melt(id.vars = c("stratum", "species"), 
+                   variable.name="param", value.name="units") %>%
+    mutate_each(funs(as.character))
+  
+  spp <- left_join(vals, units, by=c("stratum", "species", "param"))
+  
+  rbind(lst$site.meta, lst$strata.meta, spp) %>%
+    arrange(stratum, species)
+}
+
+
+
+
 #' Matches whole or partial species names to DefaultSpeciesParams.
 #'
 #' For each name in the input character vector \code{names}, finds
@@ -142,9 +224,9 @@ ffm_complete_params <- function(tbl) {
   # Retrieve default parameters as required for a given species
   # and return as additional records to add to the table
   do_species <- function(species.id) {
-    recs <- dplyr::filter(tbl, species == species.id)
+    recs <- filter(tbl, species == species.id)
     stratum <- recs$stratum[1]
-    species.name <- dplyr::filter(recs, param == "name")$value
+    species.name <- filter(recs, param == "name")$value
     
     provided <- recs$param
     required <- setdiff( colnames(DefaultSpeciesParams)[-1], provided )
@@ -185,7 +267,7 @@ ffm_complete_params <- function(tbl) {
     # add a units column if one was present in the input table
     if (ncol(tbl) == 5) {
       units <- ParamInfo %>%
-        dplyr::filter(section == "species") %>%
+        filter(section == "species") %>%
         select(param, units)
       
       new.recs <- left_join(new.recs, units, by = "param")
@@ -354,7 +436,7 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
   if (is.null(section))
     labels <- ParamInfo$param
   else
-    labels <- dplyr::filter(ParamInfo, section == section)$param
+    labels <- filter(ParamInfo, section == section)$param
   
   ii <- stringr::str_detect(labels, .make_ptn(param))
   n <- sum(ii)

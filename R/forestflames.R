@@ -11,7 +11,7 @@
 #'
 #' @import rscala
 #' 
-#' @importFrom dplyr %>% arrange distinct filter group_by
+#' @importFrom dplyr %>% arrange distinct filter funs group_by
 #'   left_join mutate mutate_each select select_ ungroup
 #'
 NULL

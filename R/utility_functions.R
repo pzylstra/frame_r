@@ -60,3 +60,27 @@
 .munge_string <- function(s) {
   s %>% tolower %>% stringr::str_replace_all("\\s+", "")
 }
+
+
+# Converts a vector of values to numeric if possible.
+#
+# @param x Input values
+
+# @param partial If \code{TRUE} does conversion even if only
+#   possible for some elements, returning NA for others.
+#
+# @return Numeric values if conversion was possible, otherwise
+#   the input values unaltered.
+#
+.optionally_numeric <- function(x, partial = TRUE) {
+  z <- suppressWarnings( as.numeric(x) )
+  nas <- is.na(z)
+  
+  out <- 
+    if(all(nas)) x 
+  else if (any(nas)) {
+    if (partial) z
+    else x
+  } 
+  else z
+}
