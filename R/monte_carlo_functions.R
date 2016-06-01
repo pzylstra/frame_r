@@ -160,7 +160,7 @@ ffm_param_variance <- function(tbl,
                                beta.a = 2,
                                beta.b = 2) {
   
-  if (!forestflames:::.is_param_table(tbl))
+  if (!.is_param_table(tbl))
     stop("Input table must be a character matrix or data frame with 4 or 5 columns")
   
   if (max.prop <= 0.0 || max.prop >= 1.0) {
