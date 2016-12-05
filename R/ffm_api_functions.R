@@ -22,7 +22,7 @@ ffm_site <- function(params) {
   stopifnot(is.data.frame(params) || is.matrix(params))
 
   params <- .as_str_matrix(params)
-  E$s$do('ffm.io.r.ObjectFactory')$createSite(params)
+  .cacheEnv$interp$do('ffm.io.r.ObjectFactory')$createSite(params)
 }
 
 
@@ -84,7 +84,7 @@ ffm_run.ScalaInterpreterReference <- function(site, db, ...) {
   
   db <- .check_db(db)
 
-  res <- E$s$do('ffm.runner.Runner')$run(site)
+  res <- .cacheEnv$interp$do('ffm.runner.Runner')$run(site)
   
   status <- db$insertResult(res)
   
@@ -158,7 +158,7 @@ ffm_run.function <- function(gen.fn, db, ...) {
 #' @export
 #' 
 ffm_create_database <- function(path, delete.existing = TRUE, use.transactions = TRUE) {
-  optionDB <- E$s$do('ffm.io.r.Database')$create(path, delete.existing, use.transactions)
+  optionDB <- .cacheEnv$interp$do('ffm.io.r.Database')$create(path, delete.existing, use.transactions)
   if (optionDB$isDefined()) optionDB$get()
   else stop("Database ", path, " could not be created")
 }
@@ -176,8 +176,13 @@ ffm_create_database <- function(path, delete.existing = TRUE, use.transactions =
 #' @export
 #'  
 ffm_cleanup <- function(reset = FALSE) {
-  rscala::intpGC(E$s)
-  if (reset) E$s <- rscala::scalaInterpreter(classpath = E$jars)
+  if (reset) {
+    close(.cacheEnv$interp)
+    .cacheEnv$interp <- rscala::scala()
+  }
+  else {
+    rscala::scalaGC(.cacheEnv$interp)
+  }
 }
 
 
