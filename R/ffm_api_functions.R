@@ -13,7 +13,7 @@
 #'        dimensionless parameters
 #'   }
 #'   
-#' @return a \code{ScalaInterpreterReference} holding the
+#' @return a \code{ScalaCachedReference} holding the
 #'   created Site object.
 #'
 #' @export
@@ -22,7 +22,7 @@ ffm_site <- function(params) {
   stopifnot(is.data.frame(params) || is.matrix(params))
 
   params <- .as_str_matrix(params)
-  .cacheEnv$interp$do('ffm.io.r.ObjectFactory')$createSite(params)
+  .cacheEnv$interp$.ffm.io.r.ObjectFactory$createSite(params)
 }
 
 
@@ -37,7 +37,7 @@ ffm_site <- function(params) {
 #'
 #' @param x Site data (parameter set) as one of the following:
 #'   \itemize{
-#'     \item a ScalaInterpreterReference object created with \code{\link{ffm_site}}
+#'     \item a ScalaCachedReference object created with \code{\link{ffm_site}}
 #'     \item a a matrix or data.frame valid for input to \code{ffm_site}
 #'     \item a parameter generating function.
 #'   }     
@@ -46,7 +46,7 @@ ffm_site <- function(params) {
 #'   
 #' @param additional arguments (see specific ffm_run functions for details)
 #' 
-#' @seealso \code{\link{ffm_run.ScalaInterpreterReference}}
+#' @seealso \code{\link{ffm_run.ScalaCachedReference}}
 #' @seealso \code{\link{ffm_run.data.frame}}
 #' @seealso \code{\link{ffm_run.matrix}}
 #' @seealso \code{\link{ffm_run.function}}
@@ -71,8 +71,8 @@ ffm_run <- function(x, db, ...) UseMethod("ffm_run")
 #'
 #' @export
 #'
-ffm_run.ScalaInterpreterReference <- function(site, db, ...) {
-  stopifnot(is(site, "ScalaInterpreterReference"))
+ffm_run.ScalaCachedReference <- function(site, db, ...) {
+  stopifnot(is(site, "ScalaCachedReference"))
   
   if (is.character(db)) {
     db <- .open_db(db)
@@ -84,7 +84,7 @@ ffm_run.ScalaInterpreterReference <- function(site, db, ...) {
   
   db <- .check_db(db)
 
-  res <- .cacheEnv$interp$do('ffm.runner.Runner')$run(site)
+  res <- .cacheEnv$interp$.ffm.runner.Runner$run(site)
   
   status <- db$insertResult(res)
   
@@ -128,7 +128,7 @@ ffm_run.matrix <- function(site.params, db, ...) {
 #'
 ffm_run.function <- function(gen.fn, db, ...) {
   params <- gen.fn(...)
-  ffm_run.ScalaInterpreterReference( ffm_site(params), db, ... )
+  ffm_run.ScalaCachedReference( ffm_site(params), db, ... )
 }
 
 #' Creates a database manager object and file.
@@ -152,13 +152,13 @@ ffm_run.function <- function(gen.fn, db, ...) {
 #'   will be done within transactions (slow but safe); if \code{FALSE},
 #'   insertions will be done directly (fast but less safe).
 #'   
-#' @return A reference object (ScalaInterpreterReference) which can be 
+#' @return A reference object (ScalaCachedReference) which can be 
 #'   passed to \code{\link{ffm_run}} functions.
 #' 
 #' @export
 #' 
 ffm_create_database <- function(path, delete.existing = TRUE, use.transactions = TRUE) {
-  optionDB <- .cacheEnv$interp$do('ffm.io.r.Database')$create(path, delete.existing, use.transactions)
+  optionDB <- .cacheEnv$interp$.ffm.io.r.Database$create(path, delete.existing, use.transactions)
   if (optionDB$isDefined()) optionDB$get()
   else stop("Database ", path, " could not be created")
 }
@@ -173,16 +173,13 @@ ffm_create_database <- function(path, delete.existing = TRUE, use.transactions =
 #' @param reset Whether to also re-start the Scala interpreter used
 #'   by the package (default is \code{FALSE}).
 #'
+#' @note This function is deprecated and will be removed in a future
+#'   version of the package
+#' 
 #' @export
 #'  
 ffm_cleanup <- function(reset = FALSE) {
-  if (reset) {
-    close(.cacheEnv$interp)
-    .cacheEnv$interp <- rscala::scala()
-  }
-  else {
-    rscala::scalaGC(.cacheEnv$interp)
-  }
+  warning("This function is now deprecated and does nothing")
 }
 
 
@@ -194,13 +191,13 @@ ffm_cleanup <- function(reset = FALSE) {
 
 
 .open_db <- function(db) {
-  if (is(db, "ScalaInterpreterReference")) db
+  if (is(db, "ScalaCachedReference")) db
   else ffm_create_database(db)
 }
 
 
 .check_db <- function(db) {
-  if(!is(db, "ScalaInterpreterReference"))
+  if(!is(db, "ScalaCachedReference"))
     stop("Output database must be supplied as a Scala reference object")
   
   if (!(db$isOpen(TRUE)))

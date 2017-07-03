@@ -20,4 +20,3 @@ If \code{raw} is \code{TRUE}, a data frame of parsed data
 \description{
 Reads a legacy format parameters file.
 }
-

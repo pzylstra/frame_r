@@ -23,4 +23,3 @@ table. The comparison ignores case and white-space. If a non-NULL value is
 supplied for \code{section} the check is restricted to parameter labels
 in that section (site, stratum or species).
 }
-

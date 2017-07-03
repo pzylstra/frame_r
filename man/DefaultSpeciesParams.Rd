@@ -26,4 +26,3 @@ accord with \code{\link{ParamInfo}}):
 Note that this does not include all mandatory parameters (e.g. crown dimensions).
 }
 \keyword{datasets}
-

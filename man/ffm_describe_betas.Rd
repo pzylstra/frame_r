@@ -40,4 +40,3 @@ than one to ensure that the mode exists.
 \code{\link{ffm_param_variance}} which has an option to use 
   a Beta distribution to vary parameter values.
 }
-

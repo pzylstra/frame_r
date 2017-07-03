@@ -18,7 +18,7 @@ will be done within transactions (slow but safe); if \code{FALSE},
 insertions will be done directly (fast but less safe).}
 }
 \value{
-A reference object (ScalaInterpreterReference) which can be 
+A reference object (ScalaCachedReference) which can be 
   passed to \code{\link{ffm_run}} functions.
 }
 \description{
@@ -32,4 +32,3 @@ Note that the returned object is a Scala object reference for use with
 \code{\link{ffm_run}}. This is different to the more general database 
 connection object used with functions in the RSQLite package.
 }
-

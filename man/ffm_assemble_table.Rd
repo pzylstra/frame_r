@@ -17,4 +17,3 @@ This function takes a list of parameter table components as produced
 by \code{\link{ffm_dissemble_table}} and combines them into a single
 parameter table.
 }
-

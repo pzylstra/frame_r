@@ -21,4 +21,3 @@ The updated parameter table.
 \description{
 Sets the value of a site meta-data parameter.
 }
-

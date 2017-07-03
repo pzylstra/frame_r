@@ -18,4 +18,3 @@ package) for details on installing Scala.
 \references{
 Zylstra et al. PLOS (2016)
 }
-

@@ -12,4 +12,3 @@
 \description{
 Run the model with parameters provided by a generating function.
 }
-

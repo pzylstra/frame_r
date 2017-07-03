@@ -17,4 +17,3 @@ A value of \code{NA} for units indicates that a parameter is dimensionless
 (e.g. a proportional quantity or a text value).
 }
 \keyword{datasets}
-

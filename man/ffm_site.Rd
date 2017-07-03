@@ -21,10 +21,9 @@ with either four or five columns:
 }}
 }
 \value{
-a \code{ScalaInterpreterReference} holding the
+a \code{ScalaCachedReference} holding the
   created Site object.
 }
 \description{
 Creates a Site object from a table of parameters.
 }
-

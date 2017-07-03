@@ -16,4 +16,3 @@ Calculated ignition temperature(s) in degrees Celsius.
 \description{
 Calculates ignition temperature from proportion of silica free ash.
 }
-
