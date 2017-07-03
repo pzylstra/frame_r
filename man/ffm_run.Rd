@@ -9,7 +9,7 @@ ffm_run(x, db, ...)
 \arguments{
 \item{x}{Site data (parameter set) as one of the following:
 \itemize{
-  \item a ScalaInterpreterReference object created with \code{\link{ffm_site}}
+  \item a ScalaCachedReference object created with \code{\link{ffm_site}}
   \item a a matrix or data.frame valid for input to \code{ffm_site}
   \item a parameter generating function.
 }}
@@ -27,7 +27,7 @@ runs. If \code{db} is a character string for path and filename, a new database i
 created, written to, and then closed.
 }
 \seealso{
-\code{\link{ffm_run.ScalaInterpreterReference}}
+\code{\link{ffm_run.ScalaCachedReference}}
 
 \code{\link{ffm_run.data.frame}}
 
@@ -35,4 +35,3 @@ created, written to, and then closed.
 
 \code{\link{ffm_run.function}}
 }
-

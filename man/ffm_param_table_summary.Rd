@@ -9,4 +9,3 @@ ffm_param_table_summary(tbl)
 \description{
 Returns a summary of the given parameter table.
 }
-

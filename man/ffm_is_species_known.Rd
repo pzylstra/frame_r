@@ -16,4 +16,3 @@ A named boolean vector where names are search terms.
 For each name (whole or partial) checks whether the name matches one, and only
 one, record in the default species parameters table.
 }
-

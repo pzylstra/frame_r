@@ -31,4 +31,3 @@ parameters are converted from character to numeric.
 \seealso{
 \code{\link{ffm_assemble_table}} for the reverse process.
 }
-

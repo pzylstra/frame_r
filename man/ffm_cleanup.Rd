@@ -15,4 +15,7 @@ This is generally for use by other package functions, but can
 also be run by the user. To be effective, all references to 
 Scala objects should be removed from the workspace first.
 }
-
+\note{
+This function is deprecated and will be removed in a future
+  version of the package
+}

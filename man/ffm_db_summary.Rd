@@ -13,4 +13,3 @@ ffm_db_summary(db.path)
 At the moment this function simply prints the number of
 simulation runs found in the database.
 }
-

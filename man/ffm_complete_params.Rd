@@ -21,4 +21,3 @@ from the default lookup table: \link{DefaultSpeciesParams}.
 If a species has missing parameters but is not present in the table of
 default lookup table, an error is thrown.
 }
-

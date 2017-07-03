@@ -15,4 +15,3 @@ input to \code{\link{ffm_site}}}
 Run the model with a site based on parameters in the
 given character matrix.
 }
-
