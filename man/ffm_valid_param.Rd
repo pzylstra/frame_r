@@ -4,7 +4,7 @@
 \alias{ffm_valid_param}
 \title{Checks that a parameter label is valid.}
 \usage{
-ffm_valid_param(label, section = NULL, single)
+ffm_valid_param(label, section = NULL, single = TRUE)
 }
 \arguments{
 \item{label}{The parameter label.}
