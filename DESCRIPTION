@@ -22,6 +22,7 @@ Imports:
     ggplot2(>= 2.2.0),
     reshape2(>= 1.4.1),
     rscala(>= 2.2.2),
+    rscala(<= 2.5.3),
     RSQLite(>= 1.1),
     stringr(>= 1.1.0)
 LazyData: TRUE
