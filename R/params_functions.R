@@ -64,12 +64,12 @@ ffm_assemble_table <- function(lst) {
   vals <- lst$species.values %>%
     reshape2::melt(id.vars = c("stratum", "species"), 
                    variable.name="param", value.name="value") %>%
-    mutate_each(funs(as.character))
+    mutate_all(funs(as.character))
   
   units <- lst$species.units %>%
     reshape2::melt(id.vars = c("stratum", "species"), 
                    variable.name="param", value.name="units") %>%
-    mutate_each(funs(as.character))
+    mutate_all(funs(as.character))
   
   spp <- left_join(vals, units, by=c("stratum", "species", "param"))
   
