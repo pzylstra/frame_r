@@ -7,7 +7,7 @@
   dat <- as.data.frame(dat)
   
   # use dplyr to avoid the data.frame being simplified to a matrix
-  mutate_each(dat, dplyr::funs(as.character))
+  mutate_all(dat, dplyr::funs(as.character))
 }
 
 
