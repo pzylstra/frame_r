@@ -64,12 +64,13 @@ ffm_assemble_table <- function(lst) {
   vals <- lst$species.values %>%
     reshape2::melt(id.vars = c("stratum", "species"), 
                    variable.name="param", value.name="value") %>%
-    mutate_all(funs(as.character))
+    
+    dplyr::mutate_all(dplyr::funs(as.character))
   
   units <- lst$species.units %>%
     reshape2::melt(id.vars = c("stratum", "species"), 
                    variable.name="param", value.name="units") %>%
-    mutate_all(funs(as.character))
+    dplyr::mutate_all(dplyr::funs(as.character))
   
   spp <- left_join(vals, units, by=c("stratum", "species", "param"))
   
@@ -231,7 +232,7 @@ ffm_complete_params <- function(tbl) {
     provided <- recs$param
     required <- setdiff( colnames(DefaultSpeciesParams)[-1], provided )
     
-    if (length(required == 0)) {
+    if (length(required) == 0) {
       # Don't need to add any parameters, so return NULL
       NULL
     }
@@ -259,7 +260,7 @@ ffm_complete_params <- function(tbl) {
   ids <- .get_species_ids(tbl)
   new.recs <- do.call(rbind, lapply(ids, do_species))
   
-  if (nrow(new.recs) == 0) {
+  if (is.null(new.recs) || nrow(new.recs) == 0) {
     # no params added, return input
     tbl
     
