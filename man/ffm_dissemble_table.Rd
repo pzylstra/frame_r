@@ -2,7 +2,7 @@
 % Please edit documentation in R/params_functions.R
 \name{ffm_dissemble_table}
 \alias{ffm_dissemble_table}
-\title{Dissembles a parameter table into a list of components.}
+\title{Deprecated function replaced by \code{ffm_disassemble_table}}
 \usage{
 ffm_dissemble_table(tbl)
 }
@@ -10,23 +10,10 @@ ffm_dissemble_table(tbl)
 \item{tbl}{The input parameter table in standard format.}
 }
 \value{
-A list of table components.
+A named list of table components.
 }
 \description{
-Given a parameter table, this function returns a list with
-the following named elements:
-\describe{
-  \item{site.meta}{Data frame of rows from the input table for
-    site attributes.}
-  \item{strata.meta}{Data frame of rows from the input table for
-    stratum meta-data.}
-  \item{species.values}{Data frame of species parameter values in
-    wide format, ie. species as rows, parameters as columns.}
-  \item{species.units}{Data frame of species parameter units in
-    wide format.}
-}
-For the \code{species.values} data frame, all columns for numeric
-parameters are converted from character to numeric.
+New code should use \code{\link{ffm_disassemble_table}}.
 }
 \seealso{
 \code{\link{ffm_assemble_table}} for the reverse process.

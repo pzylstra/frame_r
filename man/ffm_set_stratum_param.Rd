@@ -4,7 +4,8 @@
 \alias{ffm_set_stratum_param}
 \title{Sets the value of a stratum meta-data parameter.}
 \usage{
-ffm_set_stratum_param(tbl, stratum.id, param, value, units = NA_character_)
+ffm_set_stratum_param(tbl, stratum.id, param, value,
+  units = NA_character_)
 }
 \arguments{
 \item{tbl}{The parameter table in which to set the value.}

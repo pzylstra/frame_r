@@ -1,4 +1,4 @@
-#' Dissembles a parameter table into a list of components.
+#' Disassembles a parameter table into a list of components.
 #' 
 #' Given a parameter table, this function returns a list with
 #' the following named elements:
@@ -17,13 +17,13 @@
 #' 
 #' @param tbl The input parameter table in standard format.
 #' 
-#' @return A list of table components.
+#' @return A named list of table components.
 #' 
 #' @seealso \code{\link{ffm_assemble_table}} for the reverse process.
 #' 
 #' @export
 #' 
-ffm_dissemble_table <- function(tbl) {
+ffm_disassemble_table <- function(tbl) {
   # flag rows for species data
   spp <- !is.na( tbl$species )
   
@@ -47,14 +47,24 @@ ffm_dissemble_table <- function(tbl) {
        species.units = sp.units)
 }
 
+#' Deprecated function replaced by \code{ffm_disassemble_table}
+#' 
+#' New code should use \code{\link{ffm_disassemble_table}}.
+#' 
+#' @inherit ffm_disassemble_table
+ffm_dissemble_table <- function(tbl) {
+  .Deprecated("ffm_disassemble_table", "frame")
+  ffm_disassemble_table(...)
+}
 
 #' Assembles a parameter table from a list of elements.
 #' 
 #' This function takes a list of parameter table components as produced
-#' by \code{\link{ffm_dissemble_table}} and combines them into a single
+#' by \code{\link{ffm_disassemble_table}} and combines them into a single
 #' parameter table.
 #' 
-#' @param lst A list of table components.
+#' @param lst A named list of table components. 
+#'   See \code{\link{ffm_disassemble_table}} for details of valid names.
 #' 
 #' @return A standard five column parameter table.
 #' 
@@ -410,29 +420,29 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
 #
 ############################################################################
 
-#' Finds parameter information for a given parameter label.
-#' 
-#' Searches for a row or rows in the \code{\link{ParamInfo}} table with a matching
-#' parameter label. The comparison ignores case and white-space. 
-#' If a non-NULL value is supplied for \code{section} the check is restricted
-#' to parameter labels in that section (site, stratum or species).
-#' 
-#' @param param The parameter label.
-#' 
-#' @param section If not \code{NULL}, one of site, stratum or species.
-#' 
-#' @param no.match.error If \code{TRUE} an error results when no
-#'   match is found, or more than one match is found and \code{single}
-#'   is \code{TRUE}; if \code{FALSE} (default) the function returns 
-#'   \code{NULL} if unsuccessful.
-#'   
-#' @param single If \code{TRUE} (default) require that label only
-#'   matches a single parameter; if \code{FALSE } allow multiple matches.
-#' 
-#' @return The index or indices (if \code{single} is \code{FALSE}) of the 
-#'   matching row(s) in \code{ParamInfo}; otherwise \code{NULL}
-#'   if unsuccessful and \code{no.match.error} is \code{FALSE}.
-#'
+# Finds parameter information for a given parameter label.
+# 
+# Searches for a row or rows in the \code{\link{ParamInfo}} table with a matching
+# parameter label. The comparison ignores case and white-space. 
+# If a non-NULL value is supplied for \code{section} the check is restricted
+# to parameter labels in that section (site, stratum or species).
+# 
+# @param param The parameter label.
+# 
+# @param section If not \code{NULL}, one of site, stratum or species.
+# 
+# @param no.match.error If \code{TRUE} an error results when no
+#   match is found, or more than one match is found and \code{single}
+#   is \code{TRUE}; if \code{FALSE} (default) the function returns 
+#   \code{NULL} if unsuccessful.
+#   
+# @param single If \code{TRUE} (default) require that label only
+#   matches a single parameter; if \code{FALSE } allow multiple matches.
+# 
+# @return The index or indices (if \code{single} is \code{FALSE}) of the 
+#   matching row(s) in \code{ParamInfo}; otherwise \code{NULL}
+#   if unsuccessful and \code{no.match.error} is \code{FALSE}.
+#
 .match_param <- function(param, section, no.match.error = FALSE, single = TRUE) {
   if (is.null(section))
     labels <- ParamInfo$param
@@ -460,17 +470,17 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
 }
 
 
-#' Updates the value of a parameter in a parameter table.
-#' 
-#' @param tbl The parameter table in which to set the value.
-#' @param stratum.id Stratum identifier.
-#' @param species.id Species identifier.
-#' @param param Label of the parameter to set.
-#' @param value Value of the parameter (will be converted to character).
-#' @param units (option) The units of measurement for the supplied value.
-#' 
-#' @return The updated parameter table.
-#' 
+# Updates the value of a parameter in a parameter table.
+# 
+# @param tbl The parameter table in which to set the value.
+# @param stratum.id Stratum identifier.
+# @param species.id Species identifier.
+# @param param Label of the parameter to set.
+# @param value Value of the parameter (will be converted to character).
+# @param units (option) The units of measurement for the supplied value.
+# 
+# @return The updated parameter table.
+# 
 .set_param <- function(tbl, stratum.id, species.id,
                        param, value, units = NA_character_) {
   

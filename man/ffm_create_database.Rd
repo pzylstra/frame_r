@@ -4,7 +4,8 @@
 \alias{ffm_create_database}
 \title{Creates a database manager object and file.}
 \usage{
-ffm_create_database(path, delete.existing = TRUE, use.transactions = TRUE)
+ffm_create_database(path, delete.existing = TRUE,
+  use.transactions = TRUE)
 }
 \arguments{
 \item{path}{The path for the database file}
