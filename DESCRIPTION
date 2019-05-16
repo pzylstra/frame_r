@@ -1,29 +1,28 @@
 Package: frame
 Type: Package
 Title: Fire research and modelling environment
-Version: 0.1.12
-Date: 2018-12-21
+Version: 0.2.0
+Date: 2019-05-17
 Authors@R: as.person( c(
     "Phil Zylstra <pzylstra@uow.edu.au> [cre]",
-    "Michael Bedward <michael.bedward@gmail.com> [aut]"))
+    "Michael Bedward <michael.bedward@gmail.com> [aut]",
+    "Soroush Homayounpour <soroush@uow.edu.au> [aut]"))
 Description: This package provides an interface to the forest flammability 
     model of Zylstra et al. It provides functions to prepare input parameters,
     run model simulations, and query the output database of model results. The
     package includes a distribution of the model and its dependencies in the
     form of Java jar files. The only additional requirement is an installation
-    of Scala (the Java-related language in which the model is programmed) on
-    the host system. See the introduction to the rscala package (used by this
-    package) for details on installing Scala.
+    of Java version 1.8 (aka Java 8) or higher on the host system.
 License: MIT + file LICENSE
 Depends:
-    R (>= 3.2.0)
+    R (>= 3.5.1)
 Imports:
-    dplyr(>= 0.7.2),
-    ggplot2(>= 2.2.0),
-    reshape2(>= 1.4.1),
-    rscala(>= 2.2.2),
-    rscala(<= 2.5.3),
-    RSQLite(>= 1.1),
-    stringr(>= 1.1.0)
+    dplyr(>= 0.8.0),
+    ggplot2(>= 3.1.0),
+    glue(>= 1.3.1),
+    reshape2(>= 1.4.3),
+    RSQLite(>= 2.1.1),
+    stringr(>= 1.4.0)
+Encoding: UTF-8
 LazyData: TRUE
 RoxygenNote: 6.1.1

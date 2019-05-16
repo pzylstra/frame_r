@@ -1,185 +1,115 @@
-#' Creates a Site object from a table of parameters.
+#' Run the model with a given table of parameters.
 #' 
-#' @param params A data.frame or matrix of character data 
-#'   with either four or five columns:
-#'   \enumerate{
-#'     \item stratum identifier (\code{NA} for rows corresponding to
-#'        site meta-data such as weather variables)
-#'     \item species identifier (\code{NA} for rows corresponding to
-#'        stratum meta-data such as the level name)
-#'     \item param standard parameter label
-#'     \item value parameter value
-#'     \item units (optional) parameter units or \code{NA} for 
-#'        dimensionless parameters
-#'   }
-#'   
-#' @return a \code{ScalaCachedReference} holding the
-#'   created Site object.
+#' This function requests the Scala model application to run a simulation with
+#' the given input parameters and write results to a SQLite database file. For a
+#' related set of simulations (e.g. when exploring the effects of variation over
+#' a subset of parameters), the function can be called repeatedly (once for each
+#' realization of the parameters) with the same database file specified, and each
+#' set of results will be appended to the database with an incremented replicate 
+#' ID number.
 #'
-#' @export
-#'
-ffm_site <- function(params) {
-  stopifnot(is.data.frame(params) || is.matrix(params))
-
-  params <- .as_str_matrix(params)
-  .cacheEnv$interp$.ffm.io.r.ObjectFactory$createSite(params)
-}
-
-
-#' Runs the model with the given site.
+#' To run the external Scala model application, the function first writes the
+#' parameters to a temporary CSV-format file. It then issues a system call to
+#' use the Java installation on your machine to run the simulation with the
+#' parameters file and the output database specified by \code{db.path}. For this
+#' to work, you must have a properly installed version of Java (version 1.8.x or
+#' higher) that can be run from any directory by issuing the command
+#' \code{'java'}. You can check this with the function
+#' \code{\link{ffm_check_java}}. Consult the Oracle Java installation
+#' instructions for more details.
 #' 
-#' The destination database for model results (\code{db} argument) can be specified 
-#' as either a database object, created with \code{\link{ffm_create_database}}, or
-#' a character string for the path and filename.  If \code{db} is an object, results
-#' are sent to the database which is then left open and available for use by subsequent
-#' runs. If \code{db} is a character string for path and filename, a new database is 
-#' created, written to, and then closed.
-#'
-#' @param x Site data (parameter set) as one of the following:
-#'   \itemize{
-#'     \item a ScalaCachedReference object created with \code{\link{ffm_site}}
-#'     \item a a matrix or data.frame valid for input to \code{ffm_site}
-#'     \item a parameter generating function.
-#'   }     
-#'   
-#' @param db Output database object or character string for path and filename.
-#'   
-#' @param additional arguments (see specific ffm_run functions for details)
 #' 
-#' @seealso \code{\link{ffm_run.ScalaCachedReference}}
-#' @seealso \code{\link{ffm_run.data.frame}}
-#' @seealso \code{\link{ffm_run.matrix}}
-#' @seealso \code{\link{ffm_run.function}}
-#'
-#'    
-#' @export
-#'
-ffm_run <- function(x, db, ...) UseMethod("ffm_run")
-
-
-#' Run the model with the given site object.
-#'
-#' @param site The site as a Scala reference object created
-#'   with \code{\link{ffm_site}}.
+#' @param params A data frame of parameters
 #'   
-#' @param db Output database object or path and filename.
+#' @param db.path The path and filename of a new or existing SQLite database
+#'   file to which simulation results will be written.
 #'   
+#' @param default.species.params An optional data frame with species as rows and
+#'   parameters as columns giving default values to use for species parameters
+#'   not specified in the input \code{params} table. Any subset of species
+#'   parameters can be specified. Column names must match the parameter names in
+#'   the \code{\link{ParamInfo}} table (case is ignored). An \code{NA} value
+#'   indicates no default. This allows default values for a particular parameter
+#'   to be provided for only a subset of species.
+#'   
+#' @param db.recreate If \code{TRUE} and the file specified by \code{db.path}
+#'   exists, the database will be recreated and any prior results will be lost.
+#'   If \code{FALSE} (default) and the file exists, the simulation results
+#'   will be appended to the database with an incremented replicate ID value
+#'   (field \code{repId} in all tables).
+#' 
 #' @return \code{TRUE} if the run completed and results were written to
 #'   the output database successfully; \code{FALSE} otherwise.
 #'
-#' @seealso \code{\link{ffm_create_database}}
-#'
 #' @export
 #'
-ffm_run.ScalaCachedReference <- function(site, db, ...) {
-  stopifnot(is(site, "ScalaCachedReference"))
+ffm_run <- function(params, db.path, 
+                    default.species.params = NULL, 
+                    db.recreate = FALSE) {
   
-  if (is.character(db)) {
-    db <- .open_db(db)
-    closeDB <- TRUE
-  } 
-  else {
-    closeDB <- FALSE
+  if (ffm_check_params(params)) {
+    param.path <- tempfile(pattern = "ffm_", fileext = ".csv")
+    write.csv(params, file = paramfile, row.names = FALSE)
+    
+    cmd <- ffm_run_command(param.path = param.path, 
+                           db.path = db.path,
+                           db.recreate = db.recreate)
+    
+    res <- system(cmd, intern = TRUE)
+    
+    # Check for 'success' in Scala output
+    any( stringr::str_detect(tolower(res), "success") )
+    
+  } else {
+    # Problem with parameters
+    FALSE
   }
-  
-  db <- .check_db(db)
-
-  res <- .cacheEnv$interp$.ffm.runner.Runner$run(site)
-  
-  status <- db$insertResult(res)
-  
-  if (closeDB) db$close()
-  
-  status
 }
 
 
-#' Run the model with a site based on parameters in the
-#' given data frame.
-#'
-#' @param site.params A data frame of site parameters valid for
-#'   input to \code{\link{ffm_site}}
-#'
-#' @export
-#'
-ffm_run.data.frame <- function(site.params, db, ...) {
-  ffm_run( ffm_site(site.params), db, ... )
-}
-
-
-#' Run the model with a site based on parameters in the
-#' given character matrix.
-#'
-#' @param site.params A character matrix of site parameters valid for
-#'   input to \code{\link{ffm_site}}
-#'
-#' @export
-#'
-ffm_run.matrix <- function(site.params, db, ...) {
-  ffm_run( ffm_site(site.params), db, ... )
-}
-
-
-#' Run the model with parameters provided by a generating function.
-#'
-#' @param gen.fn A function which generates a valid parameter matrix.
-#'
-#' @export
-#'
-ffm_run.function <- function(gen.fn, db, ...) {
-  params <- gen.fn(...)
-  ffm_run.ScalaCachedReference( ffm_site(params), db, ... )
-}
-
-#' Creates a database manager object and file.
+#' Composes a command line call to run a simulation
 #' 
-#' This function creates a Scala database manager (ffm.io.r.Database object),
-#' together with an associated SQLite database file. A reference is returned
-#' which can then be passed to \code{\link{ffm_run}} functions and used to
-#' write model results.
+#' This function is used by \code{\link{ffm_run}} when calling the Scala model
+#' application via the base R \code{\link[base]{system}} function. The command
+#' line string passed to \code{system} invokes the local Java runtime and
+#' includes arguments for the necessary Java libraries (jar files included with
+#' the package), the CSV-format file of input parameters, the path to the output
+#' database, and (optionally) a flag indicating that the database should be
+#' recreated if the file exists.
 #' 
-#' Note that the returned object is a Scala object reference for use with
-#' \code{\link{ffm_run}}. This is different to the more general database 
-#' connection object used with functions in the RSQLite package.
-#'
-#' @param path The path for the database file
-#' 
-#' @param delete.existing If \code{TRUE} (default), any existing database file
-#'   matching \code{path} is deleted if possible; if \code{FALSE}, the database
-#'   will only be created if the file does not exist.
+#' @param param.path Path and name of a CSV-format file of simulation 
+#'   parameters.
 #'   
-#' @param use.transactions If \code{TRUE} (default), all insertions into the database
-#'   will be done within transactions (slow but safe); if \code{FALSE},
-#'   insertions will be done directly (fast but less safe).
+#' @param db.path Path and name of the output SQLite database file.
+#' 
+#' @param db.recreate A logical value indicating, if the file specified 
+#'   by \code{db.path} exists, whether to recreating the database (\code{TRUE})
+#'   or append to it (\code{FALSE}). Default is to append.
 #'   
-#' @return A reference object (ScalaCachedReference) which can be 
-#'   passed to \code{\link{ffm_run}} functions.
+#' @param runtime.class The name of the runtime class in the Scala model
+#'   application. Unless you have modified the Scala application this should
+#'   be left as the default value: \code{ffm.runner.CSVRunner}.
+#' 
+#' @return The command line instruction as a one-element character vector.
 #' 
 #' @export
 #' 
-ffm_create_database <- function(path, delete.existing = TRUE, use.transactions = TRUE) {
-  optionDB <- .cacheEnv$interp$.ffm.io.r.Database$create(path, delete.existing, use.transactions)
-  if (optionDB$isDefined()) optionDB$get()
-  else stop("Database ", path, " could not be created")
-}
-
-
-#' Attempts to free up resources used for R/Scala connection.
-#' 
-#' This is generally for use by other package functions, but can
-#' also be run by the user. To be effective, all references to 
-#' Scala objects should be removed from the workspace first.
-#' 
-#' @param reset Whether to also re-start the Scala interpreter used
-#'   by the package (default is \code{FALSE}).
-#'
-#' @note This function is deprecated and will be removed in a future
-#'   version of the package
-#' 
-#' @export
-#'  
-ffm_cleanup <- function(reset = FALSE) {
-  warning("This function is now deprecated and does nothing")
+ffm_run_command <- function(param.path, db.path, 
+                            db.recreate = FALSE,
+                            runtime.class = "ffm.runner.CSVRunner") {
+  
+  pkgdir <- system.file(package = "frame")
+  
+  jarfiles <- dir(file.path(pkgdir, "java"), 
+                  pattern = "\\.jar$", full.names = TRUE)
+  
+  cp <- paste(jarfiles, collapse = ";")
+  
+  # convert logical db.recreate to an optional flag
+  db.recreate <- if (db.recreate) "-x" else ""
+  
+  glue::glue("java -cp {cp} {runtime.class} -p {param.path}",
+             " -d {db.path} {db.recreate}")
 }
 
 
@@ -189,19 +119,4 @@ ffm_cleanup <- function(reset = FALSE) {
 #
 ############################################################################
 
-
-.open_db <- function(db) {
-  if (is(db, "ScalaCachedReference")) db
-  else ffm_create_database(db)
-}
-
-
-.check_db <- function(db) {
-  if(!is(db, "ScalaCachedReference"))
-    stop("Output database must be supplied as a Scala reference object")
-  
-  if (!(db$isOpen(TRUE)))
-    stop("Database is not open for writing results")
-  
-  db
-}
+# All removed for the moment

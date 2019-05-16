@@ -2,36 +2,52 @@
 % Please edit documentation in R/ffm_api_functions.R
 \name{ffm_run}
 \alias{ffm_run}
-\title{Runs the model with the given site.}
+\title{Run the model with a given table of parameters.}
 \usage{
-ffm_run(x, db, ...)
+ffm_run(params, db.path, default.species.params = NULL,
+  db.recreate = FALSE)
 }
 \arguments{
-\item{x}{Site data (parameter set) as one of the following:
-\itemize{
-  \item a ScalaCachedReference object created with \code{\link{ffm_site}}
-  \item a a matrix or data.frame valid for input to \code{ffm_site}
-  \item a parameter generating function.
-}}
+\item{params}{A data frame of parameters}
 
-\item{db}{Output database object or character string for path and filename.}
+\item{db.path}{The path and filename of a new or existing SQLite database
+file to which simulation results will be written.}
 
-\item{additional}{arguments (see specific ffm_run functions for details)}
+\item{default.species.params}{An optional data frame with species as rows and
+parameters as columns giving default values to use for species parameters
+not specified in the input \code{params} table. Any subset of species
+parameters can be specified. Column names must match the parameter names in
+the \code{\link{ParamInfo}} table (case is ignored). An \code{NA} value
+indicates no default. This allows default values for a particular parameter
+to be provided for only a subset of species.}
+
+\item{db.recreate}{If \code{TRUE} and the file specified by \code{db.path}
+exists, the database will be recreated and any prior results will be lost.
+If \code{FALSE} (default) and the file exists, the simulation results
+will be appended to the database with an incremented replicate ID value
+(field \code{repId} in all tables).}
+}
+\value{
+\code{TRUE} if the run completed and results were written to
+  the output database successfully; \code{FALSE} otherwise.
 }
 \description{
-The destination database for model results (\code{db} argument) can be specified 
-as either a database object, created with \code{\link{ffm_create_database}}, or
-a character string for the path and filename.  If \code{db} is an object, results
-are sent to the database which is then left open and available for use by subsequent
-runs. If \code{db} is a character string for path and filename, a new database is 
-created, written to, and then closed.
+This function requests the Scala model application to run a simulation with
+the given input parameters and write results to a SQLite database file. For a
+related set of simulations (e.g. when exploring the effects of variation over
+a subset of parameters), the function can be called repeatedly (once for each
+realization of the parameters) with the same database file specified, and each
+set of results will be appended to the database with an incremented replicate 
+ID number.
 }
-\seealso{
-\code{\link{ffm_run.ScalaCachedReference}}
-
-\code{\link{ffm_run.data.frame}}
-
-\code{\link{ffm_run.matrix}}
-
-\code{\link{ffm_run.function}}
+\details{
+To run the external Scala model application, the function first writes the
+parameters to a temporary CSV-format file. It then issues a system call to
+use the Java installation on your machine to run the simulation with the
+parameters file and the output database specified by \code{db.path}. For this
+to work, you must have a properly installed version of Java (version 1.8.x or
+higher) that can be run from any directory by issuing the command
+\code{'java'}. You can check this with the function
+\code{\link{ffm_check_java}}. Consult the Oracle Java installation
+instructions for more details.
 }
