@@ -7,7 +7,7 @@
 ffm_disassemble_table(tbl)
 }
 \arguments{
-\item{tbl}{The input parameter table in standard format.}
+\item{tbl}{The input simulation parameter table (data frame).}
 }
 \value{
 A named list of table components.

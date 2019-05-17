@@ -20,6 +20,9 @@ ffm_check_params <- function(params, quiet = FALSE) {
   # optional species parameter
   Silica <- tolower("propSilicaFreeAsh")
   
+  # Just in case
+  params <- ungroup(params)
+  
   required.cols <- c("stratum", "species", "param", "value")
   nrequired <- length(required.cols)
   
@@ -27,9 +30,6 @@ ffm_check_params <- function(params, quiet = FALSE) {
   
   given.cols <- colnames(params)
   missing.cols <- setdiff(required.cols, given.cols)
-  
-  # Just in case
-  params <- ungroup(params)
   
   if (length(missing.cols) > 0) {
     if (!quiet) warning("Missing required column(s): ", missing.cols)
@@ -53,29 +53,34 @@ ffm_check_params <- function(params, quiet = FALSE) {
   
   
   # Parameter checks are done in lower case
-  ParamInfo <- frame::ParamInfo %>%
-    mutate(param = tolower(param))
+  XParamInfo <- frame::ParamInfo %>%
+    mutate(loparam = tolower(param))
   
   params <- params %>%
-    mutate(param = tolower(param))
+    mutate(loparam = tolower(param))
+  
+  # Function to format multiple parameter names for messages
+  fconcat <- function(x) paste(x, collapse = ", ")
   
   
   # Check site-level parameters
   given <- params %>%
     dplyr::filter(is.na(stratum))
   
-  expected <- frame::ParamInfo %>%
+  expected <- XParamInfo %>%
     dplyr::filter(section == "site")
   
-  missing <- setdiff(expected$param, given$param)
+  missing <- setdiff(expected$loparam, given$loparam)
   if (length(missing) > 0) {
-    if (!quiet) warning("Missing site-level parameter(s): ", missing)
+    if (!quiet) warning("Missing site-level parameter(s): ", 
+                        fconcat(missing))
     return(FALSE)
   }
   
-  extra <- setdiff(given$param, expected$param)
+  extra <- setdiff(given$loparam, expected$loparam)
   if (length(extra) > 0) {
-    if (!quiet) warning("Unrecognized site-level parameter(s): ", extra)
+    if (!quiet) warning("Unrecognized site-level parameter(s): ", 
+                        fconcat(extra))
     return(FALSE)
   }
   
@@ -83,23 +88,24 @@ ffm_check_params <- function(params, quiet = FALSE) {
   strata <- sort(unique(params$stratum), na.last = NA)
   
   strata.expected <- {
-    x <- dplyr::filter(ParamInfo, section == "stratum")
-    x$param
+    x <- dplyr::filter(XParamInfo, section == "stratum")
+    x$loparam
   }
   
   species.expected <- {
-    x <- dplyr::filter(ParamInfo, section == "species")
-    x$param
+    x <- dplyr::filter(XParamInfo, section == "species")
+    x$loparam
   }
   
-  for (stratum in strata) {
-    sdat <- dplyr::filter(params, stratum == stratum)
+  for (ist in strata) {
+    sdat <- dplyr::filter(params, stratum == ist)
 
     # stratum level
     given <- dplyr::filter(sdat, is.na(species))    
-    missing <- setdiff(strata.expected, given$param)
+    missing <- setdiff(strata.expected, given$loparam)
     if (length(missing) > 0) {
-      if (!quiet) warning("Stratum ", stratum, " missing parameter(s): ", missing)
+      if (!quiet) warning("Stratum ", ist, " missing parameter(s): ", 
+                          fconcat(missing))
       return(FALSE)
     }
     
@@ -109,14 +115,17 @@ ffm_check_params <- function(params, quiet = FALSE) {
     
     for (isp in spp) {
       givensp <- dplyr::filter(given, species == isp)
-      missing <- setdiff(species.expected, c(given$param, Silica))
+      missing <- setdiff(species.expected, c(given$loparam, Silica))
       if (length(missing) > 0) {
-        if (!quiet) warning("Species ", isp, " in stratum ", stratum,
-                            " missing parameter(s): ", missing)
+        if (!quiet) warning("Species ", isp, " in stratum ", ist,
+                            " missing parameter(s): ", 
+                            fconcat(missing))
         return(FALSE)
       }
     }
   }
+  
+  TRUE
 }
 
 
@@ -206,140 +215,6 @@ ffm_assemble_table <- function(lst) {
 }
 
 
-
-
-#' Matches whole or partial species names to a table of default parameter values
-#' for selected species.
-#' 
-#' For each name in the input character vector \code{names}, finds
-#' the index or indices of matching rows in the table of default species
-#' parameter values.
-#'
-#' @param default.species.params A data frame with 'name' as the first column
-#'   (full species name) and subsequent columns giving default values for
-#'   selected parameters. Parameter column names should match standard parameter
-#'   names in \code{\link{ParamInfo}} (although case is ignored in comparisons).
-#'
-#' @param names The names, whole or partial, to search for.
-#' 
-#' @return a named \code{list} where names are the search strings and
-#'   each value is the index or indices of matching species (NA for no match).
-#'
-#' @examples
-#' \dontrun{
-#' # A user-provided data frame of default parameter values 
-#' # for species
-#' my.defaults <- ...
-#' 
-#' # Look for Acacia dealbata and Cassinia aculeata.
-#' # The search is case insensitive.
-#' index <- ffm_find_species(my.defaults, c("Ac deal", "cass ac"))
-#'
-#' # Search for a name that (probably) does not exist in the default
-#' # species parameters table. This results in \code{NA} being
-#' # returned for the index:
-#' ffm_find_species(my.defaults, "aspidistra")
-#' }
-#'
-#' @export
-#'
-ffm_find_species <- function(default.species.parameters, names) {
-
-  mkregex <- function(s) {
-    parts <- stringr::str_split(s, "\\s")[[1]]
-    parts <- stringr::str_c(parts, ".*", sep="")
-    stringr::regex( stringr::str_c(parts, collapse=""), ignore_case = TRUE )
-  }
-
-  finder <- function(ptn) {
-    matches <- stringr::str_detect(default.species.parameters$name, ptn)
-    if (any(matches)) which(matches)
-    else NA
-  }
-
-  ptns <- lapply(names, mkregex)
-  res <- lapply(ptns, finder)
-  names(res) <- names
-
-  res
-}
-
-
-#' Checks if given species names have unique matches in table of parameter defaults
-#'
-#' For each name (whole or partial) checks whether the name matches one, and only
-#' one, record in the provided default species parameters table.
-#'
-#' @param default.species.params A data frame with 'name' as the first column
-#'   (full species name) and subsequent columns giving default values for
-#'   selected parameters. Parameter column names should match standard parameter
-#'   names in \code{\link{ParamInfo}}.
-#'   
-#' @param names The names, whole or partial, to search for.
-#'   
-#' @return A named boolean vector where names are search terms.
-#' 
-#' @seealso \code{\link{ffm_complete_params}}
-#'
-#' @export
-#'
-ffm_is_species_known <- function(names, default.species.params) {
-  sapply(ffm_find_species(names),
-         function(indices) length(indices) == 1 && !is.na(indices))
-}
-
-
-#' Gets default parameter values for one or more species.
-#'
-#' Takes a character vector of one or more species names (whole or partial)
-#' and retrieves the default parameter values for each. If one or more
-#' names is not found, or matches mutliple species in the default
-#' parameters table, an error message is given.
-#'
-#' @param names The names, whole or partial, to search for.
-#'
-#' @return A data frame with default parameter values for each matched species.
-#'
-#' @examples
-#' \dontrun{
-#' # Get default parameters for selected species:
-#' spp <- c("Poa lab", "D repens", "Hyd laxiflora")
-#' params <- ffm_get_species_params(spp)
-#' }
-#'
-#' @export
-#'
-ffm_get_species_params <- function(names) {
-  indices <- ffm_find_species(names)
-
-  # check for non-matches and multiple matches
-  nas <- sapply(indices, anyNA)
-  multis <- sapply(indices, function(ii) length(ii) > 1)
-
-  if (any(nas) || any(multis)) {
-    msg <- NULL
-
-    if (any(nas)) {
-      err.names <- paste(names[nas], collapse = ", ")
-      msg <- c(msg, paste("The following do not match any species:", err.names))
-    }
-
-    if (any(multis)) {
-      err.names <- paste(names[multis], collapse = ", ")
-      msg <- c(msg, paste("The following match multiple species:", err.names))
-    }
-
-    stop(msg)
-  }
-
-  # convert from list of indices to matrix
-  indices <- do.call(rbind, indices)
-
-  # return params
-  DefaultSpeciesParams[indices[, 1], ]
-}
-
-
 #' Completes a table by adding default parameters for each species as required.
 #' 
 #' For each species in the input parameter table, this function checks which
@@ -348,7 +223,8 @@ ffm_get_species_params <- function(names) {
 #' 
 #' If a species has missing parameters but either it, or one or more of the
 #' parameters, are not present in the lookup table of defaults an error is
-#' thrown.
+#' thrown. An exception is made for the parameter 'propSilicaFreeAsh' which
+#' is allowed to be missing.
 #' 
 #' @param tbl The input simulation parameter table (data frame).
 #' 
@@ -371,42 +247,89 @@ ffm_complete_params <- function(tbl, default.species.params) {
     stop("Input table must be a validly structured parameters data frame\n",
          "with columns: stratum, species, param, value and (optionally) units.")
   
+  if (!is.data.frame(default.species.params) || 
+      ncol(default.species.params) < 2 ||
+      colnames(default.species.params)[1] != "name") {
+    
+    stop("default.species.params should be a data frame with 'name' as \n",
+         "first column and valid parameter names as further columns")
+  }
+  
+  if ( any(table(tolower(default.species.params$name)) > 1) ) {
+    stop("One or more duplicate species names in default.species.params")
+  }
+  
+  # Convert default to long format
+  default.species.params <- default.species.params %>%
+    tidyr::gather(param, value, -name)
+
   tbl <- .as_str_data_frame(tbl)
+  
+  Silica <- tolower("propSilicaFreeAsh")
+  
+  RequiredSpeciesParams <- {
+    x <- frame::ParamInfo %>% dplyr::filter(section == "species")
+    tolower(x$param)
+  }
+
   
   # Retrieve default parameters as required for a given species
   # and return as additional records to add to the table
   do_species <- function(species.id) {
-    recs <- dplyr::filter(tbl, species == species.id)
-    stratum <- recs$stratum[1]
-    species.name <- dplyr::filter(recs, param == "name")$value
+    all.recs <- dplyr::filter(tbl, species == species.id)
+    species.name <- dplyr::filter(all.recs, param == "name")$value[1]
     
-    provided <- recs$param
-    required <- setdiff( colnames(DefaultSpeciesParams)[-1], provided )
+    strata <- sort( unique(all.recs$stratum) )
+    if (anyNA(strata)) 
+      stop("Parameter record for species ", species.name, " is missing stratum ID")
     
-    if (length(required) == 0) {
-      # Don't need to add any parameters, so return NULL
-      NULL
+    # Look for missing parameters within each stratum
+    extra.recs <- NULL
+    for (ist in strata) {
+      stratum.recs <- dplyr::filter(all.recs, stratum == ist)
+      provided <- tolower(stratum.recs$param)
+      required <- setdiff(RequiredSpeciesParams, provided)
+    
+      if (length(required) == 0) {
+        # Don't need to add any parameters, so return NULL
+        NULL
+      }
+      else {
+        spdefaults <- dplyr::filter(default.species.params, name == species.name)
+        
+        if (nrow(spdefaults) == 0) {
+          msg <- glue::glue(
+            "Species {species.name} in stratum {ist} is missing required \n",
+            "parameters but is not in the table of defaults")
+          
+          stop(msg)
+        }
+        
+        # Are all required parameters in the defaults?
+        # (allow propSilicaFreeAsh to be missing)
+        missing <- setdiff(required, tolower(spdefaults$param))
+        if (length(setdiff(missing, Silica)) > 0) {
+          msg <- glue::glue(
+            "Species {species.name} in stratum {ist} is missing required \n",
+            "parameters that are not provided by the table of defaults")
+          
+          stop(msg)
+        }
+        
+        # Get required additional parameter table records
+        spextras <- spdefaults %>%
+          dplyr::filter(tolower(param) %in% required) %>%
+          dplyr::select(param, value)
+        
+        spextras$stratum <- ist
+        spextras$species <- species.id
+
+        spextras <- arrange(spextras, stratum, species, param, value)
+        
+        extra.recs <- rbind(extra.recs, spextras)
+      } 
     }
-    else if (ffm_is_species_known(species.name)) {
-      # Parameters required and species is known
-      #
-      dat <- ffm_get_species_params(species.name) %>% dplyr::select_(.dots = required)
-      nrecs <- ncol(dat)
-      
-      # return required addition parameter table records
-      data.frame(
-        stratum = rep(stratum, nrecs),
-        species = rep(species.id, nrecs),
-        param = colnames(dat),
-        value = as.character(dat[1, ]),
-        stringsAsFactors = FALSE
-      )
-      
-    } else {
-      msg <- sprintf("Species %d (%s) is missing required parameters and is not in the defaults table",
-                     species.id, species.name)
-      stop(msg)
-    }
+    extra.recs
   }
   
   ids <- .get_species_ids(tbl)
