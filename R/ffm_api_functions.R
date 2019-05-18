@@ -14,9 +14,8 @@
 #' parameters file and the output database specified by \code{db.path}. For this
 #' to work, you must have a properly installed version of Java (version 1.8.x or
 #' higher) that can be run from any directory by issuing the command
-#' \code{'java'}. You can check this with the function
-#' \code{\link{ffm_check_java}}. Consult the Oracle Java installation
-#' instructions for more details.
+#' \code{'java'}. Consult the Oracle Java installation instructions for more
+#' details.
 #' 
 #' 
 #' @param params A data frame of parameters
@@ -47,9 +46,21 @@ ffm_run <- function(params, db.path,
                     default.species.params = NULL, 
                     db.recreate = FALSE) {
   
+  db.path <- normalizePath(db.path)
+  
+  if (!.check_setting("java", TRUE)) {
+    message("Checking for Java...\n")
+    
+    ok <- ffm_check_java()
+    .set_setting("java", ok)
+    
+    if (!ok) 
+      stop("Bummer: Try again when Java 1.8 or higher is properly installed")
+  }  
+  
   if (ffm_check_params(params)) {
     param.path <- tempfile(pattern = "ffm_", fileext = ".csv")
-    write.csv(params, file = paramfile, row.names = FALSE)
+    write.csv(params, file = param.path, row.names = FALSE)
     
     cmd <- ffm_run_command(param.path = param.path, 
                            db.path = db.path,
@@ -113,10 +124,68 @@ ffm_run_command <- function(param.path, db.path,
 }
 
 
-############################################################################
-#
-# Non-exported helper functions
-#
-############################################################################
+#' Check for a locally installed Java runtime system
+#' 
+#' Checks that Java version 1.8 or higher (aka Java 8) is installed 
+#' on the local system and available from the command line. This is
+#' required to run simulations with \code{\link{ffm_run}}.
+#' 
+#' @return \code{TRUE} if a compatible version of Java is found; 
+#'   \code{FALSE} otherwise.
+#'
+#' @export
+#' 
+ffm_check_java <- function(quiet = FALSE) {
+  x <- system2("java", args = "-version", stdout = TRUE)
+  
+  found <- any( grepl("java version", x, ignore.case = TRUE) )
+  
+  ver <- 
+    if (!found) NA
+    else as.numeric(stringr::str_extract(x[1], "\\d\\.\\d+"))
+  
+  if (is.na(ver)) {
+    if (!quiet)
+      warning("Java was not found on the local system path\n",
+              "Java version 1.8 or higher is required")
+    FALSE
+    
+  } else if (ver < 1.8) {
+    if (!quiet)
+      warning("Java version ", ver, " found\n",
+              "Version 1.8 or higher is required")
+    FALSE
+    
+  } else {
+    if (!quiet)
+      message("Compatible Java version found (", ver, ")")
+    
+    TRUE
+  }
+}
 
-# All removed for the moment
+
+.check_setting <- function(setting, desired.value) {
+  if (!exists("._ffm_settings", where = 1)) {
+    assign("._ffm_settings", list(), pos = 1)
+    FALSE
+  }
+  
+  S <- get("._ffm_settings", pos = 1)
+  
+  if (!(setting %in% names(S))) {
+    FALSE
+  } else {
+    S[[setting]] == desired.value
+  }
+}
+
+.set_setting <- function(setting, value) {
+  if (!exists("._ffm_settings", where = 1)) {
+    assign("._ffm_settings", list(), pos = 1)
+  }
+  
+  S <- get("._ffm_settings", pos = 1)
+  S[[setting]] <- value
+  assign("._ffm_settings", S, pos = 1)
+}

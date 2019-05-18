@@ -47,7 +47,6 @@ use the Java installation on your machine to run the simulation with the
 parameters file and the output database specified by \code{db.path}. For this
 to work, you must have a properly installed version of Java (version 1.8.x or
 higher) that can be run from any directory by issuing the command
-\code{'java'}. You can check this with the function
-\code{\link{ffm_check_java}}. Consult the Oracle Java installation
-instructions for more details.
+\code{'java'}. Consult the Oracle Java installation instructions for more
+details.
 }

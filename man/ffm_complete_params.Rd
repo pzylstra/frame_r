@@ -31,3 +31,6 @@ parameters, are not present in the lookup table of defaults an error is
 thrown. An exception is made for the parameter 'propSilicaFreeAsh' which
 is allowed to be missing.
 }
+\seealso{
+\code{\link{ffm_check_params}}
+}

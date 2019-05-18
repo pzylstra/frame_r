@@ -5,9 +5,9 @@
 #' @param raw (logical) Whether to return raw parsed data.
 #'
 #' @return If \code{raw} is \code{TRUE}, a data frame of parsed data
-#'   in raw form (useful for testing); 
-#'   if \code{raw} is \code{FALSE} (the default), a data frame in a form 
-#'   suitable to create Scala objects (e.g. with \code{\link{ffm_site}}).
+#'   in raw form (useful for testing).
+#'   If \code{raw} is \code{FALSE} (the default), a data frame in a form 
+#'   suitable for use with \code{\link{ffm_run}}.
 #'
 #' @export
 #'
@@ -123,8 +123,7 @@ readLegacyParamFile <- function(path, raw = FALSE) {
   c(name = name, value = value)
 }
 
-# Formats parsed data to be suitable for Scala api functions
-# such as ffm_site.
+# Formats parsed data to be suitable for the API functions
 #
 .format_output <- function(dat) {
   dat <- dat %>%

@@ -21,3 +21,6 @@ A parameter table is considered complete if it contains all parameters specified
 in the \code{\link{ParamInfo}} table other than the optional parameter
 \code{propSilicaFreeAsh}. Parameter name comparisons are done ignoring case.
 }
+\seealso{
+\code{\link{ffm_complete_params}}
+}

@@ -13,9 +13,9 @@ readLegacyParamFile(path, raw = FALSE)
 }
 \value{
 If \code{raw} is \code{TRUE}, a data frame of parsed data
-  in raw form (useful for testing); 
-  if \code{raw} is \code{FALSE} (the default), a data frame in a form 
-  suitable to create Scala objects (e.g. with \code{\link{ffm_site}}).
+  in raw form (useful for testing).
+  If \code{raw} is \code{FALSE} (the default), a data frame in a form 
+  suitable for use with \code{\link{ffm_run}}.
 }
 \description{
 Reads a legacy format parameters file.

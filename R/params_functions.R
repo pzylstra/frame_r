@@ -11,6 +11,8 @@
 #' 
 #' @return \code{TRUE} is all required parameters are present; \code{FALSE}
 #'   otherwise.
+#'   
+#' @seealso \code{\link{ffm_complete_params}}
 #'
 #' @importFrom dplyr %>% group_by mutate ungroup
 #'  
@@ -238,6 +240,8 @@ ffm_assemble_table <- function(lst) {
 #' 
 #' @return The completed parameter table
 #' 
+#' @seealso \code{\link{ffm_check_params}}
+#' 
 #' @importFrom dplyr %>% arrange left_join
 #' 
 #' @export
@@ -342,7 +346,7 @@ ffm_complete_params <- function(tbl, default.species.params) {
   } else {
     # add a units column if one was present in the input table
     if (ncol(tbl) == 5) {
-      units <- ParamInfo %>%
+      units <- frame::ParamInfo %>%
         dplyr::filter(section == "species") %>%
         dplyr::select(param, units)
       
@@ -401,7 +405,7 @@ ffm_valid_param <- function(label, section=NULL, single) {
 ffm_param_info <- function(label, section = NULL, no.match.error = FALSE) {
   i <- .match_param(label, section, no.match.error, single = TRUE)
 
-  if (!is.null(i)) ParamInfo[i, ]
+  if (!is.null(i)) frame::ParamInfo[i, ]
   else NULL
 }
 
@@ -510,9 +514,9 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
 #
 .match_param <- function(param, section, no.match.error = FALSE, single = TRUE) {
   if (is.null(section)) {
-    labels <- ParamInfo$param
+    labels <- frame::ParamInfo$param
   } else {
-    labels <- dplyr::filter(ParamInfo, section == section)$param
+    labels <- dplyr::filter(frame::ParamInfo, section == section)$param
   }
   
   # Special treatment for the pesky 'w' parameter
@@ -563,7 +567,7 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
     else "species"
   
   i <- .match_param(param, section, no.match.error = TRUE, single = TRUE)
-  std.param <- ParamInfo[i, "param"]
+  std.param <- frame::ParamInfo[i, "param"]
 
   in.scope <- .match_ids(tbl, stratum.id, species.id)
     
