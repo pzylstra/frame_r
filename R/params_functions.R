@@ -299,7 +299,9 @@ ffm_complete_params <- function(tbl, default.species.params) {
         NULL
       }
       else {
-        spdefaults <- dplyr::filter(default.species.params, name == species.name)
+        spdefaults <- dplyr::filter(default.species.params, 
+                                    name == species.name,
+                                    !is.na(value))
         
         if (nrow(spdefaults) == 0) {
           msg <- glue::glue(

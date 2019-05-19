@@ -2,7 +2,7 @@ Package: frame
 Type: Package
 Title: Fire research and modelling environment
 Version: 0.2.0
-Date: 2019-05-17
+Date: 2019-05-20
 Authors@R: as.person( c(
     "Phil Zylstra <pzylstra@uow.edu.au> [cre]",
     "Michael Bedward <michael.bedward@gmail.com> [aut]",
@@ -14,6 +14,8 @@ Description: This package provides an interface to the forest flammability
     form of Java jar files. The only additional requirement is an installation
     of Java version 1.8 (aka Java 8) or higher on the host system.
 License: MIT + file LICENSE
+URL: https://github.com/pzylstra/frame_r
+BugReports: https://github.com/pzylstra/frame_r/issues
 Depends:
     R (>= 3.5.1)
 Imports:

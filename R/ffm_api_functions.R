@@ -58,10 +58,11 @@ ffm_run <- function(params, db.path,
       stop("Bummer: Try again when Java 1.8 or higher is properly installed")
   }  
   
-  if (ffm_check_params(params)) {
+  if (ffm_check_params(params, quiet = TRUE)) {
     param.path <- tempfile(pattern = "ffm_", fileext = ".csv")
     write.csv(params, file = param.path, row.names = FALSE)
     
+    # Compose sytem call and run the simulation
     cmd <- ffm_run_command(param.path = param.path, 
                            db.path = db.path,
                            db.recreate = db.recreate)
@@ -72,8 +73,15 @@ ffm_run <- function(params, db.path,
     any( stringr::str_detect(tolower(res), "success") )
     
   } else {
-    # Problem with parameters
-    FALSE
+    # Attempt to complete parameters if default are provided.
+    # If this fails, ffm_complete_params will throw an error.
+    if (!is.null(default.species.params)) {
+      params <- ffm_complete_params(params, default.species.params)
+    }
+    else {
+      # No defaults - give up
+      FALSE
+    }
   }
 }
 
