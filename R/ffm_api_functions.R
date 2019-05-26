@@ -46,7 +46,7 @@ ffm_run <- function(params, db.path,
                     default.species.params = NULL, 
                     db.recreate = FALSE) {
   
-  db.path <- normalizePath(db.path)
+  db.path <- normalizePath(db.path, mustWork = FALSE)
   
   if (!.check_setting("java", TRUE)) {
     message("Checking for Java...\n")
@@ -117,18 +117,25 @@ ffm_run_command <- function(param.path, db.path,
                             db.recreate = FALSE,
                             runtime.class = "ffm.runner.CSVRunner") {
   
-  pkgdir <- system.file(package = "frame")
-  
-  jarfiles <- dir(file.path(pkgdir, "java"), 
-                  pattern = "\\.jar$", full.names = TRUE)
+  # Guard against paths or filenames with embedded spaces
+  safepath <- function(path) {
+    ifelse (stringr::str_detect(path, "\\s"), paste0('"', path, '"'), path)
+  }
+
+  pkgdir <- safepath( system.file(package = "frame") ) 
+
+  jarfiles <- safepath(
+    dir(file.path(pkgdir, "java"), 
+        pattern = "\\.jar$", full.names = TRUE)
+  )
   
   cp <- paste(jarfiles, collapse = ";")
   
   # convert logical db.recreate to an optional flag
   db.recreate <- if (db.recreate) "-x" else ""
   
-  glue::glue("java -cp {cp} {runtime.class} -p {param.path}",
-             " -d {db.path} {db.recreate}")
+  glue::glue('java -cp {cp} {runtime.class} -p "{param.path}"',
+             ' -d "{db.path}" {db.recreate}')
 }
 
 
