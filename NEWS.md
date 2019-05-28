@@ -1,5 +1,17 @@
 # NEWS
 
+## Version 0.2.2
+ * Function readLegacyParamFile has been deprecated. New code should now use
+ `ffm_read_legacy_params`.
+ 
+ * Added function `ffm_write_params` to write parameters to file as a CSV-format
+ table. This is just a simple wrapper that calls `write.csv` with appropriate
+ default arguments and optionally checks parameters before writing.
+
+## Version 0.2.1
+ * Functions `ffm_run` and `ffm_run_command` now attempt to deal with embedded
+ spaces in paths and file names.
+
 ## Version 0.2.0
 
  * Removed dependency on the `rScala` package. Function `ffm_run` is now a

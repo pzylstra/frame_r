@@ -131,6 +131,38 @@ ffm_check_params <- function(params, quiet = FALSE) {
 }
 
 
+#' Writes a table of parameters to a CSV format file.
+#'
+#' This is simply a wrapper that calls the standard
+#' \code{write.csv} function with appropriate default arguments.
+#'
+#' @param tbl The input simulation parameter table (data frame).
+#'
+#' @param path The path and file name to write to. The recommended file
+#'   extension is \code{'.csv'} but this is not enforced by the function.
+#'
+#' @param overwrite Set to \code{FALSE} (default) to issue an error message if
+#'   the output file exists, or \code{TRUE} to overwrite any existing file.
+#'   
+#' @param must.be.complete Set to \code{FALSE} (default) to enable writing a
+#'   partial table of parameters, or to \code{TRUE} to abort writing and issue an
+#'   error message if the parameter table is not complete.
+#'
+#' @export
+#' 
+ffm_write_params <- function(tbl, path, overwrite = FALSE, must.be.complete = FALSE) {
+  if (!overwrite && file.exists(path))
+    stop("Output file ", path, " exists. Set overwrite=TRUE if you want to replace it.")
+  
+  if (must.be.complete) {
+    ok <- ffm_check_params(tbl, quiet = TRUE)
+    if (!ok) stop("Parameters table is not complete. Set must.be.complete = FALSE to ignore this check.")
+  }
+  
+  write.csv(tbl, file = path, row.names = FALSE)
+}
+
+
 #' Disassembles a parameter table into a list of components.
 #' 
 #' Given a parameter table, this function returns a list with
