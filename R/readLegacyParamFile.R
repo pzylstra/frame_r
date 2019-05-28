@@ -20,7 +20,7 @@
 #'   suitable for use with \code{\link{ffm_run}}.
 #'   
 #' @examples 
-#' \dontrun {
+#' \dontrun{
 #' # Import a legacy format parameter file and save it as a CSV format file
 #' # in standard tabular parameter format.
 #' params <- ffm_read_legacy_params("old_params.txt")
