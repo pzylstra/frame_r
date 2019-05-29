@@ -116,7 +116,7 @@ readLegacyParamFile <- function(path, raw = FALSE) {
   # partition by species
   species <- .get_chunks(txt, "begin species", "end species", "species")
 
-  out <- left_join(strata, species)
+  out <- left_join(strata, species, by = "line")
   out$txt <- txt
 
   out <- dplyr::select(out, line, txt, stratum, species)

@@ -58,21 +58,7 @@ ffm_run <- function(params, db.path,
       stop("Bummer: Try again when Java 1.8 or higher is properly installed")
   }  
   
-  if (ffm_check_params(params, quiet = TRUE)) {
-    param.path <- tempfile(pattern = "ffm_", fileext = ".csv")
-    write.csv(params, file = param.path, row.names = FALSE)
-    
-    # Compose sytem call and run the simulation
-    cmd <- ffm_run_command(param.path = param.path, 
-                           db.path = db.path,
-                           db.recreate = db.recreate)
-    
-    res <- system(cmd, intern = TRUE)
-    
-    # Check for 'success' in Scala output
-    any( stringr::str_detect(tolower(res), "success") )
-    
-  } else {
+  if (!ffm_check_params(params, quiet = TRUE)) {
     # Attempt to complete parameters if default are provided.
     # If this fails, ffm_complete_params will throw an error.
     if (!is.null(default.species.params)) {
@@ -80,9 +66,28 @@ ffm_run <- function(params, db.path,
     }
     else {
       # No defaults - give up
+      warning("Parameters incomplete and no defaults provided")
       FALSE
     }
   }
+  
+  # If we got this far we should have a complete set of parameters
+  param.path <- tempfile(pattern = "ffm_", fileext = ".csv")
+  ffm_write_params(params, path = param.path)
+  
+  # Compose sytem call and run the simulation
+  cmd <- ffm_run_command(param.path = param.path, 
+                         db.path = db.path,
+                         db.recreate = db.recreate)
+  
+  res <- system(cmd, intern = TRUE)
+    
+  # Check for 'success' in Scala output
+  success <- any( stringr::str_detect(tolower(res), "success") )
+  if (!success) warning(res)
+
+  # Return status as TRUE / FALSE  
+  success
 }
 
 

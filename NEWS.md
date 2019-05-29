@@ -1,5 +1,8 @@
 # NEWS
 
+## Version 0.2.3
+ * Fixed bug in ffm_run when parameters are incomplete.  
+
 ## Version 0.2.2
  * Function readLegacyParamFile has been deprecated. New code should now use
  `ffm_read_legacy_params`.
