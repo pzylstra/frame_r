@@ -1,5 +1,10 @@
 # NEWS
 
+## Version 0.2.4
+ * Removed public function `ffm_db_connect` (returned a DBI connection object)
+ and replaced it with a private helper function used by `ffm_db_load` and
+ `ffm_db_summary`.
+
 ## Version 0.2.3
  * Fixed bug in ffm_run when parameters are incomplete.  
 
