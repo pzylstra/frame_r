@@ -1,26 +1,82 @@
-#' Reads a legacy format parameters file.
+#' Reads a legacy format parameters file
+#' 
+#' The legacy parameters file format was designed for use with a C++
+#' implementation of the model. It does not conform to any more general format
+#' (e.g. json or yaml) and, to be read correctly, relies on implicit assumptions
+#' about the relationship between variables. For new parameter sets it is
+#' preferable to compose them as tables in R or elsewhere and save them as
+#' CSV-format files.
 #'
+#' @param path The full or relative path to the parameters file.
+#'
+#' @param raw (logical) Whether to return raw parsed data. This can be useful
+#'   for diagnosing problems with reading a particular parameter file. It should
+#'   be set to \code{FALSE} (default) to return a standard format table of
+#'   parameters.
+#'
+#' @return If \code{raw} is \code{TRUE}, a data frame of parsed data
+#'   in raw form (useful for testing).
+#'   If \code{raw} is \code{FALSE} (the default), a data frame in a form 
+#'   suitable for use with \code{\link{ffm_run}}.
+#'   
+#' @examples 
+#' \dontrun{
+#' # Import a legacy format parameter file and save it as a CSV format file
+#' # in standard tabular parameter format.
+#' params <- ffm_read_legacy_params("old_params.txt")
+#' ffm_write_params(params, file = "beautiful_params.csv")
+#' }
+#'
+#' @importFrom dplyr %>%
+#'
+#' @export
+#'
+ffm_read_legacy_params <- function(path, raw = FALSE) {
+  txt <- .preprocess_text(path)
+  dat <- .parse_text(txt)
+  
+  dat <- .parse_params(dat)
+  
+  if (raw) {
+    # Return raw parsed input
+    dat
+  }
+  else {
+    dat <- dat %>% 
+      # Convert parsed input to standard format
+      .format_output() %>% 
+      
+      # Replace any missing ignition temperatures based
+      # on function of silica free ash proportion
+      .check_ignition_temps()
+    
+    # Return formatted parameters
+    dat
+  }
+}
+
+
+#' Reads a legacy format parameters file.
+#' 
+#' This function has been deprecated and will be removed in a future version of
+#' the package. New code should use function
+#' \code{\link{ffm_read_legacy_params}}.
+#' 
 #' @param path The full or relative path to the parameters file.
 #'
 #' @param raw (logical) Whether to return raw parsed data.
 #'
 #' @return If \code{raw} is \code{TRUE}, a data frame of parsed data
-#'   in raw form (useful for testing); 
-#'   if \code{raw} is \code{FALSE} (the default), a data frame in a form 
-#'   suitable to create Scala objects (e.g. with \code{\link{ffm_site}}).
-#'
+#'   in raw form (useful for testing).
+#'   If \code{raw} is \code{FALSE} (the default), a data frame in a form 
+#'   suitable for use with \code{\link{ffm_run}}.
+#'   
 #' @export
 #'
 readLegacyParamFile <- function(path, raw = FALSE) {
-  txt <- .preprocess_text(path)
-  dat <- .parse_text(txt)
-
-  dat <- .parse_params(dat)
-
-  if (raw) 
-    dat
-  else
-    dat %>% .format_output() %>% .check_ignition_temps()
+  .Deprecated("ffm_read_legacy_params")
+  
+  ffm_import_legacy_params(path, raw)
 }
 
 
@@ -51,6 +107,8 @@ readLegacyParamFile <- function(path, raw = FALSE) {
 # Parses pre-processed parameter file text
 # into a structured form.
 #
+#' @importFrom dplyr %>% group_by left_join mutate n ungroup
+#
 .parse_text <- function(txt) {
   # partition by strata
   strata <- .get_chunks(txt, "begin stratum", "end stratum", "stratum")
@@ -58,10 +116,10 @@ readLegacyParamFile <- function(path, raw = FALSE) {
   # partition by species
   species <- .get_chunks(txt, "begin species", "end species", "species")
 
-  out <- left_join(strata, species)
+  out <- left_join(strata, species, by = "line")
   out$txt <- txt
 
-  out <- select(out, line, txt, stratum, species)
+  out <- dplyr::select(out, line, txt, stratum, species)
 
   # flag stratum and species delimiter lines
   out <- out %>%
@@ -123,46 +181,50 @@ readLegacyParamFile <- function(path, raw = FALSE) {
   c(name = name, value = value)
 }
 
-# Formats parsed data to be suitable for Scala api functions
-# such as ffm_site.
+# Formats parsed data to be suitable for the API functions
+#
+#' @importFrom dplyr %>% arrange bind_rows distinct left_join mutate
 #
 .format_output <- function(dat) {
   dat <- dat %>%
-    filter(delim == 0) %>%
-    select(stratum, species, param, value) %>%
+    dplyr::filter(delim == 0) %>%
+    dplyr::select(stratum, species, param, value) %>%
     .legacy_text_to_params
 
   # hack for absent dead fuel moisture parameter
   # in species - use surface dead fuel value
   deadMoist <- dat %>%
-    filter(is.na(stratum),
-           is.na(species),
-           stringr::str_detect(param, "^dead"))
+    dplyr::filter(is.na(stratum),
+                  is.na(species),
+                  stringr::str_detect(param, "^dead"))
 
   stopifnot(nrow(deadMoist) == 1)
 
   extras <- dat %>%
-    filter(!is.na(species)) %>%
-    select(stratum, species) %>%
+    dplyr::filter(!is.na(species)) %>%
+    dplyr::select(stratum, species) %>%
     distinct %>%
     mutate(param = "deadLeafMoisture", value = deadMoist$value)
 
   dat %>%
-    rbind(extras) %>%
+    bind_rows(extras) %>%
     arrange(stratum, species) %>%
     .minus99_to_NA %>%
-    left_join(select(ParamInfo, param, units), by="param")
+    left_join(dplyr::select(ParamInfo, param, units), by="param")
 }
 
 
 # Replace any missing ignition temperatures with values
 # calculated from proportion of silica free ash.
+#
+#' @importFrom dplyr %>% mutate
+#
 .check_ignition_temps <- function(tbl) {
   
   x <- tbl %>%
-    filter(param %in% c("ignitionTemp", "propSilicaFreeAsh")) %>%
+    dplyr::filter(param %in% c("ignitionTemp", "propSilicaFreeAsh")) %>%
     reshape2::dcast(stratum + species ~ param) %>%
-    filter(is.na(ignitionTemp))
+    dplyr::filter(is.na(ignitionTemp))
   
   if ( nrow(x) > 0 ) {
     x <- x %>%
@@ -172,7 +234,7 @@ readLegacyParamFile <- function(path, raw = FALSE) {
     
     tbl <- tbl %>% left_join(x) %>%
       mutate(value = ifelse( !is.na(new.value), new.value, value) ) %>%
-      select(-new.value)
+      dplyr::select(-new.value)
   }
   
   tbl
@@ -188,7 +250,7 @@ readLegacyParamFile <- function(path, raw = FALSE) {
 
   param.dat$param <- LegacyParamLookup$name[ii]
 
-  filter(param.dat, !is.na(param))
+  dplyr::filter(param.dat, !is.na(param))
 }
 
 

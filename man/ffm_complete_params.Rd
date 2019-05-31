@@ -4,10 +4,18 @@
 \alias{ffm_complete_params}
 \title{Completes a table by adding default parameters for each species as required.}
 \usage{
-ffm_complete_params(tbl)
+ffm_complete_params(tbl, default.species.params)
 }
 \arguments{
-\item{tbl}{The input parameter table}
+\item{tbl}{The input simulation parameter table (data frame).}
+
+\item{default.species.params}{A data frame with species as rows and
+parameters as columns giving default values to use for species parameters
+not specified in the input \code{params} table. Any subset of species
+parameters can be specified. Column names must match the parameter names in
+the \code{\link{ParamInfo}} table (case is ignored). An \code{NA} value
+indicates no default. This allows default values for a particular parameter
+to be provided for only a subset of species.}
 }
 \value{
 The completed parameter table
@@ -15,9 +23,14 @@ The completed parameter table
 \description{
 For each species in the input parameter table, this function checks which
 parameters have been provided and retrieves defaults for missing parameters
-from the default lookup table: \link{DefaultSpeciesParams}.
+from the provided lookup table of defaults.
 }
 \details{
-If a species has missing parameters but is not present in the table of
-default lookup table, an error is thrown.
+If a species has missing parameters but either it, or one or more of the
+parameters, are not present in the lookup table of defaults an error is
+thrown. An exception is made for the parameter 'propSilicaFreeAsh' which
+is allowed to be missing.
+}
+\seealso{
+\code{\link{ffm_check_params}}
 }

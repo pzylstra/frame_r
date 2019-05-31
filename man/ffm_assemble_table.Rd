@@ -7,13 +7,14 @@
 ffm_assemble_table(lst)
 }
 \arguments{
-\item{lst}{A list of table components.}
+\item{lst}{A named list of table components. 
+See \code{\link{ffm_disassemble_table}} for details of valid names.}
 }
 \value{
 A standard five column parameter table.
 }
 \description{
 This function takes a list of parameter table components as produced
-by \code{\link{ffm_dissemble_table}} and combines them into a single
+by \code{\link{ffm_disassemble_table}} and combines them into a single
 parameter table.
 }

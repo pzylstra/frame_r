@@ -19,8 +19,8 @@
 # Runs the most basic checks to see if an object can be 
 # used as a parameter table
 .is_param_table <- function(tbl) {
-  # must be a data frame or matrix
-  ok <- is(tbl, "data.frame") || is(tbl, "matrix")
+  # must be a data frame
+  ok <- is(tbl, "data.frame")
   
   # must have some rows
   ok <- ok && nrow(tbl) > 0
@@ -40,7 +40,7 @@
 
 # Gets species IDs in the given parameter table
 #
-.get_species_ids <- function(tbl) unique( na.omit(tbl$species) )
+.get_species_ids <- function(tbl) sort( unique( na.omit(tbl$species) ) )
 
 
 # Creates a regular expression pattern for the given string.
