@@ -1,7 +1,7 @@
 #' Summary table of surface results
 #'
 #' Summarises FRaME generated surface fire behaviour by RepId
-#' @param surface The dataframe res$SurfaceResults
+#' @param surface The dataframe $SurfaceResults
 #' @return dataframe
 #' @export
 
@@ -22,14 +22,14 @@ surf <- function(surface)
 #' Summary table of stratum results
 #'
 #' Summarises FRaME generated fire behaviour by stratum and RepId
-#' @param flames The dataframe res$FlameSummaries
-#' @param sites The dataframe res$Sites
-#' @param ros The dataframe res$ROS
-#' @param Surf The dataframe produced by the extension surf
+#' @param flames The dataframe $FlameSummaries
+#' @param sites The dataframe $Sites
+#' @param ros The dataframe $ROS
+#' @param surface The dataframe $SurfaceResults
 #' @return dataframe
 #' @export
 
-stratum <- function(flames, sites, ros, Surf)
+stratum <- function(flames, sites, ros, surface)
 {
   y <- ros%>%
     select(repId, level, ros)
@@ -63,6 +63,7 @@ stratum <- function(flames, sites, ros, Surf)
            has.flame = spread + (extinct * flameHeight) > 0)
   
   # Add in surface flame descriptors
+  Surf <- surf(surface)
   rep <- max(a$repId)
   st <- as.numeric(count(a))/rep
   i <- 1
@@ -79,14 +80,18 @@ stratum <- function(flames, sites, ros, Surf)
 #' Summary table of fire behaviour
 #'
 #' Summarises FRaME generated fire behaviour by RepId
-#' @param Stratum The dataframe produced by the extension stratum
-#' @param Surf The dataframe produced by the extension surf
+#' @param flames The dataframe $FlameSummaries
+#' @param sites The dataframe $Sites
+#' @param ros The dataframe $ROS
+#' @param surface The dataframe $SurfaceResults
 #' @return dataframe
 #' @export
 
 
-summary <- function(Stratum, Surf)
+summary <- function(flames, sites, ros, surface)
 {
+  Stratum <- stratum(flames, sites, ros, surface)
+  Surf <- surf(surface)
   return(Stratum %>%
            select(repId, slope_degrees, wind_kph, deadFuelMoistureProp, temperature,
                   heightPlant, lengthPlant, flameAngle, ros_kph, extinct) %>%
@@ -104,7 +109,7 @@ summary <- function(Stratum, Surf)
 #'
 #' Summarises FRaME generated flame segments into a combined,
 #' representative plant flame for each repId where plants ignited
-#' @param IP The dataframe res$IP
+#' @param IP The dataframe $IP
 #' @return dataframe
 #' @export
 
