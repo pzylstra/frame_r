@@ -8,7 +8,7 @@
 #' @param temp Mean ambient temperature (deg.C)
 #' @param tempSD Standard deviation of temp
 #' @param tempRange Truncates variability by +/- mean * range
-#' @param DFMC Mean DFMC (%ODW)
+#' @param DFMC Mean DFMC (Percent ODW)
 #' @param DFMCSD Standard deviation of DFMC
 #' @param DFMCRange Truncates variability by +/- mean * range
 #' @param wind Mean wind velocity (km/h)
