@@ -28,7 +28,7 @@ probFire(base.params, db.path = "out_mc.db", jitters, slope, slopeSD,
 
 \item{tempRange}{Truncates variability by +/- mean * range}
 
-\item{DFMC}{Mean DFMC (%ODW)}
+\item{DFMC}{Mean DFMC (Percent ODW)}
 
 \item{DFMCSD}{Standard deviation of DFMC}
 
