@@ -12,7 +12,7 @@
 #' @param l Variation around input leaf dimensions
 #' @param Ms Standard deviation of LFMC
 #' @param Pm Multiplier of mean LFMC
-#' @param Mr Truncates LFMC variability by +/- Pm * LFMC
+#' @param Mr Truncates LFMC variability by +/- Mr * LFMC
 #' @param Hs Standard deviation of plant height variations
 #' @param Hr Truncates plant height variability by +/- Hr * height
 #' @param updateProgress Progress bar for use in the dashboard
@@ -85,7 +85,7 @@ weatherSet <- function(base.params, weather, db.path = "out_mc.db", jitters = 10
 #' @param l Variation around input leaf dimensions
 #' @param Ms Standard deviation of LFMC
 #' @param Pm Multiplier of mean LFMC
-#' @param Mr Truncates LFMC variability by +/- Pm * LFMC
+#' @param Mr Truncates LFMC variability by +/- Mr * LFMC
 #' @param Variation A database of plant variability in traits, with the fields:
 #' record - a unique, consecutively numbered identifier per site
 #' species - the name of the species, which will call trait data from 'default.species.params'
@@ -268,7 +268,7 @@ fireSet <- function(site, Structure, Flora, traits = default.species.params)
 #' @param l Variation around input leaf dimensions
 #' @param Ms Standard deviation of LFMC
 #' @param Pm Multiplier of mean LFMC
-#' @param Mr Truncates LFMC variability by +/- Pm * LFMC
+#' @param Mr Truncates LFMC variability by +/- Mr * LFMC
 #' @param Hs Standard deviation of plant height variations
 #' @param Hr Truncates plant height variability by +/- Hr * height
 #' @return dataframe
@@ -330,7 +330,7 @@ plantVar <- function (base.params, Strata, Species,
 #' @param l Variation around input leaf dimensions
 #' @param Ms Standard deviation of LFMC
 #' @param Pm Multiplier of mean LFMC
-#' @param Mr Truncates LFMC variability by +/- Pm * LFMC
+#' @param Mr Truncates LFMC variability by +/- Mr * LFMC
 #' @param Variation A database of plant variability in traits, with the fields:
 #' record - a unique, consecutively numbered identifier per site
 #' species - the name of the species, which will call trait data from 'default.species.params'
