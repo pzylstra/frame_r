@@ -75,6 +75,7 @@ weatherSet <- function(base.params, weather, db.path = "out_mc.db", jitters = 10
 #' using plantVarS to modify individual species with their own measured variability
 #'
 #' @param base.params Parameter input table
+#' @param a A unique identifier for the record being run
 #' @param weather A dataframe with the four fields:
 #' tm - Sequential numbering of the records
 #' T - Air temperature (deg C)
@@ -325,6 +326,7 @@ plantVar <- function (base.params, Strata, Species,
 #' Randomly modifies plant traits within defined ranges for non-deterministic predictions
 #' Differs from plantVar by modifying individual species by their own rules
 #' @param base.params Parameter input table
+#' @param a A unique identifier for the record being run
 #' @param Strata Strata descriptor table output by the function 'strata'
 #' @param Species Species descriptor table output by the function 'species'
 #' @param l Variation around input leaf dimensions
@@ -404,6 +406,7 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
 #' Modifies a parameter table to the shortened list
 #'
 #' @param base.params A parameter file
+#' @param a A unique identifier for the record being run
 #' @param Structure A dataframe with the fields:
 #' record - a unique, consecutively numbered identifier per site
 #' site - a unique identifier per site
