@@ -160,7 +160,9 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
 #####
 
 #' Models fire behaviour across ranged variables
+#' Private function under development
 #' @param base.params Input parameter file
+#' @param a A unique identifier for the record being run
 #' @param db.path Name of the exported database
 #' @param jitters Number of repetitions for each row in the weather table
 #' @param windMin Lowest wind velocity tested (km/h)
@@ -177,9 +179,8 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
 #' Hs - Standard deviation of plant height variations
 #' Hr - Truncates plant height variability by +/- Hr * height
 #' @param updateProgress Progress bar for use in the dashboard
-#' @export
 
-driversS <- function(base.params, db.path = "out_mc.db", jitters, windMin, windReps, windStep,
+driversS <- function(base.params, a, db.path = "out_mc.db", jitters, windMin, windReps, windStep,
                     moistureMultiplier, moistureSD, moistureRange, Variation,
                     leafVar,updateProgress = NULL) {
   
@@ -216,7 +217,7 @@ driversS <- function(base.params, db.path = "out_mc.db", jitters, windMin, windR
     
     #  for (j in 1:jitters) {
     #Randomise plant parameters
-    base.params <- plantVarS(base.params, Strata, Species, l = leafVar, Ms = moistureSD, 
+    base.params <- plantVarS(base.params, a, Strata, Species, l = leafVar, Ms = moistureSD, 
                             Pm = moistureMultiplier, Mr = moistureRange, Variation)
     ffm_run(base.params, db.path, db.recreate = db.recreate)
     
