@@ -2,7 +2,8 @@
 % Please edit documentation in R/Dashboard.R
 \name{driversS}
 \alias{driversS}
-\title{Models fire behaviour across ranged variables}
+\title{Models fire behaviour across ranged variables
+Private function under development}
 \usage{
 driversS(base.params, a, db.path = "out_mc.db", jitters, windMin,
   windReps, windStep, moistureMultiplier, moistureSD, moistureRange,
@@ -42,4 +43,5 @@ Hr - Truncates plant height variability by +/- Hr * height}
 }
 \description{
 Models fire behaviour across ranged variables
+Private function under development
 }
