@@ -4,16 +4,16 @@
 \alias{stratum}
 \title{Summary table of stratum results}
 \usage{
-stratum(flames, sites, ros, Surf)
+stratum(flames, sites, ros, surface)
 }
 \arguments{
-\item{flames}{The dataframe res$FlameSummaries}
+\item{flames}{The dataframe $FlameSummaries}
 
-\item{sites}{The dataframe res$Sites}
+\item{sites}{The dataframe $Sites}
 
-\item{ros}{The dataframe res$ROS}
+\item{ros}{The dataframe $ROS}
 
-\item{Surf}{The dataframe produced by the extension surf}
+\item{surface}{The dataframe $SurfaceResults}
 }
 \value{
 dataframe

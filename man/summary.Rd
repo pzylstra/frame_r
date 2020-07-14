@@ -4,12 +4,16 @@
 \alias{summary}
 \title{Summary table of fire behaviour}
 \usage{
-summary(Stratum, Surf)
+summary(flames, sites, ros, surface)
 }
 \arguments{
-\item{Stratum}{The dataframe produced by the extension stratum}
+\item{flames}{The dataframe $FlameSummaries}
 
-\item{Surf}{The dataframe produced by the extension surf}
+\item{sites}{The dataframe $Sites}
+
+\item{ros}{The dataframe $ROS}
+
+\item{surface}{The dataframe $SurfaceResults}
 }
 \value{
 dataframe

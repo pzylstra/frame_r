@@ -7,7 +7,7 @@
 repFlame(IP)
 }
 \arguments{
-\item{IP}{The dataframe res$IP}
+\item{IP}{The dataframe $IP}
 }
 \value{
 dataframe

@@ -18,6 +18,8 @@ ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the strat
 on the left grow directly beneath those in the stratum on the right. Acceptable values
 are t, f, or blank, where the outcome will be decided by the relative stratum heights.
 nsR, eR, mR, cR - maximum species richness recorded for each stratum}
+
+\item{a}{A unique identifier for the record being run}
 }
 \value{
 dataframe

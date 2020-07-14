@@ -7,7 +7,7 @@
 surf(surface)
 }
 \arguments{
-\item{surface}{The dataframe res$SurfaceResults}
+\item{surface}{The dataframe $SurfaceResults}
 }
 \value{
 dataframe

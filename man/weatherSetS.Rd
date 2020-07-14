@@ -35,6 +35,8 @@ on the left grow directly beneath those in the stratum on the right. Acceptable 
 are t, f, or blank, where the outcome will be decided by the relative stratum heights.
 nsR, eR, mR, cR - maximum species richness recorded for each stratum}
 
+\item{a}{A unique identifier for the record being run}
+
 \item{db.path}{Name of the exported database}
 
 \item{jitters}{Number of repetitions}
@@ -45,7 +47,7 @@ nsR, eR, mR, cR - maximum species richness recorded for each stratum}
 
 \item{Pm}{Multiplier of mean LFMC}
 
-\item{Mr}{Truncates LFMC variability by +/- Pm * LFMC}
+\item{Mr}{Truncates LFMC variability by +/- Mr * LFMC}
 
 \item{updateProgress}{Progress bar for use in the dashboard}
 }

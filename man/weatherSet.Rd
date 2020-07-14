@@ -28,7 +28,7 @@ DFMC - Dead fuel moisture content (proportion ODW)}
 
 \item{Pm}{Multiplier of mean LFMC}
 
-\item{Mr}{Truncates LFMC variability by +/- Pm * LFMC}
+\item{Mr}{Truncates LFMC variability by +/- Mr * LFMC}
 
 \item{Hs}{Standard deviation of plant height variations}
 
