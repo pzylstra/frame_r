@@ -20,7 +20,7 @@ plantVar(base.params, Strata, Species, l = 0.1, Ms = 0.01, Pm = 1,
 
 \item{Pm}{Multiplier of mean LFMC}
 
-\item{Mr}{Truncates LFMC variability by +/- Pm * LFMC}
+\item{Mr}{Truncates LFMC variability by +/- Mr * LFMC}
 
 \item{Hs}{Standard deviation of plant height variations}
 

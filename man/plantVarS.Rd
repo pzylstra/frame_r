@@ -22,13 +22,15 @@ stratum - numeric value from 1 to 4, counting from lowest stratum
 Hs - Standard deviation of plant height variations
 Hr - Truncates plant height variability by +/- Hr * height}
 
+\item{a}{A unique identifier for the record being run}
+
 \item{l}{Variation around input leaf dimensions}
 
 \item{Ms}{Standard deviation of LFMC}
 
 \item{Pm}{Multiplier of mean LFMC}
 
-\item{Mr}{Truncates LFMC variability by +/- Pm * LFMC}
+\item{Mr}{Truncates LFMC variability by +/- Mr * LFMC}
 }
 \value{
 dataframe
