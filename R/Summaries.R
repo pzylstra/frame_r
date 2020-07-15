@@ -117,7 +117,7 @@ summary <- function(flames, sites, ros, surface)
 repFlame <- function(IP)
 {
   top <- IP %>%
-    mutate(angle = atan((y1 - y0)/(x1 - x0)),
+    mutate(angle = abs(atan((y1 - y0)/(x1 - x0))),
            repHeight = flameLength*sin(angle)+y0)%>%
     group_by(repId) %>%
     summarize_all(max) %>%
@@ -130,7 +130,7 @@ repFlame <- function(IP)
     group_by(repId) %>%
     summarize_all(mean) %>%
     left_join(top) %>%
-    mutate(repLength = repHeight/sin(repAngle)) %>%
+    mutate(repLength = repHeight/abs(sin(repAngle))) %>%
     select(repId, repHeight, repLength, repAngle)%>%
     right_join(IP)
   
