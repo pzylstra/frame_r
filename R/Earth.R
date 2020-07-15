@@ -31,6 +31,8 @@
 #' Broad germination and seed death temperatures are based on
 #' Auld, T. D. & O’Connel, M. A. Predicting patterns of post‐fire germination in
 #' 35 eastern Australian Fabaceae. Aust. J. Ecol. 16, 53–70 (1991).
+#' 
+#' Predicts death of fine roots at 60C, but does not yet include a time component.
 #'
 #'
 #' @param Surf The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'
