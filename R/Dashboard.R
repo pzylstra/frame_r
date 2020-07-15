@@ -159,8 +159,7 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
 ## drivers function with species-specific changes
 #####
 
-#' Models fire behaviour across ranged variables
-#' Private function under development
+#' Models fire behaviour across ranged variables using species specific details
 #' @param base.params Input parameter file
 #' @param a A unique identifier for the record being run
 #' @param db.path Name of the exported database
@@ -179,6 +178,7 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
 #' Hs - Standard deviation of plant height variations
 #' Hr - Truncates plant height variability by +/- Hr * height
 #' @param updateProgress Progress bar for use in the dashboard
+#' Private function under development
 
 driversS <- function(base.params, a, db.path = "out_mc.db", jitters, windMin, windReps, windStep,
                     moistureMultiplier, moistureSD, moistureRange, Variation,
