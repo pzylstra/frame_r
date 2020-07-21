@@ -217,6 +217,7 @@ cambium <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 
   Horiz <- distance
   
   # Description of the protection
+  # Convert units from kg/m^3 to kg
   massB <- 0.01 * bark * barkDensity
   massW <- 0.0001 * woodDensity
   R <- sqrt(0.01/pi)
@@ -265,7 +266,7 @@ cambium <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 
            
            #1ST CM________________________________________________________
            ### Water effects: evaporation and energy drain
-           # Mass of water
+           # Mass of water (kg)
            mWater = moisture*massW,
            # Energy removed by current water quantity
            drain = ifelse(woodTemp>95,
