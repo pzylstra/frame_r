@@ -76,8 +76,8 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
     select(repId, hor, ros_kph, wind_kph, angleSurface, lengthSurface, pAlphas, temperature, slope_degrees, temp_pointS, epsilon)
   
   # Calculate heating from burning plants
-  p <- repFlame %>%
-    suppressMessages(left_join(s)) %>%
+  p <- suppressMessages(repFlame %>%
+    left_join(s) %>%
     mutate(Angle = atan((y1 - y0)/(x1 - x0)),
            Alpha = 1/(2 * flameLength * (flameLength - length)),
            C = 950 * flameLength * exp(-Alpha * (flameLength - length)^2),
@@ -99,7 +99,7 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
            Yu, IntL, IntU, Intercept, temp_pointP, flameTemp)%>%
     group_by(repId) %>%
     summarize_all(max)%>%
-    suppressMessages(right_join(s))
+    right_join(s))
   p[is.na(p)] <- 0
   
   # Calculate heat transfer inputs
