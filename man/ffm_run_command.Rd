@@ -4,8 +4,12 @@
 \alias{ffm_run_command}
 \title{Composes a command line call to run a simulation}
 \usage{
-ffm_run_command(param.path, db.path, db.recreate = FALSE,
-  runtime.class = "ffm.runner.CSVRunner")
+ffm_run_command(
+  param.path,
+  db.path,
+  db.recreate = FALSE,
+  runtime.class = "ffm.runner.CSVRunner"
+)
 }
 \arguments{
 \item{param.path}{Path and name of a CSV-format file of simulation 

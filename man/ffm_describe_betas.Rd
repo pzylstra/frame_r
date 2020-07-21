@@ -4,8 +4,11 @@
 \alias{ffm_describe_betas}
 \title{Generates example Beta distributions.}
 \usage{
-ffm_describe_betas(beta.a = c(2, 5, 10), beta.b = c(2, 5, 10),
-  show.plot = TRUE)
+ffm_describe_betas(
+  beta.a = c(2, 5, 10),
+  beta.b = c(2, 5, 10),
+  show.plot = TRUE
+)
 }
 \arguments{
 \item{beta.a}{Vector of one or more values for parameter \code{a}

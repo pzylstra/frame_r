@@ -4,8 +4,7 @@
 \alias{ffm_run}
 \title{Run the model with a given table of parameters.}
 \usage{
-ffm_run(params, db.path, default.species.params = NULL,
-  db.recreate = FALSE)
+ffm_run(params, db.path, default.species.params = NULL, db.recreate = FALSE)
 }
 \arguments{
 \item{params}{A data frame of parameters}

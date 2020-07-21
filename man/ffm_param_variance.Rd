@@ -4,9 +4,14 @@
 \alias{ffm_param_variance}
 \title{Randomly perturbs values for selected numeric parameters in a table.}
 \usage{
-ffm_param_variance(tbl, max.prop = 0.1, labels = c("leafWidth",
-  "leafLength", "leafThickness", "leafSeparation"), method = c("normal",
-  "beta", "uniform"), beta.a = 2, beta.b = 2)
+ffm_param_variance(
+  tbl,
+  max.prop = 0.1,
+  labels = c("leafWidth", "leafLength", "leafThickness", "leafSeparation"),
+  method = c("normal", "beta", "uniform"),
+  beta.a = 2,
+  beta.b = 2
+)
 }
 \arguments{
 \item{tbl}{Input parameter table.}

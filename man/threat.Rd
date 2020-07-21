@@ -5,8 +5,15 @@
 \title{Calculates the convective and radiative heat from a flame that is 
 incident upon a designated point}
 \usage{
-threat(Surf, repFlame, Horizontal = 10, Height = 10, var = 10,
-  Pressure = 1013.25, Altitude = 0)
+threat(
+  Surf,
+  repFlame,
+  Horizontal = 10,
+  Height = 10,
+  var = 10,
+  Pressure = 1013.25,
+  Altitude = 0
+)
 }
 \arguments{
 \item{Surf}{The dataframe produced by the function 'summary',}

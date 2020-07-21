@@ -3,7 +3,6 @@
 \docType{package}
 \name{frame}
 \alias{frame}
-\alias{frame-package}
 \title{frame: Fire Research and Modelling Environment}
 \description{
 This package provides an interface to the Forest Flammability Model of

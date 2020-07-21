@@ -4,8 +4,7 @@
 \alias{ffm_write_params}
 \title{Writes a table of parameters to a CSV format file.}
 \usage{
-ffm_write_params(tbl, path, overwrite = FALSE,
-  must.be.complete = FALSE)
+ffm_write_params(tbl, path, overwrite = FALSE, must.be.complete = FALSE)
 }
 \arguments{
 \item{tbl}{The input simulation parameter table (data frame).}

@@ -4,9 +4,21 @@
 \alias{drivers}
 \title{Models fire behaviour across ranged variables}
 \usage{
-drivers(base.params, db.path = "out_mc.db", jitters, windMin, windReps,
-  windStep, moistureMultiplier, moistureSD, moistureRange, heightSD,
-  heightRange, leafVar, updateProgress = NULL)
+drivers(
+  base.params,
+  db.path = "out_mc.db",
+  jitters,
+  windMin,
+  windReps,
+  windStep,
+  moistureMultiplier,
+  moistureSD,
+  moistureRange,
+  heightSD,
+  heightRange,
+  leafVar,
+  updateProgress = NULL
+)
 }
 \arguments{
 \item{base.params}{Input parameter file}

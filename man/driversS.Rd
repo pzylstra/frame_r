@@ -4,9 +4,21 @@
 \alias{driversS}
 \title{Models fire behaviour across ranged variables using species specific details}
 \usage{
-driversS(base.params, a, db.path = "out_mc.db", jitters, windMin,
-  windReps, windStep, moistureMultiplier, moistureSD, moistureRange,
-  Variation, leafVar, updateProgress = NULL)
+driversS(
+  base.params,
+  a,
+  db.path = "out_mc.db",
+  jitters,
+  windMin,
+  windReps,
+  windStep,
+  moistureMultiplier,
+  moistureSD,
+  moistureRange,
+  Variation,
+  leafVar,
+  updateProgress = NULL
+)
 }
 \arguments{
 \item{base.params}{Input parameter file}

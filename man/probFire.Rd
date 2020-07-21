@@ -4,10 +4,30 @@
 \alias{probFire}
 \title{Models probabilistic fire behaviour}
 \usage{
-probFire(base.params, db.path = "out_mc.db", jitters, slope, slopeSD,
-  slopeRange, temp, tempSD, tempRange, DFMC, DFMCSD, DFMCRange, wind,
-  windSD, windRange, moistureMultiplier, moistureSD, moistureRange,
-  heightSD, heightRange, leafVar, updateProgress = NULL)
+probFire(
+  base.params,
+  db.path = "out_mc.db",
+  jitters,
+  slope,
+  slopeSD,
+  slopeRange,
+  temp,
+  tempSD,
+  tempRange,
+  DFMC,
+  DFMCSD,
+  DFMCRange,
+  wind,
+  windSD,
+  windRange,
+  moistureMultiplier,
+  moistureSD,
+  moistureRange,
+  heightSD,
+  heightRange,
+  leafVar,
+  updateProgress = NULL
+)
 }
 \arguments{
 \item{base.params}{Input parameter file}

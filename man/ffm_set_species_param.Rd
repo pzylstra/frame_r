@@ -4,8 +4,14 @@
 \alias{ffm_set_species_param}
 \title{Sets the value of a species parameter.}
 \usage{
-ffm_set_species_param(tbl, stratum.id, species.id, param, value,
-  units = NA_character_)
+ffm_set_species_param(
+  tbl,
+  stratum.id,
+  species.id,
+  param,
+  value,
+  units = NA_character_
+)
 }
 \arguments{
 \item{tbl}{The parameter table in which to set the value.}

@@ -5,9 +5,19 @@
 \title{Updates parameter files with weather from a dataset,
 then models fire from non-deterministic plant parameters}
 \usage{
-weatherSet(base.params, weather, db.path = "out_mc.db", jitters = 10,
-  l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, Hs = 0.2, Hr = 1.41,
-  updateProgress = NULL)
+weatherSet(
+  base.params,
+  weather,
+  db.path = "out_mc.db",
+  jitters = 10,
+  l = 0.1,
+  Ms = 0.01,
+  Pm = 1,
+  Mr = 1.001,
+  Hs = 0.2,
+  Hr = 1.41,
+  updateProgress = NULL
+)
 }
 \arguments{
 \item{base.params}{Parameter input table}

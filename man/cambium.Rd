@@ -4,12 +4,32 @@
 \alias{cambium}
 \title{Finds radial bole necrosis depth}
 \usage{
-cambium(Surf, Plant, percentile = 0.95, Height = 0.1,
-  woodDensity = 700, barkDensity = 500, bark = 0.04, comBark = 700,
-  resBark = 45, cambThick = 0.01, xylemThick = 0.01, RH = 0.2,
-  moisture = 1, bMoisture = 0.2, distance = 50, trail = 100,
-  var = 10, diameter = 20, Pressure = 1013.25, Altitude = 0,
-  startTemp = 25, necT = 60, surfDecl = 10, updateProgress = NULL)
+cambium(
+  Surf,
+  Plant,
+  percentile = 0.95,
+  Height = 0.1,
+  woodDensity = 700,
+  barkDensity = 500,
+  bark = 0.04,
+  comBark = 700,
+  resBark = 45,
+  cambThick = 0.01,
+  xylemThick = 0.01,
+  RH = 0.2,
+  moisture = 1,
+  bMoisture = 0.2,
+  distance = 50,
+  trail = 100,
+  var = 10,
+  diameter = 20,
+  Pressure = 1013.25,
+  Altitude = 0,
+  startTemp = 25,
+  necT = 60,
+  surfDecl = 10,
+  updateProgress = NULL
+)
 }
 \arguments{
 \item{Surf}{The dataframe produced by the function 'summary',}

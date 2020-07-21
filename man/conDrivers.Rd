@@ -5,10 +5,22 @@
 \title{Models fire behaviour across defined slopes and DFMCs, 
 with varied plants and random winds and within a defined range}
 \usage{
-conDrivers(base.params, db.path = "out_mc.db", replicates, windMin,
-  windMax, slopes = c(0, 10), DFMCs = c(0.05, 0.1, 0.15),
-  moistureMultiplier, moistureSD, moistureRange, heightSD, heightRange,
-  leafVar, updateProgress = NULL)
+conDrivers(
+  base.params,
+  db.path = "out_mc.db",
+  replicates,
+  windMin,
+  windMax,
+  slopes = c(0, 10),
+  DFMCs = c(0.05, 0.1, 0.15),
+  moistureMultiplier,
+  moistureSD,
+  moistureRange,
+  heightSD,
+  heightRange,
+  leafVar,
+  updateProgress = NULL
+)
 }
 \arguments{
 \item{base.params}{Input parameter file}

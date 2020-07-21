@@ -4,11 +4,26 @@
 \alias{soil}
 \title{Soil heating}
 \usage{
-soil(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95,
-  RH = 0.2, moisture = 0.1, distance = 50, trail = 600, var = 10,
-  Pressure = 1013.25, Altitude = 0, texture = "sand", peat = 0,
-  grain = "fine", unfrozen = 1, soilTemp = 25,
-  updateProgress = NULL)
+soil(
+  Surf,
+  Plant,
+  diameter = 6,
+  surface = 677,
+  percentile = 0.95,
+  RH = 0.2,
+  moisture = 0.1,
+  distance = 50,
+  trail = 600,
+  var = 10,
+  Pressure = 1013.25,
+  Altitude = 0,
+  texture = "sand",
+  peat = 0,
+  grain = "fine",
+  unfrozen = 1,
+  soilTemp = 25,
+  updateProgress = NULL
+)
 }
 \arguments{
 \item{Surf}{The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'}
