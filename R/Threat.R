@@ -1,6 +1,5 @@
-#' Heat and plume produced by a fire front
-#' 
-#' Private function, documented for current development
+#' Calculates the convective and radiative heat from a flame that is 
+#' incident upon a designated point
 #'
 #' Finds the temperature, velocity, dynamic viscosity, atmospheric pressure, and density of a plume at a point
 #' Gives the mean flame temperature (K) and emissive power of each flame
@@ -55,6 +54,7 @@
 #' @param Height The vertical distance in metres from the flame origin to the point
 #' @param var The angle in degrees that the plume spreads above/below a central vector;defaults to 10
 #' @return dataframe
+#' @export
 
 threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pressure = 1013.25, Altitude = 0)
 {
