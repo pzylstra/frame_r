@@ -564,8 +564,7 @@ cambium <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 
   # Create table
   Ca <- Ca %>%
     select(t, repId, tempS, barkTemp, woodTempB, woodTempC, woodTempD, woodTempE,
-           moistureA, moistureB, moistureC, moistureD, moistureE, fourierOA,
-           fourierA, fourierB, fourierC, fourierD, fourierE)%>%
+           moistureA, moistureB, moistureC, moistureD, moistureE)%>%
     mutate(necrosis = ifelse(woodTempE>=necT, 4,
                              ifelse(woodTempD>=necT, 3,
                                     ifelse(woodTempC>=necT, 2,
