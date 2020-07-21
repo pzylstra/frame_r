@@ -2,7 +2,8 @@
 % Please edit documentation in R/Threat.R
 \name{threat}
 \alias{threat}
-\title{Heat and plume produced by a fire front}
+\title{Calculates the convective and radiative heat from a flame that is 
+incident upon a designated point}
 \usage{
 threat(Surf, repFlame, Horizontal = 10, Height = 10, var = 10,
   Pressure = 1013.25, Altitude = 0)
@@ -26,12 +27,10 @@ threat(Surf, repFlame, Horizontal = 10, Height = 10, var = 10,
 dataframe
 }
 \description{
-Private function, documented for current development
-}
-\details{
 Finds the temperature, velocity, dynamic viscosity, atmospheric pressure, and density of a plume at a point
 Gives the mean flame temperature (K) and emissive power of each flame
-
+}
+\details{
 tempAir: Air temperature is modelled from dynamic flame segments using
 Weber R.O., Gill A.M., Lyons P.R.A., Moore P.H.R., Bradstock R.A., Mercer G.N. (1995)
 Modelling wildland fire temperatures. CALMScience Supplement, 4, 23–26.

@@ -2,8 +2,7 @@
 % Please edit documentation in R/Dashboard.R
 \name{driversS}
 \alias{driversS}
-\title{Models fire behaviour across ranged variables
-Private function under development}
+\title{Models fire behaviour across ranged variables using species specific details}
 \usage{
 driversS(base.params, a, db.path = "out_mc.db", jitters, windMin,
   windReps, windStep, moistureMultiplier, moistureSD, moistureRange,
@@ -39,9 +38,9 @@ Hr - Truncates plant height variability by +/- Hr * height}
 
 \item{leafVar}{Variation around input leaf dimensions, equivalent to l}
 
-\item{updateProgress}{Progress bar for use in the dashboard}
+\item{updateProgress}{Progress bar for use in the dashboard
+Private function under development}
 }
 \description{
-Models fire behaviour across ranged variables
-Private function under development
+Models fire behaviour across ranged variables using species specific details
 }
