@@ -7,14 +7,14 @@
 flora(Surf, Plant, Param = Param, Test = 70)
 }
 \arguments{
-\item{Surf}{The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'}
+\item{Surf}{The dataframe produced by the function 'summary',}
 
-\item{Plant}{The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.}
+\item{Plant}{The dataframe produced by the function 'repFlame'.}
 
 \item{Param}{A parameter dataframe used for FRaME,
 such as produced using readLegacyParamFile}
 
-\item{Test}{The temperature of the flora, default 60 degC}
+\item{Test}{The temperature of the flora, default 70 degC}
 }
 \value{
 dataframe
@@ -25,8 +25,6 @@ and the height to a designated temperature isotherm reached for one second.
 }
 \details{
 Output fields are:
-ht - scorch height from the surface flame (m)
-hp - scorch height from burning plant (m)
 Height - overall scorch height (m)
 ns, e, m, c - height of consumption in each stratum (m)
 b1, b2, b3, b4 - percentage of strata 1 (ns) to strata 4 (c) consumed

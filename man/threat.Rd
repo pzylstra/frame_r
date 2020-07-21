@@ -9,9 +9,9 @@ threat(Surf, repFlame, Horizontal = 10, Height = 10, var = 10,
   Pressure = 1013.25, Altitude = 0)
 }
 \arguments{
-\item{Surf}{The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'}
+\item{Surf}{The dataframe produced by the function 'summary',}
 
-\item{repFlame}{The dataframe 'repFlame'}
+\item{repFlame}{The dataframe produced by the function 'repFlame'.}
 
 \item{Horizontal}{The horizontal distance in metres from the flame origin to the point}
 

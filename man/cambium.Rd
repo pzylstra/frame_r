@@ -12,9 +12,9 @@ cambium(Surf, Plant, percentile = 0.95, Height = 0.1,
   startTemp = 25, necT = 60, surfDecl = 10, updateProgress = NULL)
 }
 \arguments{
-\item{Surf}{The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'}
+\item{Surf}{The dataframe produced by the function 'summary',}
 
-\item{Plant}{The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.}
+\item{Plant}{The dataframe produced by the function 'repFlame'.}
 
 \item{percentile}{defines which heating statistics are used for each second, from 0 (min) to 1 (max)}
 
