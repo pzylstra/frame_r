@@ -171,8 +171,8 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
 #'
 #'
 #'
-#' @param Surf The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'
-#' @param Plant The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.
+#' @param Surf The dataframe produced by the function 'summary',
+#' @param Plant The dataframe produced by the function 'repFlame'.
 #' @param percentile defines which heating statistics are used for each second, from 0 (min) to 1 (max)
 #' @param Height The height on the bole directly over ground (m)
 #' @param woodDensity The density of wood in the tree or log housing the hollow (kg/m3)

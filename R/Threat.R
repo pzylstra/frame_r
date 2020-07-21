@@ -46,8 +46,8 @@
 #' Int. Congr. Model. Simul. Adv. Appl. Manag. Decis. Making, MODSIM05 538–545 (2005)
 #'
 #'
-#' @param Surf The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'
-#' @param repFlame The dataframe 'repFlame'
+#' @param Surf The dataframe produced by the function 'summary',
+#' @param repFlame The dataframe produced by the function 'repFlame'.
 #' @param Pressure Sea level atmospheric pressure (hPa)
 #' @param Altitude Height above sea level (m)
 #' @param Horizontal The horizontal distance in metres from the flame origin to the point
