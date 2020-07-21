@@ -407,8 +407,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
   # Create table
   Ca <- Ca %>%
     select(t, repId, tempS, soilTempA, soilTempB, soilTempC, soilTempD, soilTempE,
-           moistureA, moistureB, moistureC, moistureD, moistureE, fourierOA,
-           fourierA, fourierB, fourierC, fourierD, fourierE)%>%
+           moistureA, moistureB, moistureC, moistureD, moistureE)%>%
     mutate(startM = startM,
            seedDa = ifelse(soilTempA>100, 1, 0),
            seedDb = ifelse(soilTempB>100, 1, 0),
@@ -420,11 +419,11 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            seedgc = ifelse(soilTempC>60, 1, 0)-seedDc,
            seedgd = ifelse(soilTempD>60, 1, 0)-seedDd,
            seedge = ifelse(soilTempE>60, 1, 0)-seedDe,
-           rootD = ifelse(soilTempA>60, 1, 0),
-           rootD = ifelse(soilTempB>60, 1, 0),
-           rootD = ifelse(soilTempC>60, 1, 0),
-           rootD = ifelse(soilTempD>60, 1, 0),
-           rootD = ifelse(soilTempE>60, 1, 0),
+           rootDa = ifelse(soilTempA>60, 1, 0),
+           rootDb = ifelse(soilTempB>60, 1, 0),
+           rootDc = ifelse(soilTempC>60, 1, 0),
+           rootDd = ifelse(soilTempD>60, 1, 0),
+           rootDe = ifelse(soilTempE>60, 1, 0),
            orgA = pmax(0,pmin(1,0.0038*soilTempA-0.7692)),
            orgB = pmax(0,pmin(1,0.0038*soilTempB-0.7692)),
            orgC = pmax(0,pmin(1,0.0038*soilTempC-0.7692)),
