@@ -379,7 +379,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              fourierOE = pmin(0,(kSoilE * (soilTempD - soilTempE)) / 0.01),
              soilTempE = pmin(soilTempE, soilTempE + (fourierOE / (mass * cpSoilE))))
     
-    Ca <- rbind(Ca, Cb)
+    Ca <- suppressMessages(rbind(Ca, Cb))
     
     soilTempA <- quantile(Cb$soilTempA, percentile)
     moistureA <- quantile(Cb$moistureA, percentile)
