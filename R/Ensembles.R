@@ -545,3 +545,58 @@ spComb <- function(base.params)
   }
   return(combustibility)
 }
+
+## conDrivers 
+#####
+
+#' Models fire behaviour across defined slopes and DFMCs, 
+#' with varied plants and random winds and within a defined range
+#' 
+#' Private function under development
+#' @param base.params Input parameter file
+#' @param db.path Name of the exported database
+#' @param replicates Number of wind replicates per slope/DFMC combination
+#' @param windMin Lowest wind velocity tested (km/h)
+#' @param windMax Maximum wind velocity tested (km/h)
+#' @param slopes A string of slope values to be tested
+#' @param DFMCs A string of dead fuel moisture values to be tested
+#' @param moistureMultiplier Multiplies all LFMC values by this number
+#' @param moistureSD Standard deviation of moisture
+#' @param moistureRange Truncates variability by +/- mean * range
+#' @param heightSD Standard deviation of plant height
+#' @param heightRange Truncates variability by +/- mean * range
+#' @param leafVar Variation around input leaf dimensions, equivalent to l
+#' @param updateProgress Progress bar for use in the dashboard
+ 
+
+conDrivers <- function (base.params, db.path = "out_mc.db", replicates, windMin, 
+windMax, slopes= c(0, 10), DFMCs = c(0.05, 0.1, 0.15), moistureMultiplier, moistureSD, moistureRange, 
+heightSD, heightRange, leafVar, updateProgress = NULL) 
+{
+  Strata <- strata(base.params)
+  Species <- species(base.params)
+  dat <- expand.grid(slope = slopes, DFMC = DFMCs)
+  Niter <- nrow(dat) * replicates
+  pbar <- txtProgressBar(max = Niter, style = 3)
+  
+  count <- 1
+  for (w in 1:replicates) {
+    for (i in 1:nrow(dat)) {
+      db.recreate <- count == 1
+      s <- dat[i, "slope"]
+      d <- dat[i, "DFMC"]
+      w <- runif(1) * (windMax - windMin) + windMin
+      base.params <- base.params %>% 
+        ffm_set_site_param("slope",s, "deg") %>% 
+        ffm_set_site_param("temperature", 30) %>% 
+        ffm_set_site_param("deadFuelMoistureProp", d) %>% 
+        ffm_set_site_param("windSpeed", w)
+      base.params <- plantVar(base.params, Strata, Species, 
+                              l = leafVar, Ms = moistureSD, Pm = moistureMultiplier, 
+                              Mr = moistureRange, Hs = heightSD, Hr = heightRange)
+      ffm_run(base.params, db.path, db.recreate = db.recreate)
+      setTxtProgressBar(pbar, count)
+    }
+  }
+}
+
