@@ -4,19 +4,17 @@
 #' and the height to a designated temperature isotherm reached for one second.
 #'
 #' Output fields are:
-#' ht - scorch height from the surface flame (m)
-#' hp - scorch height from burning plant (m)
 #' Height - overall scorch height (m)
 #' ns, e, m, c - height of consumption in each stratum (m)
 #' b1, b2, b3, b4 - percentage of strata 1 (ns) to strata 4 (c) consumed
 #' sc1, sc2, sc3, sc4 - percentage of strata 1 (ns) to strata 4 (c) scorched
 #' d1, d2, d3, d4 - death (1) or survival (0) of standing foliage per stratum (50% or more scorch)
 #'
-#' @param Surf The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'
-#' @param Plant The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.
+#' @param Surf The dataframe produced by the function 'summary',
+#' @param Plant The dataframe produced by the function 'repFlame'.
 #' @param Param A parameter dataframe used for FRaME,
 #' such as produced using readLegacyParamFile
-#' @param Test The temperature of the flora, default 60 degC
+#' @param Test The temperature of the flora, default 70 degC
 #' @return dataframe
 #' @export
 
