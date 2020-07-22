@@ -72,7 +72,7 @@ Calculates the dynamic heating of a soil at 1cm increments, to 5cm depth
 \details{
 Assumes all to be A horizon, with constant, uncompacted density
 
-Utilises the output tables from 'threat' and 'radiation', and adds to these
+Utilises the output tables from 'threat' and adds to these
 the Reynolds Number, heat transfer coefficients, Newton's convective energy transfer coefficient,
 and the temperature of the object each second.
 
