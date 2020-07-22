@@ -180,8 +180,7 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
 #' @param comBark Temperature directly under the burning bark (C)
 #' @param bark The thickness of bark on the thinnest side of the hollow (m)
 #' @param resBark Flame residence in the tree bark (s)
-#' @param cambThick Thickness of the tree cambium (m)
-#' @param xylemThick Thickness of the active xylem (m)
+#' @param phloem Thickness of the tree phloem (depth to cambium, m)
 #' @param RH The relative humidity (0-1)
 #' @param moisture The proportion oven-dry weight of moisture in the wood
 #' @param bMoisture The proportion oven-dry weight of moisture in the bark
@@ -199,7 +198,7 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
 #' @export
 
 cambium <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 700, barkDensity = 500,
-                    bark = 0.04, comBark = 700, resBark = 45, cambThick = 0.01, xylemThick = 0.01, RH = 0.2,
+                    bark = 0.04, comBark = 700, resBark = 45, phloem = 0.01, RH = 0.2,
                     moisture = 1, bMoisture = 0.2, distance = 50, trail = 100, var = 10, diameter = 20, Pressure = 1013.25,
                     Altitude = 0, startTemp = 25, necT = 60, surfDecl = 10,updateProgress=NULL)
 {
@@ -570,8 +569,7 @@ cambium <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 
                              ifelse(woodTempD>=necT, 3,
                                     ifelse(woodTempC>=necT, 2,
                                            ifelse(woodTempB>=necT, 1, 0)))),
-           ringbark = ifelse(necrosis>=cambThick, 1, 0),
-           girdle = ifelse(necrosis>=cambThick+xylemThick, 1, 0))
+           girdling = ifelse(necrosis>=phloem, 1, 0))
   
   return(Ca)
 }

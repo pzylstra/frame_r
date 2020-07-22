@@ -14,8 +14,7 @@ cambium(
   bark = 0.04,
   comBark = 700,
   resBark = 45,
-  cambThick = 0.01,
-  xylemThick = 0.01,
+  phloem = 0.01,
   RH = 0.2,
   moisture = 1,
   bMoisture = 0.2,
@@ -50,9 +49,7 @@ cambium(
 
 \item{resBark}{Flame residence in the tree bark (s)}
 
-\item{cambThick}{Thickness of the tree cambium (m)}
-
-\item{xylemThick}{Thickness of the active xylem (m)}
+\item{phloem}{Thickness of the tree phloem (depth to cambium, m)}
 
 \item{RH}{The relative humidity (0-1)}
 
