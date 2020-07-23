@@ -95,7 +95,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            # Mass of water
            mWater = moisture*mass,
            # Energy removed by current water quantity
-           drain = ifelse(soilTemp>95,
+           drain = ifelse(soilTemp>99,
                           ifelse(moisture>0,mWater*2256400,0),0),
            # Adjusted incoming energy
            QiA = max(Qi-drain,0),
@@ -108,15 +108,15 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
                              (kSoilA * pmax(0,tempS - soilTemp)) / 0.01),
            soilTempA = pmax(soilTemp, (fourierA / (mass * cpSoilA) + soilTemp)),
            # Change in proportion water this step
-           moistureA = ifelse(moisture>0,max(0,moisture-((Qi/2256400)/mWater)),
-                              moisture),
+           moistureA = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((Qi/2256400)/mWater)),
+                                                 moisture), moisture),
            
            #2ND CM________________________________________________________
            ### Water effects: evaporation and energy drain
            # Mass of water
            mWater = moisture*mass,
            # Energy removed by current water quantity
-           drain = ifelse(soilTemp>95,
+           drain = ifelse(soilTemp>99,
                           ifelse(moisture>0,mWater*2256400,0),0),
            # Adjusted incoming energy
            QiB = max(fourierA-drain,0),
@@ -128,8 +128,8 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            fourierB = pmin(fourierA,(kSoilB * pmax(0,soilTempA - soilTemp)) / 0.01),
            soilTempB = pmax(soilTemp, (fourierB / (mass * cpSoilB) + soilTemp)),
            # Change in proportion water this step
-           moistureB = ifelse(moisture>0,max(0,moisture-((fourierA/2256400)/mWater)),
-                              moisture),
+           moistureB = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierA/2256400)/mWater)),
+                                                 moisture), moisture),
            # Heat draw-down from above
            soilTempA = pmax(soilTempA, soilTempA + (fourierB / (mass * cpSoilA))),
            
@@ -138,7 +138,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            # Mass of water
            mWater = moisture*mass,
            # Energy removed by current water quantity
-           drain = ifelse(soilTemp>95,
+           drain = ifelse(soilTemp>99,
                           ifelse(moisture>0,mWater*2256400,0),0),
            # Adjusted incoming energy
            QiC = max(fourierB-drain,0),
@@ -150,8 +150,8 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            fourierC = pmin(fourierB,(kSoilC * pmax(0,soilTempB - soilTemp)) / 0.01),
            soilTempC = pmax(soilTemp, (fourierC / (mass * cpSoilC) + soilTemp)),
            # Change in proportion water this step
-           moistureC = ifelse(moisture>0,max(0,moisture-((fourierB/2256400)/mWater)),
-                              moisture),
+           moistureC = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierB/2256400)/mWater)),
+                                                 moisture),moisture),
            # Heat draw-down from above
            soilTempB = pmax(soilTempB, soilTempB + (fourierC / (mass * cpSoilB))),
            
@@ -160,7 +160,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            # Mass of water
            mWater = moisture*mass,
            # Energy removed by current water quantity
-           drain = ifelse(soilTemp>95,
+           drain = ifelse(soilTemp>99,
                           ifelse(moisture>0,mWater*2256400,0),0),
            # Adjusted incoming energy
            QiD = max(fourierC-drain,0),
@@ -172,8 +172,8 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            fourierD = pmin(fourierC,(kSoilD * pmax(0,soilTempC - soilTemp)) / 0.01),
            soilTempD = pmax(soilTemp, (fourierD / (mass * cpSoilD) + soilTemp)),
            # Change in proportion water this step
-           moistureD = ifelse(moisture>0,max(0,moisture-((fourierC/2256400)/mWater)),
-                              moisture),
+           moistureD = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierC/2256400)/mWater)),
+                                                 moisture),moisture),
            # Heat draw-down from above
            soilTempC = pmax(soilTempC, soilTempC + (fourierD / (mass * cpSoilC))),
            
@@ -182,7 +182,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            # Mass of water
            mWater = moisture*mass,
            # Energy removed by current water quantity
-           drain = ifelse(soilTemp>95,
+           drain = ifelse(soilTemp>99,
                           ifelse(moisture>0,mWater*2256400,0),0),
            # Adjusted incoming energy
            QiE = max(fourierD-drain,0),
@@ -194,8 +194,8 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            fourierE = pmin(fourierD,(kSoilE * pmax(0,soilTempD - soilTemp)) / 0.01),
            soilTempE = pmax(soilTemp, (fourierE / (mass * cpSoilE) + soilTemp)),
            # Change in proportion water this step
-           moistureE = ifelse(moisture>0,max(0,moisture-((fourierD/2256400)/mWater)),
-                              moisture),
+           moistureE = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierD/2256400)/mWater)),
+                                                 moisture),moisture),
            # Heat draw-down from above
            soilTempD = pmax(soilTempD, soilTempD + (fourierE / (mass * cpSoilD))),
            
@@ -254,7 +254,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              # Mass of water
              mWater = moistureA*mass,
              # Energy removed by current water quantity
-             drain = ifelse(soilTempA>95,
+             drain = ifelse(soilTempA>99,
                             ifelse(moistureA>0,mWater*2256400,0),0),
              # Adjusted incoming energy
              QiA = max(Qi-drain,0),
@@ -267,15 +267,15 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
                                (kSoilA * pmax(0,tempS - soilTempA)) / 0.01),
              soilTempA = pmax(soilTempA, (fourierA / (mass * cpSoilA) + soilTempA)),
              # Change in proportion water this step
-             moistureA = ifelse(moistureA>0,max(0,moistureA-((Qi/2256400)/mWater)),
-                                moistureA),
+             moistureA = ifelse(soilTempA>99,ifelse(moistureA>0,max(0,moistureA-((Qi/2256400)/mWater)),
+                                                    moistureA),moistureA),
              
              #2ND CM________________________________________________________
              ### Water effects: evaporation and energy drain
              # Mass of water
              mWater = moistureB*mass,
              # Energy removed by current water quantity
-             drain = ifelse(soilTempB>95,
+             drain = ifelse(soilTempB>99,
                             ifelse(moistureB>0,mWater*2256400,0),0),
              # Adjusted incoming energy
              QiB = max(fourierA-drain,0),
@@ -287,8 +287,8 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              fourierB = pmin(fourierA,(kSoilB * pmax(0,soilTempA - soilTempB)) / 0.01),
              soilTempB = pmax(soilTempB, (fourierB / (mass * cpSoilB) + soilTempB)),
              # Change in proportion water this step
-             moistureB = ifelse(moistureB>0,max(0,moistureB-((fourierA/2256400)/mWater)),
-                                moistureB),
+             moistureB = ifelse(soilTempB>99,ifelse(moistureB>0,max(0,moistureB-((fourierA/2256400)/mWater)),
+                                                    moistureB),moistureB),
              # Heat draw-down from above
              soilTempA = pmax(soilTempA, soilTempA + (fourierB / (mass * cpSoilA))),
              
@@ -297,7 +297,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              # Mass of water
              mWater = moistureC*mass,
              # Energy removed by current water quantity
-             drain = ifelse(soilTempC>95,
+             drain = ifelse(soilTempC>99,
                             ifelse(moistureC>0,mWater*2256400,0),0),
              # Adjusted incoming energy
              QiC = max(fourierB-drain,0),
@@ -309,8 +309,8 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              fourierC = pmin(fourierB,(kSoilC * pmax(0,soilTempB - soilTempC)) / 0.01),
              soilTempC = pmax(soilTempC, (fourierC / (mass * cpSoilC) + soilTempC)),
              # Change in proportion water this step
-             moistureC = ifelse(moistureC>0,max(0,moistureC-((fourierB/2256400)/mWater)),
-                                moistureC),
+             moistureC = ifelse(soilTempC>99,ifelse(moistureC>0,max(0,moistureC-((fourierB/2256400)/mWater)),
+                                                    moistureC),moistureC),
              # Heat draw-down from above
              soilTempB = pmax(soilTempB, soilTempB + (fourierC / (mass * cpSoilB))),
              
@@ -319,7 +319,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              # Mass of water
              mWater = moistureD*mass,
              # Energy removed by current water quantity
-             drain = ifelse(soilTempD>95,
+             drain = ifelse(soilTempD>99,
                             ifelse(moistureD>0,mWater*2256400,0),0),
              # Adjusted incoming energy
              QiD = max(fourierC-drain,0),
@@ -331,8 +331,8 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              fourierD = pmin(fourierC,(kSoilD * pmax(0,soilTempC - soilTempD)) / 0.01),
              soilTempD = pmax(soilTempD, (fourierD / (mass * cpSoilD) + soilTempD)),
              # Change in proportion water this step
-             moistureD = ifelse(moistureD>0,max(0,moistureD-((fourierC/2256400)/mWater)),
-                                moistureD),
+             moistureD = ifelse(soilTempD>99,ifelse(moistureD>0,max(0,moistureD-((fourierC/2256400)/mWater)),
+                                                    moistureD),moistureD),
              # Heat draw-down from above
              soilTempC = pmax(soilTempC, soilTempC + (fourierD / (mass * cpSoilC))),
              
@@ -341,7 +341,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              # Mass of water
              mWater = moistureD*mass,
              # Energy removed by current water quantity
-             drain = ifelse(soilTempE>95,
+             drain = ifelse(soilTempE>99,
                             ifelse(moistureE>0,mWater*2256400,0),0),
              # Adjusted incoming energy
              QiE = max(fourierD-drain,0),
@@ -353,8 +353,8 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              fourierE = pmin(fourierD,(kSoilE * pmax(0,soilTempD - soilTempE)) / 0.01),
              soilTempE = pmax(soilTempE, (fourierE / (mass * cpSoilE) + soilTempE)),
              # Change in proportion water this step
-             moistureE = ifelse(moistureE>0,max(0,moistureE-((fourierD/2256400)/mWater)),
-                                moistureE),
+             moistureE = ifelse(soilTempE>99,ifelse(moistureE>0,max(0,moistureE-((fourierD/2256400)/mWater)),
+                                                    moistureE),moistureE),
              # Heat draw-down from above
              soilTempD = pmax(soilTempD, soilTempD + (fourierE / (mass * cpSoilD))),
              
