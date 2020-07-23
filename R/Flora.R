@@ -574,6 +574,455 @@ cambium <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 
   return(Ca)
 }
 
+######################################################################
+#' Finds radial bole necrosis depth, dividing bark into four steps
+#'
+#' Depth to which the stem of a plant recieves lethal heating
+#'
+#' Utilises the output tables from 'threat' and 'radiation', and adds to these
+#' the Reynolds Number, heat transfer coefficients, Newton's convective energy transfer coefficient,
+#' and the temperature of the object each second.
+#'
+#' Reynolds Number utilises a standard formulation (e.g. Gordon, N. T., McMahon, T. A. & Finlayson, B. L.
+#' Stream hydrology: an introduction for ecologists. (Wiley, 1992))
+#'
+#' Convective heat transfer coefficients use the widely adopted formulations of
+#' Williams, F. A. Urban and wildland fire phenomenology. Prog. Energy Combust. Sci. 8, 317–354 (1982),
+#' and Drysdale, D. An introduction to fire dynamics. (John Wiley and Sons, 1985)
+#' utilising a Prandtl number of 0.7.
+#'
+#' Heat is transferred into the bark and timber using Fourier's Law
+#'
+#' Thermal conductivity of bark is modelled as per Martin, R. E.
+#' Thermal properties of bark. For. Prod. J. 13, 419–426 (1963)
+#'
+#' Specific heat of bark is modelled using Kain, G., Barbu, M. C., Hinterreiter, S., Richter, K. & Petutschnigg, A.
+#' Using bark as a heat insulation material. BioResources 8, 3718–3731 (2013)
+#'
+#' Thermal conductivity of wood is modelled using an approach from Kollmann, F. F. P. & Cote, W. A.
+#' Principles of wood science and technology I. Solid wood. (Springer-Verlag, 1968)
+#'
+#' Evaporates water at 100 degrees C
+#'
+#' Specific heat of wood is derived from an established empirical relationship in Volbehr, B.
+#' Swelling of wood fiber. PhD Thesis. (University of Kiel, 1896)
+#'
+#' Continues heating of the bole in the wake of the front for the duration of the surface fire for a period determined using
+#' Burrows, N. D. Flame residence times and rates of weight loss of eucalypt forest fuel particles.
+#' Int. J. Wildl. Fire 10, 137–143 (2001). Flame lengths are decreased exponentially over this period
+#'
+#' Bark is assumed to ignite, and burn for an average of resBark seconds, with the default value of 45s used as a mean for
+#' figure 6c in Penman, T. D., Cawson, J. G., Murphy, S. & Duff, T. J.
+#' Messmate Stringybark: bark ignitability and burning sustainability in relation to fragment dimensions,
+#' hazard and time since fire. Int. J. Wildl. Fire 26, 866–876 (2017).
+#'
+#' Heats an area of 0.01m2
+#'
+#'
+#'
+#' @param Surf The dataframe produced by the function 'summary',
+#' @param Plant The dataframe produced by the function 'repFlame'.
+#' @param percentile defines which heating statistics are used for each second, from 0 (min) to 1 (max)
+#' @param Height The height on the bole directly over ground (m)
+#' @param woodDensity The density of wood in the plant or log housing the hollow (kg/m3)
+#' @param barkDensity The density of bark in the plant or log housing the hollow (kg/m3)
+#' @param comBark Temperature directly under the burning bark (C)
+#' @param bark The thickness of bark on the thinnest side of the hollow (m)
+#' @param resBark Flame residence in the plant bark (s)
+#' @param phloem Thickness of the plant phloem (depth to cambium, m)
+#' @param RH The relative humidity (0-1)
+#' @param moisture The proportion oven-dry weight of moisture in the wood
+#' @param bMoisture The proportion oven-dry weight of moisture in the bark
+#' @param distance The furthest horizontal distance between the flame origin and the point (m)
+#' @param trail The number of seconds to continue modelling after all flames have extinguished
+#' @param var The angle in degrees that the plume spreads above/below a central vector
+#' @param diameter depth of the litter layer (mm)
+#' @param Pressure Sea level atmospheric pressure (hPa)
+#' @param Altitude Height above sea level (m)
+#' @param startTemp The starting temperature of wood and bark (deg C)
+#' @param necT Temperature of necrosis (deg C)
+#' @param surfDecl adusts the rate at which surface flame length declines after the front
+#' @param updateProgress Progress bar for use in the dashboard
+#' @return dataframe
+#' @export
+#' 
+girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 700, barkDensity = 500,
+                   bark = 0.04, comBark = 700, resBark = 45, phloem = 0.01, RH = 0.2,
+                   moisture = 0.6, bMoisture = 0.5, distance = 5, trail = 100, var = 10, diameter = 20, Pressure = 1013.25,
+                   Altitude = 0, startTemp = 25, necT = 60, surfDecl = 10,updateProgress=NULL)
+{
+  
+  # Post-front surface flame heating
+  lengthSurface <- mean(Surf$lengthSurface)
+  residence <- 0.871*diameter^1.875
+  depth <- diameter/1000
+  
+  # Collect step distance, time, and total distance
+  ROS <- mean(Surf$ros_kph)/3.6
+  Ta <- round(distance/ROS+residence)
+  Tb <- round(distance/ROS)
+  TIME <- Ta + trail
+  Horiz <- distance
+  
+  # Description of the protection
+  barkStep <- bark/4
+  # Convert units from kg/m^3 to kg
+  massB <- 0.01 * barkStep * barkDensity
+  massW <- 0.01 * phloem * woodDensity
+  R <- sqrt(0.01/pi)
+  startM <- moisture
+  barkTemp <- startTemp
+  woodTemp <- startTemp
+  
+  
+  
+  #Starting values
+  Ca <- threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude)%>%
+    mutate(t = 1,
+           #Convective transfer
+           Re = (Plume_velocity*Density)/viscosity,
+           h = 0.35 + 0.47*Re^(1/2)*0.837,
+           #Incoming heat from surface
+           pt = pmax(0, t-Tb),
+           comBark = ifelse(pt <= resBark, comBark, 0),
+           postS = bole(lengthSurface,residence, depth, h = Height,
+                        surfDecl = 10, t = pt),
+           tempS = ifelse(Horiz <=0, pmax(tempAir, postS, comBark), tempAir),
+           qc = h * (tempS - barkTemp),
+           att = tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+           qr = 0.86*qr*att,
+           Qi = pmax(0, qc)+qr,
+           
+           #STEP A ________________________________________________________
+           ### Water effects: evaporation and energy drain
+           # Mass of water
+           mWaterA = bMoisture*massB,
+           # Energy removed by current water quantity
+           drainA = ifelse(barkTemp>99,
+                           ifelse(bMoisture>0,mWaterA*2256400,0),0),
+           # Adjust incoming energy for latent heat of vaporisation
+           QiA = max(Qi-drainA,0),
+           #Thermal values
+           rhoM = (bMoisture+bMoisture^2)*barkDensity,
+           cpA = ((1105+4.85*barkTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture)/1000,
+           kA = (2.104*barkDensity+5.544*rhoM+3.266*barkTemp-166.216)*10^-4,
+           # Fourier conduction through the slice, using incoming energy reduced by water
+           fourierA = ifelse(Horiz>0, pmin(QiA,(kA * pmax(0,tempS - barkTemp)) / barkStep),
+                             (kA * pmax(0,tempS - barkTemp)) / barkStep),
+           tempA = pmax(barkTemp, (0.001 * fourierA / (massB * cpA) + barkTemp)),
+           # Change in proportion water this step
+           moistureA = ifelse(barkTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((Qi/2256400)/mWaterA)),
+                                                 bMoisture),bMoisture),
+           
+           #STEP B ________________________________________________________
+           ### Water effects: evaporation and energy drain
+           # Mass of water (kg)
+           mWaterB = bMoisture*massB,
+           # Energy removed by current water quantity
+           drainB = ifelse(barkTemp>99,
+                           ifelse(moisture>0,mWaterB*2256400,0),0),
+           # Adjust incoming energy for latent heat of vaporisation
+           QiB = max(fourierA-drainB,0),
+           #Thermal values
+           rhoM = (bMoisture+bMoisture^2)*barkDensity,
+           cpB = ((1105+4.85*barkTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture)/1000,
+           kB = (2.104*barkDensity+5.544*rhoM+3.266*barkTemp-166.216)*10^-4,
+           # Fourier conduction through the slice, using incoming energy reduced by water
+           fourierB = pmin(QiB,(kB * pmax(0,tempA - barkTemp)) / barkStep),
+           tempB = pmax(barkTemp, (0.001 * fourierB / (massB * cpB) + barkTemp)),
+           # Change in proportion water this step
+           moistureB = ifelse(barkTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((fourierA/2256400)/mWaterB)),
+                                                 bMoisture), bMoisture),
+           # Heat draw-down from above
+           tempA = pmax(barkTemp, barkTemp + (0.001 * fourierB / (massB * cpA))),
+           
+           #STEP C ________________________________________________________
+           ### Water effects: evaporation and energy drain
+           # Mass of water
+           mWaterC = bMoisture*massB,
+           # Energy removed by current water quantity
+           drainC = ifelse(woodTemp>99,
+                           ifelse(moisture>0,mWaterC*2256400,0),0),
+           # Adjust incoming energy for latent heat of vaporisation
+           QiC = max(fourierB-drainC,0),
+           #Thermal values
+           rhoM = (bMoisture+bMoisture^2)*barkDensity,
+           cpC = ((1105+4.85*barkTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture)/1000,
+           kC = (2.104*barkDensity+5.544*rhoM+3.266*barkTemp-166.216)*10^-4,
+           # Fourier conduction through the slice, using incoming energy reduced by water
+           fourierC = pmin(QiC,(kC * pmax(0,tempB - barkTemp)) / barkStep),
+           tempC = pmax(barkTemp, (0.001 * fourierC / (massB * cpC) + barkTemp)),
+           # Change in proportion water this step
+           moistureC = ifelse(barkTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((fourierB/2256400)/mWaterC)),
+                                                 bMoisture),bMoisture),
+           # Heat draw-down from above
+           tempB = pmax(tempB, tempB + (0.001 * fourierC / (massB * cpB))),
+           
+           #STEP D ________________________________________________________
+           ### Water effects: evaporation and energy drain
+           # Mass of water
+           mWaterD = bMoisture*massB,
+           # Energy removed by current water quantity
+           drainD = ifelse(woodTemp>99,
+                           ifelse(moisture>0,mWaterD*2256400,0),0),
+           # Adjust incoming energy for latent heat of vaporisation
+           QiD = max(fourierC-drainD,0),
+           #Thermal values
+           rhoM = (bMoisture+bMoisture^2)*barkDensity,
+           cpD = ((1105+4.85*barkTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture)/1000,
+           kD = (2.104*barkDensity+5.544*rhoM+3.266*barkTemp-166.216)*10^-4,
+           # Fourier conduction through the slice, using incoming energy reduced by water
+           fourierD = pmin(QiD,(kD * pmax(0,tempC - barkTemp)) / barkStep),
+           tempD = pmax(barkTemp, (0.001 * fourierD / (massB * cpD) + barkTemp)),
+           # Change in proportion water this step
+           moistureD = ifelse(barkTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((fourierC/2256400)/mWaterD)),
+                                                 bMoisture),bMoisture),
+           # Heat draw-down from above
+           tempC = pmax(tempC, tempC + (0.001 * fourierD / (massB * cpC))),
+           
+           #Phloem ________________________________________________________
+           ### Water effects: evaporation and energy drain
+           # Mass of water
+           mWaterE = moisture*massW,
+           # Energy removed by current water quantity
+           drainE = ifelse(woodTemp>99,
+                           ifelse(moisture>0,mWaterE*2256400,0),0),
+           # Adjust incoming energy for latent heat of vaporisation
+           QiE = max(fourierD-drainE,0),
+           #Thermal values
+           kAir = 0.00028683*(woodTemp+273.15)^0.7919,
+           cpE = 1.08+0.00408*(100*moisture)+0.00253*woodTemp+0.0000628*(100*moisture)*woodTemp,
+           kE = kWood(woodTemp, woodDensity, kAir),
+           # Fourier conduction through the slice, using incoming energy reduced by water
+           fourierE = pmin(QiE,(kE * pmax(0,tempD - woodTemp)) / phloem),
+           tempE = pmax(woodTemp, (0.001 * fourierE / (massW * cpE) + woodTemp)),
+           # Change in proportion water this step
+           moistureE = ifelse(woodTemp>99,ifelse(moisture>0,max(0,moisture-((fourierD/2256400)/mWaterE)),
+                                                 moisture),moisture),
+           # Heat draw-down from above
+           tempD = pmax(tempD, tempD + (0.001 * fourierE / (massW * cpD))),
+           
+           #Outgoing A________________________________________________________
+           fourierOA = pmin(0,(kA * (tempS - tempA)) / barkStep),
+           tempA = pmin(tempA, tempA + (0.001 * fourierOA / (massB * cpA))),
+           qrO = pmin(0,0.86*0.0000000000567*((tempS+273.15)^4 - (tempA+273.15)^4)),
+           qR = qr + qrO,
+           Q = qc + qR,
+           
+           
+           #Outgoing B________________________________________________________
+           fourierOB = pmin(0,(kB * (barkTemp - tempB)) / barkStep),
+           tempB = pmin(tempB, tempB + (0.001 * fourierOB / (massB * cpB))),
+           #Outgoing C________________________________________________________
+           fourierOC = pmin(0,(kC * (tempB - tempC)) / barkStep),
+           tempC = pmin(tempC, tempC + (0.001 * fourierOC / (massB * cpC))),
+           #Outgoing D________________________________________________________
+           fourierOD = pmin(0,(kD * (tempC - tempD)) / barkStep),
+           tempD = pmin(tempD, tempD + (0.001 * fourierOD / (massB * cpD))),
+           #Outgoing phloem________________________________________________________
+           fourierOE = pmin(0,(kE * (tempD - tempE)) / phloem),
+           tempE = pmin(tempE, tempE + (0.001 * fourierOE / (massB * cpE))))
+  
+  
+  tempA <- quantile(Ca$tempA, percentile)
+  moistureA <- quantile(Ca$moistureA, percentile)
+  tempB <- quantile(Ca$tempB, percentile)
+  moistureB <- quantile(Ca$moistureB, percentile)
+  tempC <- quantile(Ca$tempC, percentile)
+  moistureC <- quantile(Ca$moistureC, percentile)
+  tempD <- quantile(Ca$tempD, percentile)
+  moistureD <- quantile(Ca$moistureD, percentile)
+  tempE <- quantile(Ca$tempE, percentile)
+  moistureE <- quantile(Ca$moistureE, percentile)
+  
+  # Advance one second's travel
+  Horiz = Horiz - ROS
+  pbar <-  txtProgressBar(max = TIME, style = 3)
+  # Loop through each time step and collect outputs
+  for(t in 2:TIME){
+    Cb <-threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude) %>%
+      mutate(t = t,
+             #Convective transfer
+             Re = (Plume_velocity*Density)/viscosity,
+             h = 0.35 + 0.47*Re^(1/2)*0.837,
+             #Incoming heat from surface
+             pt = pmax(0, t-Tb),
+             comBark = ifelse(pt <= resBark, comBark, 0),
+             postS = bole(lengthSurface,residence, depth, h = Height,
+                          surfDecl = 10, t = pt),
+             tempS = ifelse(t>Ta, tempAir, ifelse(Horiz <=0, pmax(tempAir, postS, comBark), tempAir)),
+             qc = h * (tempS - tempA),
+             att = tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+             qr = 0.86*qr*att,
+             Qi = pmax(0, qc)+qr,
+             
+             
+             #STEP A ________________________________________________________
+             ### Water effects: evaporation and energy drain
+             # Mass of water
+             mWaterA = moistureA*massB,
+             # Energy removed by current water quantity
+             drainA = ifelse(tempA>99,
+                             ifelse(moistureA>0,mWaterA*2256400,0),0),
+             # Adjust incoming energy for latent heat of vaporisation
+             QiA = max(Qi-drainA,0),
+             #Bark thermal values
+             rhoM = (moistureA+moistureA^2)*barkDensity,
+             cpA = ((1105+4.85*tempA)*(1-moistureA)+moistureA*4185+1276*moistureA)/1000,
+             kA = (2.104*barkDensity+5.544*rhoM+3.266*tempA-166.216)*10^-4,
+             # Fourier conduction through the slice, using incoming energy reduced by water
+             fourierA = ifelse(Horiz>0, pmin(QiA,(kA * pmax(0,tempS - tempA)) / bark),
+                               (kA * pmax(0,tempS - tempA)) / bark),
+             tempA = pmax(tempA, (0.001 * fourierA / (massB * cpA) + tempA)),
+             # Change in proportion water this step
+             moistureA = ifelse(tempA>99,ifelse(moistureA>0,max(0,moistureA-((Qi/2256400)/mWaterA)),
+                                                moistureA),moistureA),
+             
+             
+             #STEP B ________________________________________________________
+             ### Water effects: evaporation and energy drain
+             # Mass of water
+             mWaterB = moistureB*massB,
+             # Energy removed by current water quantity
+             drainB = ifelse(tempB>99,
+                             ifelse(moistureB>0,mWaterB*2256400,0),0),
+             # Adjust incoming energy for latent heat of vaporisation
+             QiB = max(fourierA-drainB,0),
+             #Thermal values
+             rhoM = (moistureB+moistureB^2)*barkDensity,
+             cpB = ((1105+4.85*tempB)*(1-moistureB)+moistureB*4185+1276*moistureB)/1000,
+             kB = (2.104*barkDensity+5.544*rhoM+3.266*tempB-166.216)*10^-4,
+             # Fourier conduction through the slice, using incoming energy reduced by water
+             fourierB = pmin(QiB,(kB * pmax(0,tempA - tempB)) / barkStep),
+             tempB = pmax(tempB, (0.001 * fourierB / (massB * cpB) + tempB)),
+             # Change in proportion water this step
+             moistureB = ifelse(tempB>99,ifelse(moistureB>0,max(0,moistureB-((fourierA/2256400)/mWaterB)),
+                                                moistureB),moistureB),
+             # Heat draw-down from above
+             tempA = pmin(tempA, tempA - (0.001 * fourierB / (massB * cpA))),
+             
+             #STEP C ________________________________________________________
+             ### Water effects: evaporation and energy drain
+             # Mass of water
+             mWaterC = moistureC*massB,
+             # Energy removed by current water quantity
+             drainC = ifelse(tempC>99,
+                             ifelse(moistureC>0,mWaterC*2256400,0),0),
+             # Adjust incoming energy for latent heat of vaporisation
+             QiC = max(fourierB-drainC,0),
+             #Thermal values
+             rhoM = (moistureC+moistureC^2)*barkDensity,
+             cpC = ((1105+4.85*tempC)*(1-moistureC)+moistureC*4185+1276*moistureC)/1000,
+             kC = (2.104*barkDensity+5.544*rhoM+3.266*tempC-166.216)*10^-4,
+             # Fourier conduction through the slice, using incoming energy reduced by water
+             fourierC = pmin(QiC,(kC * pmax(0,tempB - tempC)) / barkStep),
+             tempC = pmax(tempC, (0.001 * fourierC / (massB * cpC) + tempC)),
+             # Change in proportion water this step
+             moistureC = ifelse(tempC>99,ifelse(moistureC>0,max(0,moistureC-((fourierB/2256400)/mWaterC)),
+                                                moistureC),moistureC),
+             # Heat draw-down from above
+             tempB = pmin(tempB, tempB - (0.001 * fourierC / (massB * cpB))),
+             
+             #STEP D ________________________________________________________
+             ### Water effects: evaporation and energy drain
+             # Mass of water
+             mWaterD = moistureD*massB,
+             # Energy removed by current water quantity
+             drainD = ifelse(tempD>99,
+                             ifelse(moistureD>0,mWaterD*2256400,0),0),
+             # Adjust incoming energy for latent heat of vaporisation
+             QiD = max(fourierC-drainD,0),
+             #Thermal values
+             rhoM = (moistureD+moistureD^2)*barkDensity,
+             cpD = ((1105+4.85*tempD)*(1-moistureD)+moistureD*4185+1276*moistureD)/1000,
+             kD = (2.104*barkDensity+5.544*rhoM+3.266*tempD-166.216)*10^-4,
+             # Fourier conduction through the slice, using incoming energy reduced by water
+             fourierD = pmin(QiD,(kD * pmax(0,tempC - tempD)) / barkStep),
+             tempD = pmax(tempD, (0.001 * fourierD / (massB * cpD) + tempD)),
+             # Change in proportion water this step
+             moistureD = ifelse(tempD>99,ifelse(moistureD>0,max(0,moistureD-((fourierC/2256400)/mWaterD)),
+                                                moistureD),moistureD),
+             # Heat draw-down from above
+             tempC = pmin(tempC, tempC - (0.001 * fourierD / (massB * cpC))),
+             
+             #phloem ________________________________________________________
+             ### Water effects: evaporation and energy drain
+             # Mass of water
+             mWaterE = moistureE*massW,
+             # Energy removed by current water quantity
+             drainE = ifelse(tempE>99,
+                             ifelse(moistureE>0,mWaterE*2256400,0),0),
+             # Adjust incoming energy for latent heat of vaporisation
+             QiE = max(fourierD-drainE,0),
+             #Thermal values
+             kAir = 0.00028683*(tempE+273.15)^0.7919,
+             cpE = 1.08+0.00408*(100*moistureE)+0.00253*tempE+0.0000628*(100*moistureE)*tempE,
+             kE = kWood(tempE, woodDensity, kAir),
+             # Fourier conduction through the slice, using incoming energy reduced by water
+             fourierE = pmin(QiE,(kE * pmax(0,tempD - tempE)) / phloem),
+             tempE = pmax(tempE, (0.001 * fourierE / (massW * cpE) + tempE)),
+             # Change in proportion water this step
+             moistureE = ifelse(tempE>99,ifelse(moistureE>0,max(0,moistureE-((fourierD/2256400)/mWaterE)),
+                                                moistureE),moistureE),
+             # Heat draw-down from above
+             tempD = pmin(tempD, tempD - (0.001 * fourierE / (massW * cpD))),
+             
+             #Outgoing A________________________________________________________
+             fourierOA = pmin(0,(kA * (tempS - tempA)) / bark),
+             tempA = pmin(tempA, tempA + (0.001 * fourierOA / (massB * cpA))),
+             qrO = pmin(0,0.86*0.0000000000567*((tempS+273.15)^4 - (tempA+273.15)^4)),
+             qR = qr + qrO,
+             Q = qc + qR,
+             
+             
+             #Outgoing B________________________________________________________
+             fourierOB = pmin(0,(kB * (tempA - tempB)) / barkStep),
+             tempB = pmin(tempB, tempB + (0.001 * fourierOB / (massB * cpB))),
+             #Outgoing C________________________________________________________
+             fourierOC = pmin(0,(kC * (tempB - tempC)) / barkStep),
+             tempC = pmin(tempC, tempC + (0.001 * fourierOC / (massB * cpC))),
+             #Outgoing D________________________________________________________
+             fourierOD = pmin(0,(kD * (tempC - tempD)) / barkStep),
+             tempD = pmin(tempD, tempD + (0.001 * fourierOD / (massB * cpD))),
+             #Outgoing phloem________________________________________________________
+             fourierOE = pmin(0,(kE * (tempD - tempE)) / phloem),
+             tempE = pmin(tempE, tempE + (0.001 * fourierOE / (massW * cpE))))
+    
+    Ca <- rbind(Ca, Cb)
+    
+    tempA <- quantile(Cb$tempA, percentile)
+    moistureA <- quantile(Cb$moistureA, percentile)
+    tempB <- quantile(Cb$tempB, percentile)
+    moistureB <- quantile(Cb$moistureB, percentile)
+    tempC <- quantile(Cb$tempC, percentile)
+    moistureC <- quantile(Cb$moistureC, percentile)
+    tempD <- quantile(Cb$tempD, percentile)
+    moistureD <- quantile(Cb$moistureD, percentile)
+    tempE <- quantile(Cb$tempE, percentile)
+    moistureE <- quantile(Cb$moistureE, percentile)
+    setTxtProgressBar(pbar,t)
+    ##  progress bar
+    Sys.sleep(0.25)
+    ####UpdateProgress
+    if (is.function(updateProgress)) {
+      text <- paste0("Number of remaining steps is ", TIME - t)
+      updateProgress(detail = text)
+    }
+    t = t + 1
+    Horiz = Horiz - ROS
+  }
+  
+  # Create table
+  Ca <- Ca %>%
+    select(t, repId, tempS, tempA, tempB, tempC, tempD, tempE,
+           moistureA, moistureB, moistureC, moistureD, moistureE, 
+           kA, kB, kC, kD, kE, cpA, cpB, cpC, cpD, cpE, fourierA, fourierB, fourierC, fourierD, fourierE)%>%
+    mutate(girdling = ifelse(tempE>=necT, 1, 0))
+  
+  return(Ca)
+}
+
+
 
 #####################################################################
 
