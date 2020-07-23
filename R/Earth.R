@@ -108,7 +108,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
                              (kSoilA * pmax(0,tempS - soilTemp)) / 0.01),
            soilTempA = pmax(soilTemp, (fourierA / (mass * cpSoilA) + soilTemp)),
            # Change in proportion water this step
-           moistureA = ifelse(moisture>0,max(0,moisture-((fourierA/2256400)/mWater)),
+           moistureA = ifelse(moisture>0,max(0,moisture-((Qi/2256400)/mWater)),
                               moisture),
            
            #2ND CM________________________________________________________
@@ -128,9 +128,9 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            fourierB = pmin(fourierA,(kSoilB * pmax(0,soilTempA - soilTemp)) / 0.01),
            soilTempB = pmax(soilTemp, (fourierB / (mass * cpSoilB) + soilTemp)),
            # Change in proportion water this step
-           moistureB = ifelse(moisture>0,max(0,moisture-((fourierB/2256400)/mWater)),
+           moistureB = ifelse(moisture>0,max(0,moisture-((fourierA/2256400)/mWater)),
                               moisture),
-           # Heat draw-down from above: pmin and soilTempA - ... makes sense, but this inexplicably seems to be doing it
+           # Heat draw-down from above
            soilTempA = pmax(soilTempA, soilTempA + (fourierB / (mass * cpSoilA))),
            
            #3RD CM________________________________________________________
@@ -150,7 +150,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            fourierC = pmin(fourierB,(kSoilC * pmax(0,soilTempB - soilTemp)) / 0.01),
            soilTempC = pmax(soilTemp, (fourierC / (mass * cpSoilC) + soilTemp)),
            # Change in proportion water this step
-           moistureC = ifelse(moisture>0,max(0,moisture-((fourierC/2256400)/mWater)),
+           moistureC = ifelse(moisture>0,max(0,moisture-((fourierB/2256400)/mWater)),
                               moisture),
            # Heat draw-down from above
            soilTempB = pmax(soilTempB, soilTempB + (fourierC / (mass * cpSoilB))),
@@ -172,7 +172,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            fourierD = pmin(fourierC,(kSoilD * pmax(0,soilTempC - soilTemp)) / 0.01),
            soilTempD = pmax(soilTemp, (fourierD / (mass * cpSoilD) + soilTemp)),
            # Change in proportion water this step
-           moistureD = ifelse(moisture>0,max(0,moisture-((fourierD/2256400)/mWater)),
+           moistureD = ifelse(moisture>0,max(0,moisture-((fourierC/2256400)/mWater)),
                               moisture),
            # Heat draw-down from above
            soilTempC = pmax(soilTempC, soilTempC + (fourierD / (mass * cpSoilC))),
@@ -194,7 +194,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            fourierE = pmin(fourierD,(kSoilE * pmax(0,soilTempD - soilTemp)) / 0.01),
            soilTempE = pmax(soilTemp, (fourierE / (mass * cpSoilE) + soilTemp)),
            # Change in proportion water this step
-           moistureE = ifelse(moisture>0,max(0,moisture-((fourierE/2256400)/mWater)),
+           moistureE = ifelse(moisture>0,max(0,moisture-((fourierD/2256400)/mWater)),
                               moisture),
            # Heat draw-down from above
            soilTempD = pmax(soilTempD, soilTempD + (fourierE / (mass * cpSoilD))),
@@ -267,7 +267,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
                                (kSoilA * pmax(0,tempS - soilTempA)) / 0.01),
              soilTempA = pmax(soilTempA, (fourierA / (mass * cpSoilA) + soilTempA)),
              # Change in proportion water this step
-             moistureA = ifelse(moistureA>0,max(0,moistureA-((fourierA/2256400)/mWater)),
+             moistureA = ifelse(moistureA>0,max(0,moistureA-((Qi/2256400)/mWater)),
                                 moistureA),
              
              #2ND CM________________________________________________________
@@ -287,7 +287,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              fourierB = pmin(fourierA,(kSoilB * pmax(0,soilTempA - soilTempB)) / 0.01),
              soilTempB = pmax(soilTempB, (fourierB / (mass * cpSoilB) + soilTempB)),
              # Change in proportion water this step
-             moistureB = ifelse(moistureB>0,max(0,moistureB-((fourierB/2256400)/mWater)),
+             moistureB = ifelse(moistureB>0,max(0,moistureB-((fourierA/2256400)/mWater)),
                                 moistureB),
              # Heat draw-down from above
              soilTempA = pmax(soilTempA, soilTempA + (fourierB / (mass * cpSoilA))),
@@ -309,7 +309,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              fourierC = pmin(fourierB,(kSoilC * pmax(0,soilTempB - soilTempC)) / 0.01),
              soilTempC = pmax(soilTempC, (fourierC / (mass * cpSoilC) + soilTempC)),
              # Change in proportion water this step
-             moistureC = ifelse(moistureC>0,max(0,moistureC-((fourierC/2256400)/mWater)),
+             moistureC = ifelse(moistureC>0,max(0,moistureC-((fourierB/2256400)/mWater)),
                                 moistureC),
              # Heat draw-down from above
              soilTempB = pmax(soilTempB, soilTempB + (fourierC / (mass * cpSoilB))),
@@ -331,7 +331,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              fourierD = pmin(fourierC,(kSoilD * pmax(0,soilTempC - soilTempD)) / 0.01),
              soilTempD = pmax(soilTempD, (fourierD / (mass * cpSoilD) + soilTempD)),
              # Change in proportion water this step
-             moistureD = ifelse(moistureD>0,max(0,moistureD-((fourierD/2256400)/mWater)),
+             moistureD = ifelse(moistureD>0,max(0,moistureD-((fourierC/2256400)/mWater)),
                                 moistureD),
              # Heat draw-down from above
              soilTempC = pmax(soilTempC, soilTempC + (fourierD / (mass * cpSoilC))),
@@ -353,7 +353,7 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              fourierE = pmin(fourierD,(kSoilE * pmax(0,soilTempD - soilTempE)) / 0.01),
              soilTempE = pmax(soilTempE, (fourierE / (mass * cpSoilE) + soilTempE)),
              # Change in proportion water this step
-             moistureE = ifelse(moistureE>0,max(0,moistureE-((fourierE/2256400)/mWater)),
+             moistureE = ifelse(moistureE>0,max(0,moistureE-((fourierD/2256400)/mWater)),
                                 moistureE),
              # Heat draw-down from above
              soilTempD = pmax(soilTempD, soilTempD + (fourierE / (mass * cpSoilD))),
