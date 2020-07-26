@@ -836,7 +836,7 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
   moistureE <- quantile(Ca$moistureE, percentile)
   
   # Advance one second's travel
-  Horiz = Horiz - ROS
+  Horiz <- Horiz - ROS
   pbar <-  txtProgressBar(max = TIME, style = 3)
   # Loop through each time step and collect outputs
   for(t in 2:TIME){
@@ -1008,8 +1008,8 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
       text <- paste0("Number of remaining steps is ", TIME - t)
       updateProgress(detail = text)
     }
-    t = t + 1
-    Horiz = Horiz - ROS
+    t <- t + 1
+    Horiz <- Horiz - ROS
   }
   
   # Create table
