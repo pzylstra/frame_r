@@ -119,7 +119,7 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
            repLength = max(repLength, lengthSurface),
            phi = phi(repLength,repAngle,slope_degrees,Horizontal,Height),
            qr = E * phi) %>%
-    select(repId, ros_kph, wind_kph, temperature, pAlpha, tempAir, cpAir,
+    select(repId, ros_kph, wind_kph, temperature, lengthSurface, pAlpha, tempAir, cpAir,
            viscosity, presAtm, Density, Plume_velocity, flameTemp, epsilon, E, phi, qr)
   return(Con)
 }
