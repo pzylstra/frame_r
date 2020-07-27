@@ -674,8 +674,6 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
   barkTemp <- startTemp
   woodTemp <- startTemp
   
-  
-  
   #Starting values
   Ca <- threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude)%>%
     mutate(t = 1,
@@ -700,14 +698,12 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
            # Energy removed by current water quantity
            drainA = ifelse(barkTemp>99,
                            ifelse(bMoisture>0,mWaterA*2256400,0),0),
-           # Adjust incoming energy for latent heat of vaporisation
-           QiA = max(Qi-drainA,0),
            #Thermal values - (cp: J/kg/deg, k: W/m/deg)
            rhoM = (bMoisture+bMoisture^2)*barkDensity,
            cpA = ((1105+4.85*barkTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture),
            kA = (2.104*barkDensity+5.544*rhoM+3.266*barkTemp-166.216)*10^-4,
            # Fourier conduction through the slice, using incoming energy reduced by water
-           fourierA = ifelse(Horiz>0, pmin(QiA,(kA * pmax(0,tempS - barkTemp)) / barkStep),
+           fourierA = ifelse(Horiz>0, pmax(((kA * pmax(0,tempS - barkTemp)) / barkStep) - drainA, 0),
                              (kA * pmax(0,tempS - barkTemp)) / barkStep),
            tempA = pmax(barkTemp, (fourierA / (massB * cpA) + barkTemp)),
            # Change in proportion water this step
@@ -721,14 +717,12 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
            # Energy removed by current water quantity
            drainB = ifelse(barkTemp>99,
                            ifelse(moisture>0,mWaterB*2256400,0),0),
-           # Adjust incoming energy for latent heat of vaporisation
-           QiB = max(fourierA-drainB,0),
            #Thermal values - (cp: J/kg/deg, k: W/m/deg)
            rhoM = (bMoisture+bMoisture^2)*barkDensity,
            cpB = ((1105+4.85*barkTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture),
            kB = (2.104*barkDensity+5.544*rhoM+3.266*barkTemp-166.216)*10^-4,
            # Fourier conduction through the slice, using incoming energy reduced by water
-           fourierB = pmin(QiB,(kB * pmax(0,tempA - barkTemp)) / barkStep),
+           fourierB = pmax(((kB * pmax(0,tempA - barkTemp)) / barkStep) - drainB, 0),
            tempB = pmax(barkTemp, (fourierB / (massB * cpB) + barkTemp)),
            # Change in proportion water this step
            moistureB = ifelse(barkTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((fourierA/2256400)/mWaterB)),
@@ -743,14 +737,12 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
            # Energy removed by current water quantity
            drainC = ifelse(woodTemp>99,
                            ifelse(moisture>0,mWaterC*2256400,0),0),
-           # Adjust incoming energy for latent heat of vaporisation
-           QiC = max(fourierB-drainC,0),
            #Thermal values - (cp: J/kg/deg, k: W/m/deg)
            rhoM = (bMoisture+bMoisture^2)*barkDensity,
            cpC = ((1105+4.85*barkTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture),
            kC = (2.104*barkDensity+5.544*rhoM+3.266*barkTemp-166.216)*10^-4,
            # Fourier conduction through the slice, using incoming energy reduced by water
-           fourierC = pmin(QiC,(kC * pmax(0,tempB - barkTemp)) / barkStep),
+           fourierC = pmax(((kC * pmax(0,tempB - barkTemp)) / barkStep) - drainC, 0),
            tempC = pmax(barkTemp, (fourierC / (massB * cpC) + barkTemp)),
            # Change in proportion water this step
            moistureC = ifelse(barkTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((fourierB/2256400)/mWaterC)),
@@ -765,14 +757,12 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
            # Energy removed by current water quantity
            drainD = ifelse(woodTemp>99,
                            ifelse(moisture>0,mWaterD*2256400,0),0),
-           # Adjust incoming energy for latent heat of vaporisation
-           QiD = max(fourierC-drainD,0),
            #Thermal values - (cp: J/kg/deg, k: W/m/deg)
            rhoM = (bMoisture+bMoisture^2)*barkDensity,
            cpD = ((1105+4.85*barkTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture),
            kD = (2.104*barkDensity+5.544*rhoM+3.266*barkTemp-166.216)*10^-4,
            # Fourier conduction through the slice, using incoming energy reduced by water
-           fourierD = pmin(QiD,(kD * pmax(0,tempC - barkTemp)) / barkStep),
+           fourierD = pmax(((kD * pmax(0,tempC - barkTemp)) / barkStep) - drainD, 0),
            tempD = pmax(barkTemp, (fourierD / (massB * cpD) + barkTemp)),
            # Change in proportion water this step
            moistureD = ifelse(barkTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((fourierC/2256400)/mWaterD)),
@@ -787,14 +777,12 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
            # Energy removed by current water quantity
            drainE = ifelse(woodTemp>99,
                            ifelse(moisture>0,mWaterE*2256400,0),0),
-           # Adjust incoming energy for latent heat of vaporisation
-           QiE = max(fourierD-drainE,0),
            #Thermal values - (cp: J/g/deg, k: W/m/deg)
            kAir = 0.00028683*(woodTemp+273.15)^0.7919,
            cpE = 1.08+0.00408*(100*moisture)+0.00253*woodTemp+0.0000628*(100*moisture)*woodTemp,
            kE = kWood(woodTemp, woodDensity, kAir),
            # Fourier conduction through the slice, using incoming energy reduced by water
-           fourierE = pmin(QiE,(kE * pmax(0,tempD - woodTemp)) / phloem),
+           fourierE = pmax(((kE * pmax(0,tempD - woodTemp)) / phloem) - drainE, 0),
            tempE = pmax(woodTemp, (0.001 * fourierE / (massW * cpE) + woodTemp)),
            # Change in proportion water this step
            moistureE = ifelse(woodTemp>99,ifelse(moisture>0,max(0,moisture-((fourierD/2256400)/mWaterE)),
@@ -864,14 +852,12 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
              # Energy removed by current water quantity
              drainA = ifelse(tempA>99,
                              ifelse(moistureA>0,mWaterA*2256400,0),0),
-             # Adjust incoming energy for latent heat of vaporisation
-             QiA = max(Qi-drainA,0),
              #Bark thermal values - (cp: J/kg/deg, k: W/m/deg)
              rhoM = (moistureA+moistureA^2)*barkDensity,
              cpA = ((1105+4.85*tempA)*(1-moistureA)+moistureA*4185+1276*moistureA),
              kA = (2.104*barkDensity+5.544*rhoM+3.266*tempA-166.216)*10^-4,
              # Fourier conduction through the slice, using incoming energy reduced by water
-             fourierA = ifelse(Horiz>0, pmin(QiA,(kA * pmax(0,tempS - tempA)) / bark),
+             fourierA = ifelse(Horiz>0, pmax(((kA * pmax(0,tempS - tempA)) / bark) - drainA, 0),
                                (kA * pmax(0,tempS - tempA)) / bark),
              tempA = pmax(tempA, (fourierA / (massB * cpA) + tempA)),
              # Change in proportion water this step
@@ -886,14 +872,12 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
              # Energy removed by current water quantity
              drainB = ifelse(tempB>99,
                              ifelse(moistureB>0,mWaterB*2256400,0),0),
-             # Adjust incoming energy for latent heat of vaporisation
-             QiB = max(fourierA-drainB,0),
              #Thermal values - (cp: J/kg/deg, k: W/m/deg)
              rhoM = (moistureB+moistureB^2)*barkDensity,
              cpB = ((1105+4.85*tempB)*(1-moistureB)+moistureB*4185+1276*moistureB),
              kB = (2.104*barkDensity+5.544*rhoM+3.266*tempB-166.216)*10^-4,
              # Fourier conduction through the slice, using incoming energy reduced by water
-             fourierB = pmin(QiB,(kB * pmax(0,tempA - tempB)) / barkStep),
+             fourierB = pmax(((kB * pmax(0,tempA - tempB)) / barkStep) - drainB, 0),
              tempB = pmax(tempB, (fourierB / (massB * cpB) + tempB)),
              # Change in proportion water this step
              moistureB = ifelse(tempB>99,ifelse(moistureB>0,max(0,moistureB-((fourierA/2256400)/mWaterB)),
@@ -908,14 +892,12 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
              # Energy removed by current water quantity
              drainC = ifelse(tempC>99,
                              ifelse(moistureC>0,mWaterC*2256400,0),0),
-             # Adjust incoming energy for latent heat of vaporisation
-             QiC = max(fourierB-drainC,0),
              #Thermal values - (cp: J/kg/deg, k: W/m/deg)
              rhoM = (moistureC+moistureC^2)*barkDensity,
              cpC = ((1105+4.85*tempC)*(1-moistureC)+moistureC*4185+1276*moistureC),
              kC = (2.104*barkDensity+5.544*rhoM+3.266*tempC-166.216)*10^-4,
              # Fourier conduction through the slice, using incoming energy reduced by water
-             fourierC = pmin(QiC,(kC * pmax(0,tempB - tempC)) / barkStep),
+             fourierC = pmax(((kC * pmax(0,tempB - tempC)) / barkStep) - drainC, 0),
              tempC = pmax(tempC, (fourierC / (massB * cpC) + tempC)),
              # Change in proportion water this step
              moistureC = ifelse(tempC>99,ifelse(moistureC>0,max(0,moistureC-((fourierB/2256400)/mWaterC)),
@@ -930,14 +912,12 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
              # Energy removed by current water quantity
              drainD = ifelse(tempD>99,
                              ifelse(moistureD>0,mWaterD*2256400,0),0),
-             # Adjust incoming energy for latent heat of vaporisation
-             QiD = max(fourierC-drainD,0),
              #Thermal values - (cp: J/kg/deg, k: W/m/deg)
              rhoM = (moistureD+moistureD^2)*barkDensity,
              cpD = ((1105+4.85*tempD)*(1-moistureD)+moistureD*4185+1276*moistureD),
              kD = (2.104*barkDensity+5.544*rhoM+3.266*tempD-166.216)*10^-4,
              # Fourier conduction through the slice, using incoming energy reduced by water
-             fourierD = pmin(QiD,(kD * pmax(0,tempC - tempD)) / barkStep),
+             fourierD = pmax(((kD * pmax(0,tempC - tempD)) / barkStep) - drainD, 0),
              tempD = pmax(tempD, (fourierD / (massB * cpD) + tempD)),
              # Change in proportion water this step
              moistureD = ifelse(tempD>99,ifelse(moistureD>0,max(0,moistureD-((fourierC/2256400)/mWaterD)),
@@ -952,14 +932,12 @@ girdle <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 7
              # Energy removed by current water quantity
              drainE = ifelse(tempE>99,
                              ifelse(moistureE>0,mWaterE*2256400,0),0),
-             # Adjust incoming energy for latent heat of vaporisation
-             QiE = max(fourierD-drainE,0),
              #Thermal values - (cp: J/g/deg, k: W/m/deg)
              kAir = 0.00028683*(tempE+273.15)^0.7919,
              cpE = 1.08+0.00408*(100*moistureE)+0.00253*tempE+0.0000628*(100*moistureE)*tempE,
              kE = kWood(tempE, woodDensity, kAir),
              # Fourier conduction through the slice, using incoming energy reduced by water
-             fourierE = pmin(QiE,(kE * pmax(0,tempD - tempE)) / phloem),
+             fourierE = pmax(((kE * pmax(0,tempD - tempE)) / phloem) - drainE , 0),
              tempE = pmax(tempE, (0.001 * fourierE / (massW * cpE) + tempE)),
              # Change in proportion water this step
              moistureE = ifelse(tempE>99,ifelse(moistureE>0,max(0,moistureE-((fourierD/2256400)/mWaterE)),
