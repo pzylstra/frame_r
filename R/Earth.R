@@ -95,16 +95,14 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            # Mass of water
            mWater = moisture*mass,
            # Energy removed by current water quantity
-           drain = ifelse(soilTemp>99,
+           drainA = ifelse(soilTemp>99,
                           ifelse(moisture>0,mWater*2256400,0),0),
-           # Adjusted incoming energy
-           QiA = max(Qi-drain,0),
            #Thermal values
            cpSoilA = cpSoil((soilTemp+273.15), texture, peat, moisture),
            saturationA = satSoil(texture, moisture),
            kSoilA = kSoil(texture, saturationA),
            # Fourier conduction
-           fourierA = ifelse(Horiz>0, pmin(QiA,(kSoilA * pmax(0,tempS - soilTemp)) / 0.01),
+           fourierA = ifelse(Horiz>0, pmax(((kSoilA * pmax(0,tempS - soilTemp)) / 0.01) - drainA, 0),
                              (kSoilA * pmax(0,tempS - soilTemp)) / 0.01),
            soilTempA = pmax(soilTemp, (fourierA / (mass * cpSoilA) + soilTemp)),
            # Change in proportion water this step
@@ -116,16 +114,14 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            # Mass of water
            mWater = moisture*mass,
            # Energy removed by current water quantity
-           drain = ifelse(soilTemp>99,
+           drainB = ifelse(soilTemp>99,
                           ifelse(moisture>0,mWater*2256400,0),0),
-           # Adjusted incoming energy
-           QiB = max(fourierA-drain,0),
            #Thermal values
            cpSoilB = cpSoil((soilTemp+273.15), texture, peat, moistureA),
            saturationB = satSoil(texture, moistureA),
            kSoilB = kSoil(texture, saturationB),
            # Fourier conduction
-           fourierB = pmin(fourierA,(kSoilB * pmax(0,soilTempA - soilTemp)) / 0.01),
+           fourierB = pmax(((kSoilB * pmax(0,soilTempA - soilTemp)) / 0.01) - drainB, 0),
            soilTempB = pmax(soilTemp, (fourierB / (mass * cpSoilB) + soilTemp)),
            # Change in proportion water this step
            moistureB = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierA/2256400)/mWater)),
@@ -138,16 +134,14 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            # Mass of water
            mWater = moisture*mass,
            # Energy removed by current water quantity
-           drain = ifelse(soilTemp>99,
+           drainC = ifelse(soilTemp>99,
                           ifelse(moisture>0,mWater*2256400,0),0),
-           # Adjusted incoming energy
-           QiC = max(fourierB-drain,0),
            #Thermal values
            cpSoilC = cpSoil((soilTemp+273.15), texture, peat, moistureB),
            saturationC = satSoil(texture, moistureB),
            kSoilC = kSoil(texture, saturationC),
            # Fourier conduction
-           fourierC = pmin(fourierB,(kSoilC * pmax(0,soilTempB - soilTemp)) / 0.01),
+           fourierC = pmax(((kSoilC * pmax(0,soilTempB - soilTemp)) / 0.01) - drainC, 0),
            soilTempC = pmax(soilTemp, (fourierC / (mass * cpSoilC) + soilTemp)),
            # Change in proportion water this step
            moistureC = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierB/2256400)/mWater)),
@@ -160,16 +154,14 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            # Mass of water
            mWater = moisture*mass,
            # Energy removed by current water quantity
-           drain = ifelse(soilTemp>99,
+           drainD = ifelse(soilTemp>99,
                           ifelse(moisture>0,mWater*2256400,0),0),
-           # Adjusted incoming energy
-           QiD = max(fourierC-drain,0),
            #Thermal values
            cpSoilD = cpSoil((soilTemp+273.15), texture, peat, moistureC),
            saturationD = satSoil(texture, moistureC),
            kSoilD = kSoil(texture, saturationD),
            # Fourier conduction
-           fourierD = pmin(fourierC,(kSoilD * pmax(0,soilTempC - soilTemp)) / 0.01),
+           fourierD = pmax(((kSoilD * pmax(0,soilTempC - soilTemp)) / 0.01) - drainD, 0),
            soilTempD = pmax(soilTemp, (fourierD / (mass * cpSoilD) + soilTemp)),
            # Change in proportion water this step
            moistureD = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierC/2256400)/mWater)),
@@ -182,16 +174,14 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
            # Mass of water
            mWater = moisture*mass,
            # Energy removed by current water quantity
-           drain = ifelse(soilTemp>99,
+           drainE = ifelse(soilTemp>99,
                           ifelse(moisture>0,mWater*2256400,0),0),
-           # Adjusted incoming energy
-           QiE = max(fourierD-drain,0),
            #Thermal values
            cpSoilE = cpSoil((soilTemp+273.15), texture, peat, moistureD),
            saturationE = satSoil(texture, moistureD),
            kSoilE = kSoil(texture, saturationE),
            # Fourier conduction
-           fourierE = pmin(fourierD,(kSoilE * pmax(0,soilTempD - soilTemp)) / 0.01),
+           fourierE = pmax(((kSoilE * pmax(0,soilTempD - soilTemp)) / 0.01) - drainE, 0),
            soilTempE = pmax(soilTemp, (fourierE / (mass * cpSoilE) + soilTemp)),
            # Change in proportion water this step
            moistureE = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierD/2256400)/mWater)),
@@ -254,16 +244,14 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              # Mass of water
              mWater = moistureA*mass,
              # Energy removed by current water quantity
-             drain = ifelse(soilTempA>99,
+             drainA = ifelse(soilTempA>99,
                             ifelse(moistureA>0,mWater*2256400,0),0),
-             # Adjusted incoming energy
-             QiA = max(Qi-drain,0),
              #Thermal values
              cpSoilA = cpSoil((soilTemp+273.15), texture, peat, moistureA),
              saturationA = satSoil(texture, moistureA),
              kSoilA = kSoil(texture, saturationA),
              # Fourier conduction
-             fourierA = ifelse(Horiz>0, pmin(QiA,(kSoilA * pmax(0,tempS - soilTempA)) / 0.01),
+             fourierA = ifelse(Horiz>0, pmax(((kSoilA * pmax(0,tempS - soilTempA)) / 0.01) - drainA, 0),
                                (kSoilA * pmax(0,tempS - soilTempA)) / 0.01),
              soilTempA = pmax(soilTempA, (fourierA / (mass * cpSoilA) + soilTempA)),
              # Change in proportion water this step
@@ -275,16 +263,14 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              # Mass of water
              mWater = moistureB*mass,
              # Energy removed by current water quantity
-             drain = ifelse(soilTempB>99,
+             drainB = ifelse(soilTempB>99,
                             ifelse(moistureB>0,mWater*2256400,0),0),
-             # Adjusted incoming energy
-             QiB = max(fourierA-drain,0),
              #Thermal values
              cpSoilB = cpSoil((soilTemp+273.15), texture, peat, moistureB),
              saturationB = satSoil(texture, moistureB),
              kSoilB = kSoil(texture, saturationB),
              # Fourier conduction
-             fourierB = pmin(fourierA,(kSoilB * pmax(0,soilTempA - soilTempB)) / 0.01),
+             fourierB = pmax(((kSoilB * pmax(0,soilTempA - soilTempB)) / 0.01) - drainB, 0),
              soilTempB = pmax(soilTempB, (fourierB / (mass * cpSoilB) + soilTempB)),
              # Change in proportion water this step
              moistureB = ifelse(soilTempB>99,ifelse(moistureB>0,max(0,moistureB-((fourierA/2256400)/mWater)),
@@ -297,16 +283,14 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              # Mass of water
              mWater = moistureC*mass,
              # Energy removed by current water quantity
-             drain = ifelse(soilTempC>99,
+             drainC = ifelse(soilTempC>99,
                             ifelse(moistureC>0,mWater*2256400,0),0),
-             # Adjusted incoming energy
-             QiC = max(fourierB-drain,0),
              #Thermal values
              cpSoilC = cpSoil((soilTemp+273.15), texture, peat, moistureC),
              saturationC = satSoil(texture, moistureC),
              kSoilC = kSoil(texture, saturationC),
              # Fourier conduction
-             fourierC = pmin(fourierB,(kSoilC * pmax(0,soilTempB - soilTempC)) / 0.01),
+             fourierC = pmax(((kSoilC * pmax(0,soilTempB - soilTempC)) / 0.01) - drainC, 0),
              soilTempC = pmax(soilTempC, (fourierC / (mass * cpSoilC) + soilTempC)),
              # Change in proportion water this step
              moistureC = ifelse(soilTempC>99,ifelse(moistureC>0,max(0,moistureC-((fourierB/2256400)/mWater)),
@@ -319,16 +303,14 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              # Mass of water
              mWater = moistureD*mass,
              # Energy removed by current water quantity
-             drain = ifelse(soilTempD>99,
+             drainD = ifelse(soilTempD>99,
                             ifelse(moistureD>0,mWater*2256400,0),0),
-             # Adjusted incoming energy
-             QiD = max(fourierC-drain,0),
              #Thermal values
              cpSoilD = cpSoil((soilTemp+273.15), texture, peat, moistureD),
              saturationD = satSoil(texture, moistureD),
              kSoilD = kSoil(texture, saturationD),
              # Fourier conduction
-             fourierD = pmin(fourierC,(kSoilD * pmax(0,soilTempC - soilTempD)) / 0.01),
+             fourierD = pmax(((kSoilD * pmax(0,soilTempC - soilTempD)) / 0.01) - drainD, 0),
              soilTempD = pmax(soilTempD, (fourierD / (mass * cpSoilD) + soilTempD)),
              # Change in proportion water this step
              moistureD = ifelse(soilTempD>99,ifelse(moistureD>0,max(0,moistureD-((fourierC/2256400)/mWater)),
@@ -341,16 +323,14 @@ soil <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0.95, RH
              # Mass of water
              mWater = moistureD*mass,
              # Energy removed by current water quantity
-             drain = ifelse(soilTempE>99,
+             drainE = ifelse(soilTempE>99,
                             ifelse(moistureE>0,mWater*2256400,0),0),
-             # Adjusted incoming energy
-             QiE = max(fourierD-drain,0),
              #Thermal values
              cpSoilE = cpSoil((soilTemp+273.15), texture, peat, moistureE),
              saturationE = satSoil(texture, moistureE),
              kSoilE = kSoil(texture, saturationE),
              # Fourier conduction
-             fourierE = pmin(fourierD,(kSoilE * pmax(0,soilTempD - soilTempE)) / 0.01),
+             fourierE = pmax(((kSoilE * pmax(0,soilTempD - soilTempE)) / 0.01) - drainE, 0),
              soilTempE = pmax(soilTempE, (fourierE / (mass * cpSoilE) + soilTempE)),
              # Change in proportion water this step
              moistureE = ifelse(soilTempE>99,ifelse(moistureE>0,max(0,moistureE-((fourierD/2256400)/mWater)),
