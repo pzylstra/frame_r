@@ -7,6 +7,7 @@
 soil(
   Surf,
   Plant,
+  step = 0.01,
   diameter = 6,
   surface = 677,
   percentile = 0.95,
@@ -29,6 +30,8 @@ soil(
 \item{Surf}{The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'}
 
 \item{Plant}{The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.}
+
+\item{step}{The increment of soil depth at which each calculation will be modelled (m)}
 
 \item{diameter}{Diameter of the surface fuels burning (mm)}
 
