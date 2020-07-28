@@ -85,11 +85,11 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
            Re = (Plume_velocity*Density)/viscosity,
            h = ifelse(Re > 300000,0.037*Re^(4/5)*0.888, 0.66*Re^0.5*0.888),
            #Incoming heat from surface
-           tempS = ifelse(Horiz <0, pmax(tempAir, surface), tempAir),
+           tempS = ifelse(Horiz <0, max(tempAir, surface), tempAir),
            qc = h * (tempS - soilTemp),
            att = tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
            qr = 0.86*qr*att,
-           Qi = pmax(0, qc)+qr,
+           Qi = max(0, qc)+qr,
            
            #1ST CM________________________________________________________
            ### Water effects: evaporation and energy drain
@@ -103,9 +103,9 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
            saturationA = satSoil(texture, moisture),
            kSoilA = kSoil(texture, saturationA),
            # Fourier conduction
-           fourierA = ifelse(Horiz>0, pmax(((kSoilA * pmax(0,tempS - soilTemp)) / step) - drainA, 0),
-                             (kSoilA * pmax(0,tempS - soilTemp)) / step),
-           soilTempA = pmax(soilTemp, (fourierA / (mass * cpSoilA) + soilTemp)),
+           fourierA = ifelse(Horiz>0, max(((kSoilA * max(0,tempS - soilTemp)) / step) - drainA, 0),
+                             (kSoilA * max(0,tempS - soilTemp)) / step),
+           soilTempA = max(soilTemp, (fourierA / (mass * cpSoilA) + soilTemp)),
            # Change in proportion water this step
            moistureA = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((Qi/2256400)/mWater)),
                                                  moisture), moisture),
@@ -122,13 +122,13 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
            saturationB = satSoil(texture, moistureA),
            kSoilB = kSoil(texture, saturationB),
            # Fourier conduction
-           fourierB = pmax(((kSoilB * pmax(0,soilTempA - soilTemp)) / step) - drainB, 0),
-           soilTempB = pmax(soilTemp, (fourierB / (mass * cpSoilB) + soilTemp)),
+           fourierB = max(((kSoilB * max(0,soilTempA - soilTemp)) / step) - drainB, 0),
+           soilTempB = max(soilTemp, (fourierB / (mass * cpSoilB) + soilTemp)),
            # Change in proportion water this step
            moistureB = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierA/2256400)/mWater)),
                                                  moisture), moisture),
            # Heat draw-down from above
-           soilTempA = pmax(soilTempA, soilTempA + (fourierB / (mass * cpSoilA))),
+           soilTempA = max(soilTempA, soilTempA + (fourierB / (mass * cpSoilA))),
            
            #3RD CM________________________________________________________
            ### Water effects: evaporation and energy drain
@@ -142,13 +142,13 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
            saturationC = satSoil(texture, moistureB),
            kSoilC = kSoil(texture, saturationC),
            # Fourier conduction
-           fourierC = pmax(((kSoilC * pmax(0,soilTempB - soilTemp)) / step) - drainC, 0),
-           soilTempC = pmax(soilTemp, (fourierC / (mass * cpSoilC) + soilTemp)),
+           fourierC = max(((kSoilC * max(0,soilTempB - soilTemp)) / step) - drainC, 0),
+           soilTempC = max(soilTemp, (fourierC / (mass * cpSoilC) + soilTemp)),
            # Change in proportion water this step
            moistureC = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierB/2256400)/mWater)),
                                                  moisture),moisture),
            # Heat draw-down from above
-           soilTempB = pmax(soilTempB, soilTempB + (fourierC / (mass * cpSoilB))),
+           soilTempB = max(soilTempB, soilTempB + (fourierC / (mass * cpSoilB))),
            
            #4TH CM________________________________________________________
            ### Water effects: evaporation and energy drain
@@ -162,13 +162,13 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
            saturationD = satSoil(texture, moistureC),
            kSoilD = kSoil(texture, saturationD),
            # Fourier conduction
-           fourierD = pmax(((kSoilD * pmax(0,soilTempC - soilTemp)) / step) - drainD, 0),
-           soilTempD = pmax(soilTemp, (fourierD / (mass * cpSoilD) + soilTemp)),
+           fourierD = max(((kSoilD * max(0,soilTempC - soilTemp)) / step) - drainD, 0),
+           soilTempD = max(soilTemp, (fourierD / (mass * cpSoilD) + soilTemp)),
            # Change in proportion water this step
            moistureD = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierC/2256400)/mWater)),
                                                  moisture),moisture),
            # Heat draw-down from above
-           soilTempC = pmax(soilTempC, soilTempC + (fourierD / (mass * cpSoilC))),
+           soilTempC = max(soilTempC, soilTempC + (fourierD / (mass * cpSoilC))),
            
            #5TH CM________________________________________________________
            ### Water effects: evaporation and energy drain
@@ -182,34 +182,34 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
            saturationE = satSoil(texture, moistureD),
            kSoilE = kSoil(texture, saturationE),
            # Fourier conduction
-           fourierE = pmax(((kSoilE * pmax(0,soilTempD - soilTemp)) / step) - drainE, 0),
-           soilTempE = pmax(soilTemp, (fourierE / (mass * cpSoilE) + soilTemp)),
+           fourierE = max(((kSoilE * max(0,soilTempD - soilTemp)) / step) - drainE, 0),
+           soilTempE = max(soilTemp, (fourierE / (mass * cpSoilE) + soilTemp)),
            # Change in proportion water this step
            moistureE = ifelse(soilTemp>99,ifelse(moisture>0,max(0,moisture-((fourierD/2256400)/mWater)),
                                                  moisture),moisture),
            # Heat draw-down from above
-           soilTempD = pmax(soilTempD, soilTempD + (fourierE / (mass * cpSoilD))),
+           soilTempD = max(soilTempD, soilTempD + (fourierE / (mass * cpSoilD))),
            
            #Outgoing 1st________________________________________________________
-           fourierOA = pmin(0,(kSoilA * (tempS - soilTempA)) / step),
-           soilTempA = pmin(soilTempA, soilTempA + (fourierOA / (mass * cpSoilA))),
-           qrO = pmin(0,0.86*0.0000000000567*((tempS+273.15)^4 - (soilTempA+273.15)^4)),
+           fourierOA = min(0,(kSoilA * (tempS - soilTempA)) / step),
+           soilTempA = min(soilTempA, soilTempA + (fourierOA / (mass * cpSoilA))),
+           qrO = min(0,0.86*0.0000000000567*((tempS+273.15)^4 - (soilTempA+273.15)^4)),
            qR = qr + qrO,
            Q = qc + qR,
            
            
            #Outgoing 2nd________________________________________________________
-           fourierOB = pmin(0,(kSoilB * (soilTempA - soilTempB)) / step),
-           soilTempB = pmin(soilTempB, soilTempB + (fourierOB / (mass * cpSoilB))),
+           fourierOB = min(0,(kSoilB * (soilTempA - soilTempB)) / step),
+           soilTempB = min(soilTempB, soilTempB + (fourierOB / (mass * cpSoilB))),
            #Outgoing 3rd________________________________________________________
-           fourierOC = pmin(0,(kSoilC * (soilTempB - soilTempC)) / step),
-           soilTempC = pmin(soilTempC, soilTempC + (fourierOC / (mass * cpSoilC))),
+           fourierOC = min(0,(kSoilC * (soilTempB - soilTempC)) / step),
+           soilTempC = min(soilTempC, soilTempC + (fourierOC / (mass * cpSoilC))),
            #Outgoing 4th________________________________________________________
-           fourierOD = pmin(0,(kSoilD * (soilTempC - soilTempD)) / step),
-           soilTempD = pmin(soilTempD, soilTempD + (fourierOD / (mass * cpSoilD))),
+           fourierOD = min(0,(kSoilD * (soilTempC - soilTempD)) / step),
+           soilTempD = min(soilTempD, soilTempD + (fourierOD / (mass * cpSoilD))),
            #Outgoing 5th________________________________________________________
-           fourierOE = pmin(0,(kSoilE * (soilTempD - soilTempE)) / step),
-           soilTempE = pmin(soilTempE, soilTempE + (fourierOE / (mass * cpSoilE))))
+           fourierOE = min(0,(kSoilE * (soilTempD - soilTempE)) / step),
+           soilTempE = min(soilTempE, soilTempE + (fourierOE / (mass * cpSoilE))))
   
   
   soilTempA <- quantile(Ca$soilTempA, percentile)
@@ -234,11 +234,11 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
              Re = (Plume_velocity*Density)/viscosity,
              h = ifelse(Re > 300000,0.037*Re^(4/5)*0.888, 0.66*Re^0.5*0.888),
              #Incoming heat from surface
-             tempS = ifelse(t>Ta, tempAir, ifelse(Horiz <0, pmax(tempAir, surface), tempAir)),
+             tempS = ifelse(t>Ta, tempAir, ifelse(Horiz <0, max(tempAir, surface), tempAir)),
              qc = h * (tempS - soilTempA),
              att = tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
              qr = 0.86*qr*att,
-             Qi = pmax(0, qc)+qr,
+             Qi = max(0, qc)+qr,
              
              #1ST CM________________________________________________________
              ### Water effects: evaporation and energy drain
@@ -252,9 +252,9 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
              saturationA = satSoil(texture, moistureA),
              kSoilA = kSoil(texture, saturationA),
              # Fourier conduction
-             fourierA = ifelse(Horiz>0, pmax(((kSoilA * pmax(0,tempS - soilTempA)) / step) - drainA, 0),
-                               (kSoilA * pmax(0,tempS - soilTempA)) / step),
-             soilTempA = pmax(soilTempA, (fourierA / (mass * cpSoilA) + soilTempA)),
+             fourierA = ifelse(Horiz>0, max(((kSoilA * max(0,tempS - soilTempA)) / step) - drainA, 0),
+                               (kSoilA * max(0,tempS - soilTempA)) / step),
+             soilTempA = max(soilTempA, (fourierA / (mass * cpSoilA) + soilTempA)),
              # Change in proportion water this step
              moistureA = ifelse(soilTempA>99,ifelse(moistureA>0,max(0,moistureA-((Qi/2256400)/mWater)),
                                                     moistureA),moistureA),
@@ -271,13 +271,13 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
              saturationB = satSoil(texture, moistureB),
              kSoilB = kSoil(texture, saturationB),
              # Fourier conduction
-             fourierB = pmax(((kSoilB * pmax(0,soilTempA - soilTempB)) / step) - drainB, 0),
-             soilTempB = pmax(soilTempB, (fourierB / (mass * cpSoilB) + soilTempB)),
+             fourierB = max(((kSoilB * max(0,soilTempA - soilTempB)) / step) - drainB, 0),
+             soilTempB = max(soilTempB, (fourierB / (mass * cpSoilB) + soilTempB)),
              # Change in proportion water this step
              moistureB = ifelse(soilTempB>99,ifelse(moistureB>0,max(0,moistureB-((fourierA/2256400)/mWater)),
                                                     moistureB),moistureB),
              # Heat draw-down from above
-             soilTempA = pmax(soilTempA, soilTempA + (fourierB / (mass * cpSoilA))),
+             soilTempA = max(soilTempA, soilTempA + (fourierB / (mass * cpSoilA))),
              
              #3RD CM________________________________________________________
              ### Water effects: evaporation and energy drain
@@ -291,13 +291,13 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
              saturationC = satSoil(texture, moistureC),
              kSoilC = kSoil(texture, saturationC),
              # Fourier conduction
-             fourierC = pmax(((kSoilC * pmax(0,soilTempB - soilTempC)) / step) - drainC, 0),
-             soilTempC = pmax(soilTempC, (fourierC / (mass * cpSoilC) + soilTempC)),
+             fourierC = max(((kSoilC * max(0,soilTempB - soilTempC)) / step) - drainC, 0),
+             soilTempC = max(soilTempC, (fourierC / (mass * cpSoilC) + soilTempC)),
              # Change in proportion water this step
              moistureC = ifelse(soilTempC>99,ifelse(moistureC>0,max(0,moistureC-((fourierB/2256400)/mWater)),
                                                     moistureC),moistureC),
              # Heat draw-down from above
-             soilTempB = pmax(soilTempB, soilTempB + (fourierC / (mass * cpSoilB))),
+             soilTempB = max(soilTempB, soilTempB + (fourierC / (mass * cpSoilB))),
              
              #4TH CM________________________________________________________
              ### Water effects: evaporation and energy drain
@@ -311,18 +311,18 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
              saturationD = satSoil(texture, moistureD),
              kSoilD = kSoil(texture, saturationD),
              # Fourier conduction
-             fourierD = pmax(((kSoilD * pmax(0,soilTempC - soilTempD)) / step) - drainD, 0),
-             soilTempD = pmax(soilTempD, (fourierD / (mass * cpSoilD) + soilTempD)),
+             fourierD = max(((kSoilD * max(0,soilTempC - soilTempD)) / step) - drainD, 0),
+             soilTempD = max(soilTempD, (fourierD / (mass * cpSoilD) + soilTempD)),
              # Change in proportion water this step
              moistureD = ifelse(soilTempD>99,ifelse(moistureD>0,max(0,moistureD-((fourierC/2256400)/mWater)),
                                                     moistureD),moistureD),
              # Heat draw-down from above
-             soilTempC = pmax(soilTempC, soilTempC + (fourierD / (mass * cpSoilC))),
+             soilTempC = max(soilTempC, soilTempC + (fourierD / (mass * cpSoilC))),
              
              #5TH CM________________________________________________________
              ### Water effects: evaporation and energy drain
              # Mass of water
-             mWater = moistureD*mass,
+             mWater = moistureE*mass,
              # Energy removed by current water quantity
              drainE = ifelse(soilTempE>99,
                             ifelse(moistureE>0,mWater*2256400,0),0),
@@ -331,34 +331,34 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
              saturationE = satSoil(texture, moistureE),
              kSoilE = kSoil(texture, saturationE),
              # Fourier conduction
-             fourierE = pmax(((kSoilE * pmax(0,soilTempD - soilTempE)) / step) - drainE, 0),
-             soilTempE = pmax(soilTempE, (fourierE / (mass * cpSoilE) + soilTempE)),
+             fourierE = max(((kSoilE * max(0,soilTempD - soilTempE)) / step) - drainE, 0),
+             soilTempE = max(soilTempE, (fourierE / (mass * cpSoilE) + soilTempE)),
              # Change in proportion water this step
              moistureE = ifelse(soilTempE>99,ifelse(moistureE>0,max(0,moistureE-((fourierD/2256400)/mWater)),
                                                     moistureE),moistureE),
              # Heat draw-down from above
-             soilTempD = pmax(soilTempD, soilTempD + (fourierE / (mass * cpSoilD))),
+             soilTempD = max(soilTempD, soilTempD + (fourierE / (mass * cpSoilD))),
              
              #Outgoing 1st________________________________________________________
-             fourierOA = pmin(0,(kSoilA * (tempS - soilTempA)) / step),
-             soilTempA = pmin(soilTempA, soilTempA + (fourierOA / (mass * cpSoilA))),
-             qrO = pmin(0,0.86*0.0000000000567*((tempS+273.15)^4 - (soilTempA+273.15)^4)),
+             fourierOA = min(0,(kSoilA * (tempS - soilTempA)) / step),
+             soilTempA = min(soilTempA, soilTempA + (fourierOA / (mass * cpSoilA))),
+             qrO = min(0,0.86*0.0000000000567*((tempS+273.15)^4 - (soilTempA+273.15)^4)),
              qR = qr + qrO,
              Q = qc + qR,
              
              
              #Outgoing 2nd________________________________________________________
-             fourierOB = pmin(0,(kSoilB * (soilTempA - soilTempB)) / step),
-             soilTempB = pmin(soilTempB, soilTempB + (fourierOB / (mass * cpSoilB))),
+             fourierOB = min(0,(kSoilB * (soilTempA - soilTempB)) / step),
+             soilTempB = min(soilTempB, soilTempB + (fourierOB / (mass * cpSoilB))),
              #Outgoing 3rd________________________________________________________
-             fourierOC = pmin(0,(kSoilC * (soilTempB - soilTempC)) / step),
-             soilTempC = pmin(soilTempC, soilTempC + (fourierOC / (mass * cpSoilC))),
+             fourierOC = min(0,(kSoilC * (soilTempB - soilTempC)) / step),
+             soilTempC = min(soilTempC, soilTempC + (fourierOC / (mass * cpSoilC))),
              #Outgoing 4th________________________________________________________
-             fourierOD = pmin(0,(kSoilD * (soilTempC - soilTempD)) / step),
-             soilTempD = pmin(soilTempD, soilTempD + (fourierOD / (mass * cpSoilD))),
+             fourierOD = min(0,(kSoilD * (soilTempC - soilTempD)) / step),
+             soilTempD = min(soilTempD, soilTempD + (fourierOD / (mass * cpSoilD))),
              #Outgoing 5th________________________________________________________
-             fourierOE = pmin(0,(kSoilE * (soilTempD - soilTempE)) / step),
-             soilTempE = pmin(soilTempE, soilTempE + (fourierOE / (mass * cpSoilE))))
+             fourierOE = min(0,(kSoilE * (soilTempD - soilTempE)) / step),
+             soilTempE = min(soilTempE, soilTempE + (fourierOE / (mass * cpSoilE))))
     
     Ca <- suppressMessages(rbind(Ca, Cb))
     
@@ -405,11 +405,11 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
            rootDc = ifelse(soilTempC>60, 1, 0),
            rootDd = ifelse(soilTempD>60, 1, 0),
            rootDe = ifelse(soilTempE>60, 1, 0),
-           orgA = pmax(0,pmin(1,0.0038*soilTempA-0.7692)),
-           orgB = pmax(0,pmin(1,0.0038*soilTempB-0.7692)),
-           orgC = pmax(0,pmin(1,0.0038*soilTempC-0.7692)),
-           orgD = pmax(0,pmin(1,0.0038*soilTempD-0.7692)),
-           orgE = pmax(0,pmin(1,0.0038*soilTempE-0.7692)),
+           orgA = max(0,min(1,0.0038*soilTempA-0.7692)),
+           orgB = max(0,min(1,0.0038*soilTempB-0.7692)),
+           orgC = max(0,min(1,0.0038*soilTempC-0.7692)),
+           orgD = max(0,min(1,0.0038*soilTempD-0.7692)),
+           orgE = max(0,min(1,0.0038*soilTempE-0.7692)),
            repelA = ifelse(soilTempA>175, 1, 0),
            repelB = ifelse(soilTempB>175, 1, 0),
            repelC = ifelse(soilTempC>175, 1, 0),
