@@ -10,7 +10,6 @@ soil(
   step = 0.01,
   diameter = 6,
   surface = 677,
-  percentile = 0.95,
   RH = 0.2,
   moisture = 0.1,
   distance = 50,
@@ -36,8 +35,6 @@ soil(
 \item{diameter}{Diameter of the surface fuels burning (mm)}
 
 \item{surface}{Temperature at the surface of the soil, under burning fuels}
-
-\item{percentile}{defines which heating statistics are used for each second, from 0 (min) to 1 (max)}
 
 \item{RH}{The relative humidity (0-1)}
 

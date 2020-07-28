@@ -40,7 +40,6 @@
 #' @param step The increment of soil depth at which each calculation will be modelled (m)
 #' @param diameter Diameter of the surface fuels burning (mm)
 #' @param surface Temperature at the surface of the soil, under burning fuels
-#' @param percentile defines which heating statistics are used for each second, from 0 (min) to 1 (max)
 #' @param RH The relative humidity (0-1)
 #' @param moisture The proportion oven-dry weight of moisture in the bark and wood
 #' @param distance The furthest horizontal distance between the flame origin and the point (m)
@@ -59,7 +58,7 @@
 #' @export
 
 
-soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percentile = 0.95, RH = 0.2,
+soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, RH = 0.2,
                  moisture = 0.1, distance = 50, trail = 600, var = 10, Pressure = 1013.25,
                  Altitude = 0, texture = "sand", peat = 0, grain = "fine", unfrozen = 1, 
                  soilTemp = 25,updateProgress = NULL)
@@ -212,16 +211,16 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
            soilTempE = min(soilTempE, soilTempE + (fourierOE / (mass * cpSoilE))))
   
   
-  soilTempA <- quantile(Ca$soilTempA, percentile)
-  moistureA <- quantile(Ca$moistureA, percentile)
-  soilTempB <- quantile(Ca$soilTempB, percentile)
-  moistureB <- quantile(Ca$moistureB, percentile)
-  soilTempC <- quantile(Ca$soilTempC, percentile)
-  moistureC <- quantile(Ca$moistureC, percentile)
-  soilTempD <- quantile(Ca$soilTempD, percentile)
-  moistureD <- quantile(Ca$moistureD, percentile)
-  soilTempE <- quantile(Ca$soilTempE, percentile)
-  moistureE <- quantile(Ca$moistureE, percentile)
+  soilTempA <- mean(Ca$soilTempA)
+  moistureA <- mean(Ca$moistureA)
+  soilTempB <- mean(Ca$soilTempB)
+  moistureB <- mean(Ca$moistureB)
+  soilTempC <- mean(Ca$soilTempC)
+  moistureC <- mean(Ca$moistureC)
+  soilTempD <- mean(Ca$soilTempD)
+  moistureD <- mean(Ca$moistureD)
+  soilTempE <- mean(Ca$soilTempE)
+  moistureE <- mean(Ca$moistureE)
   
   # Advance one second's travel
   Horiz = Horiz - ROS
@@ -362,16 +361,16 @@ soil <- function(Surf, Plant, step = 0.01, diameter = 6, surface = 677, percenti
     
     Ca <- suppressMessages(rbind(Ca, Cb))
     
-    soilTempA <- quantile(Cb$soilTempA, percentile)
-    moistureA <- quantile(Cb$moistureA, percentile)
-    soilTempB <- quantile(Cb$soilTempB, percentile)
-    moistureB <- quantile(Cb$moistureB, percentile)
-    soilTempC <- quantile(Cb$soilTempC, percentile)
-    moistureC <- quantile(Cb$moistureC, percentile)
-    soilTempD <- quantile(Cb$soilTempD, percentile)
-    moistureD <- quantile(Cb$moistureD, percentile)
-    soilTempE <- quantile(Cb$soilTempE, percentile)
-    moistureE <- quantile(Cb$moistureE, percentile)
+    soilTempA <- mean(Cb$soilTempA)
+    moistureA <- mean(Cb$moistureA)
+    soilTempB <- mean(Cb$soilTempB)
+    moistureB <- mean(Cb$moistureB)
+    soilTempC <- mean(Cb$soilTempC)
+    moistureC <- mean(Cb$moistureC)
+    soilTempD <- mean(Cb$soilTempD)
+    moistureD <- mean(Cb$moistureD)
+    soilTempE <- mean(Cb$soilTempE)
+    moistureE <- mean(Cb$moistureE)
     
     setTxtProgressBar(pbar,t)
     ##  progress bar
