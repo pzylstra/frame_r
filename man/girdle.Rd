@@ -7,7 +7,6 @@
 girdle(
   Surf,
   Plant,
-  percentile = 0.95,
   Height = 0.1,
   woodDensity = 700,
   barkDensity = 500,
@@ -33,9 +32,7 @@ girdle(
 \arguments{
 \item{Surf}{The dataframe produced by the function 'summary',}
 
-\item{Plant}{The dataframe produced by the function 'repFlame'.}
-
-\item{percentile}{defines which heating statistics are used for each second, from 0 (min) to 1 (max)}
+\item{Plant}{The dataframe produced by the function 'repFlame'}
 
 \item{Height}{The height on the bole directly over ground (m)}
 

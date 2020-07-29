@@ -21,7 +21,7 @@ soil(
   peat = 0,
   grain = "fine",
   unfrozen = 1,
-  soilTemp = 25,
+  startTemp = 25,
   updateProgress = NULL
 )
 }
@@ -59,9 +59,9 @@ soil(
 
 \item{unfrozen}{Proportion of soil unfrozen, between 0 and 1}
 
-\item{soilTemp}{The starting temperature under the ground (deg C)}
-
 \item{updateProgress}{Progress bar for use in the dashboard}
+
+\item{soilTemp}{The starting temperature under the ground (deg C)}
 }
 \value{
 dataframe
