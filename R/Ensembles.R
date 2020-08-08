@@ -488,37 +488,30 @@ spComb <- function(base.params)
   specflam <- function (base.params, st, sp) 
   {
     SP <- base.params %>% filter(stratum == st & species == sp) %>%
-      add_row(stratum = st, param = "levelName", value = "canopy") %>%
-      add_row(stratum = st, param = "plantSeparation", value = 100)
+      add_row(stratum = as.character(st), param = "levelName", value = "canopy") %>%
+      add_row(stratum = as.character(st), param = "plantSeparation", value = as.character(100))
     end <- base.params %>% filter(is.na(stratum))
-    tab <- rbind(SP, end)
+    tab <- suppressMessages(rbind(SP, end))
     
-    # Adjust plant heights to a 0.5m base
-    base <- min(as.numeric((tab[which(tab$param == "hc"), ])$value[1]),
-                as.numeric((tab[which(tab$param == "he"), ])$value[1]))
-    dif <- 0.5-base
-    hc <- as.numeric((tab[which(tab$param == "hc"), ])$value[1])+dif
-    he <- as.numeric((tab[which(tab$param == "he"), ])$value[1])+dif
-    ht <- as.numeric((tab[which(tab$param == "ht"), ])$value[1])+dif
-    hp <- as.numeric((tab[which(tab$param == "hp"), ])$value[1])+dif
-    tab <- tab %>% 
-      ffm_set_species_param(stratum.id = st, species.id = sp, "hc", hc) %>% 
-      ffm_set_species_param(stratum.id = st, species.id = sp, "he", he) %>% 
-      ffm_set_species_param(stratum.id = st, species.id = sp, "ht", ht) %>% 
-      ffm_set_species_param(stratum.id = st, species.id = sp, "hp", hp) %>%
-      ffm_set_site_param("windSpeed", 2) %>%
-      ffm_set_site_param("temperature", 30) %>%
-      ffm_set_site_param("deadFuelMoistureProp", 0.05) %>%
-      ffm_set_site_param("slope", 0)
+    # Standardise conditions and shape
+    tab$value[tab$param=="hc"] = 0.5
+    tab$value[tab$param=="he"] = 0.5
+    tab$value[tab$param=="ht"] = 1.5
+    tab$value[tab$param=="hp"] = 1.5
+    tab$value[tab$param=="w"] = 1
+    tab$value[tab$param=="windSpeed"] = 5
+    tab$value[tab$param=="temperature"] = 30
+    tab$value[tab$param=="deadFuelMoistureProp"] = 0.05
+    tab$value[tab$param=="slope"] = 0
     
     # Run for surface fuel loads from 4 to 20 t/ha
-    for (i in 4:20) {
-      db.recreate <- i == 4
-      tab <- ffm_set_site_param(tab, "fuelLoad", i)
-      ffm_run(params = tab, db.path = "out_mc.db", db.recreate = db.recreate)
+    for (i in litMin:litMax) {
+      db.recreate <- i == litMin
+      tab$value[tab$param=="fuelLoad"] = i
+      ffm_run(params = tab, db.path = "out.db", db.recreate = db.recreate)
     }
     
-    res<-ffm_db_load("out_mc.db")
+    res<-ffm_db_load("out.db")
     IP <- repFlame(res$IgnitionPaths) %>%
       mutate(rat = flameLength/length)
     
