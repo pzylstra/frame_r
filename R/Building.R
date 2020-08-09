@@ -16,29 +16,29 @@ siteBuilder <- function(site, Structure, a)
   site.meta$param <- paramSite
   site.meta$units <- unitsSite
   # ENTER VARIABLES
-  site.meta$value[1] <- ifelse(Structure$ns_e[a]=='t',"near surface, elevated, overlapped",
-                               ifelse(Structure$ns_e[a]=='f',"near surface, elevated, not overlapped",
+  site.meta$value[1] <- ifelse(Structure$ns_e[Structure$record==a]=='t',"near surface, elevated, overlapped",
+                               ifelse(Structure$ns_e[Structure$record==a]=='f',"near surface, elevated, not overlapped",
                                       "near surface, elevated, automatic"))
-  site.meta$value[2] <- ifelse(Structure$ns_m[a]=='t',"near surface, midstorey, overlapped",
-                               ifelse(Structure$ns_m[a]=='f',"near surface, midstorey, not overlapped",
+  site.meta$value[2] <- ifelse(Structure$ns_m[Structure$record==a]=='t',"near surface, midstorey, overlapped",
+                               ifelse(Structure$ns_m[Structure$record==a]=='f',"near surface, midstorey, not overlapped",
                                       "near surface, midstorey, automatic"))
-  site.meta$value[3] <- ifelse(Structure$e_m[a]=='t',"elevated, midstorey, overlapped",
-                               ifelse(Structure$e_m[a]=='f',"elevated, midstorey, not overlapped",
+  site.meta$value[3] <- ifelse(Structure$e_m[Structure$record==a]=='t',"elevated, midstorey, overlapped",
+                               ifelse(Structure$e_m[Structure$record==a]=='f',"elevated, midstorey, not overlapped",
                                       "elevated, midstorey, automatic"))
-  site.meta$value[4] <- ifelse(Structure$e_c[a]=='t',"elevated, canopy, overlapped",
-                               ifelse(Structure$e_c[a]=='f',"elevated, canopy, not overlapped",
+  site.meta$value[4] <- ifelse(Structure$e_c[Structure$record==a]=='t',"elevated, canopy, overlapped",
+                               ifelse(Structure$e_c[Structure$record==a]=='f',"elevated, canopy, not overlapped",
                                       "elevated, canopy, automatic"))
-  site.meta$value[5] <- ifelse(Structure$m_c[a]=='t',"midstorey, canopy, overlapped",
-                               ifelse(Structure$m_c[a]=='f',"midstorey, canopy, not overlapped",
+  site.meta$value[5] <- ifelse(Structure$m_c[Structure$record==a]=='t',"midstorey, canopy, overlapped",
+                               ifelse(Structure$m_c[Structure$record==a]=='f',"midstorey, canopy, not overlapped",
                                       "midstorey, canopy, automatic"))
-  site.meta$value[6] <- site$litter[a]
+  site.meta$value[6] <- site$litter[site$record==a]
   site.meta$value[7] <- 0.005
   site.meta$value[8] <- 0.00025
-  site.meta$value[9] <- site$fLine[a]
-  site.meta$value[10] <- site$slope[a]
-  site.meta$value[11] <- site$temp[a]
-  site.meta$value[12] <- site$dfmc[a]
-  site.meta$value[13] <- site$wind[a]
+  site.meta$value[9] <- site$fLine[site$record==a]
+  site.meta$value[10] <- site$slope[site$record==a]
+  site.meta$value[11] <- site$temp[site$record==a]
+  site.meta$value[12] <- site$dfmc[site$record==a]
+  site.meta$value[13] <- site$wind[site$record==a]
   
   return(site.meta)
 }
