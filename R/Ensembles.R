@@ -479,46 +479,69 @@ specPoint <- function(base.params, Structure, a)
 #' summarising the combustibility from the length of flame divided
 #' by the length of segment ignited
 #'
-#' @param base.params A parameter file
+#' @param Structure A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. Acceptable values
+#' are t, f, or blank, where the outcome will be decided by the relative stratum heights.
+#' @param Flora A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' species - the name of the species, which will call trait data from 'default.species.params'
+#' moisture - the moisture content of the species in whole numbers (eg 1 for 100% ODW)
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - % composition of that species in the stratum. If absent, all species will be considered equally
+#' hc, he, ht, hp & w - canopy dimensions for that species (m)
+#' clump - mean ratio of clump diameter to crown diameter
+#' openness - proportion of plant canopy occupied by gaps between clumps
+#' @param default.species.params Leaf traits database
+#' @param a The record number for which to build the table
 #' @return dataframe
 #' @export
 
-spComb <- function(base.params)
+spComb <- function(Flora, Structure, default.species.params, a)
 {
-  specflam <- function (base.params, st, sp) 
-  {
-    SP <- base.params %>% filter(stratum == st & species == sp) %>%
-      add_row(stratum = as.character(st), param = "levelName", value = "canopy") %>%
-      add_row(stratum = as.character(st), param = "plantSeparation", value = as.character(100))
+  
+  #Build standardised tables and parameter file
+  Si <- as.data.frame(list('record' = a, 'site' = "test", 'slope'=0, 'wind'=5, 'temp'=30, 'dfmc'=0.05, 'litter'=5, 'fLine'=1))
+  
+  f <- Flora[Flora$record==a, ]
+  f$base = 0.5
+  f$he = 0.5
+  f$ht = 1.5
+  f$top = 1.5
+  f$w = 1
+  
+  s <- Structure[Structure$record==a, ]
+  s$NS = 100
+  s$El = 100
+  s$Mid = 100
+  s$Can = 100
+  
+  base.params <- paramBuilder(site = Si, Structure = s, Flora = f, default.species.params, a) 
+  
+  specflam <- function(base.params, st, sp) {
+    
+    #Subset tab to relevant species
+    SP <- base.params[base.params$stratum==st & base.params$species==sp, ]
+    SP <- rbind(SP, c(st, NA, "levelName", "canopy", NA))
+    SP <- rbind(SP, c(st, NA, "plantSeparation", "100", "m"))
+    SP <- SP[!is.na(SP$stratum),]
     end <- base.params %>% filter(is.na(stratum))
-    tab <- suppressMessages(rbind(SP, end))
+    tab <- rbind(SP, end)
     
-    # Standardise conditions and shape
-    tab$value[tab$param=="hc"] = 0.5
-    tab$value[tab$param=="he"] = 0.5
-    tab$value[tab$param=="ht"] = 1.5
-    tab$value[tab$param=="hp"] = 1.5
-    tab$value[tab$param=="w"] = 1
-    tab$value[tab$param=="windSpeed"] = 5
-    tab$value[tab$param=="temperature"] = 30
-    tab$value[tab$param=="deadFuelMoistureProp"] = 0.05
-    tab$value[tab$param=="slope"] = 0
-    
-    # Run for surface fuel loads from 4 to 20 t/ha
-    for (i in litMin:litMax) {
-      db.recreate <- i == litMin
-      tab$value[tab$param=="fuelLoad"] = i
+    for (i in 5:15) {
+      db.recreate <- i == 5
+      tab$value[tab$param == "fuelLoad"] = i
       ffm_run(params = tab, db.path = "out.db", db.recreate = db.recreate)
     }
-    
-    res<-ffm_db_load("out.db")
-    IP <- repFlame(res$IgnitionPaths) %>%
-      mutate(rat = flameLength/length)
-    
+    res <- ffm_db_load("out.db")
+    IP <- repFlame(res$IgnitionPaths) %>% mutate(rat = flameLength/length)
     name <- (tab[which(tab$param == "name"), ])$value[1]
-    flam <- round(mean(IP$rat),2)
-    out <- as.data.frame(list('Stratum' = st, 'Species' = sp, 
-                              'name' = name,  'Combustibility'=flam))
+    flam <- round(mean(IP$rat), 2)
+    out <- as.data.frame(list(Stratum = st, Species = sp, 
+                              name = name, Combustibility = flam))
     return(out)
   }
   

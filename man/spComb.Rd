@@ -6,10 +6,30 @@
 summarising the combustibility from the length of flame divided
 by the length of segment ignited}
 \usage{
-spComb(base.params)
+spComb(Flora, Structure, default.species.params, a)
 }
 \arguments{
-\item{base.params}{A parameter file}
+\item{Flora}{A dataframe with the fields:
+record - a unique, consecutively numbered identifier per site
+species - the name of the species, which will call trait data from 'default.species.params'
+moisture - the moisture content of the species in whole numbers (eg 1 for 100% ODW)
+stratum - numeric value from 1 to 4, counting from lowest stratum
+comp - % composition of that species in the stratum. If absent, all species will be considered equally
+hc, he, ht, hp & w - canopy dimensions for that species (m)
+clump - mean ratio of clump diameter to crown diameter
+openness - proportion of plant canopy occupied by gaps between clumps}
+
+\item{Structure}{A dataframe with the fields:
+record - a unique, consecutively numbered identifier per site
+site - a unique identifier per site
+NS, El, Mid & Can - the mean separation between plants (m) per stratum
+ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+on the left grow directly beneath those in the stratum on the right. Acceptable values
+are t, f, or blank, where the outcome will be decided by the relative stratum heights.}
+
+\item{default.species.params}{Leaf traits database}
+
+\item{a}{The record number for which to build the table}
 }
 \value{
 dataframe
