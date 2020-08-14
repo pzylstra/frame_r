@@ -554,10 +554,12 @@ spComb <- function(Flora, Structure, default.species.params, a)
   
   n <- as.numeric(nrow(candidates))
   combustibility <- specflam(base.params, candidates$stratum[1], candidates$species[1])
+  cat("Measured 1 of", n, "species")
   
   for (j in 2:n){
     summ <- specflam(base.params, candidates$stratum[j], candidates$species[j])
     combustibility <- rbind(combustibility, summ)
+    cat("Measured", j, "of", n, "species")
   }
   return(combustibility)
 }
