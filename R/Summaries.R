@@ -36,9 +36,9 @@ stratum <- function(flames, sites, ros, surface)
   z <- flames %>%
     select(repId, level, flameLength, flameAngle, flameHeight)
   
-  a <- y %>%
-    left_join(z) %>%
-    left_join(sites) %>%
+  a <- suppressMessages(y %>% 
+                          full_join(z) %>% 
+                          full_join(res$Sites)) %>% 
     
     # Strata without ros will end up with NA values
     # after doing the join above. Convert these missing values to zero.
@@ -123,7 +123,7 @@ repFlame <- function(IP)
     summarize_all(max) %>%
     select(repId, repHeight)
   
-  repFlame <- IP %>%
+  repFlame <- suppressMessages(IP %>%
     mutate(repAngle = atan((y1 - y0)/(x1 - x0))
     ) %>%
     select(repId, repAngle)%>%
@@ -132,7 +132,7 @@ repFlame <- function(IP)
     left_join(top) %>%
     mutate(repLength = repHeight/abs(sin(repAngle))) %>%
     select(repId, repHeight, repLength, repAngle)%>%
-    right_join(IP)
+    right_join(IP))
   
   return(repFlame)
 }
