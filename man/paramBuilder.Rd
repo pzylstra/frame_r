@@ -15,6 +15,7 @@ wind - velocity in km/h
 temp - ambient temperature deg. C
 dfmc - moisture content of fine dead fuels in whole numbers (eg 0.1 for 10%)
 litter - weight in t/ha of fine dead organic material forming the O horizon
+diameter - mean diameter of surface litter in m
 fline - the fireline length in m}
 
 \item{Structure}{A dataframe with the fields:
