@@ -507,10 +507,10 @@ spComb <- function(Flora, Structure, default.species.params, a)
   Si <- as.data.frame(list('record' = a, 'site' = "test", 'slope'=0, 'wind'=5, 'temp'=30, 'dfmc'=0.05, 'litter'=5, 'fLine'=1))
   
   f <- Flora[Flora$record==a, ]
-  f$base = 0.5
-  f$he = 0.5
-  f$ht = 1.5
-  f$top = 1.5
+  f$base = 0.25
+  f$he = 0.25
+  f$ht = 1.25
+  f$top = 1.25
   f$w = 1
   
   s <- Structure[Structure$record==a, ]
