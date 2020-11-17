@@ -32,7 +32,11 @@ siteBuilder <- function(site, Structure, a)
                                ifelse(Structure$m_c[Structure$record==a]=='f',"midstorey, canopy, not overlapped",
                                       "midstorey, canopy, automatic"))
   site.meta$value[6] <- site$litter[site$record==a]
-  site.meta$value[7] <- site$diameter[site$record==a]
+  site.meta$value[7] <- if (is.null(site$diameter[site$record==a])){
+    0.005}
+  else {
+    site$diameter[site$record==a]
+  }
   site.meta$value[8] <- 0.00025
   site.meta$value[9] <- site$fLine[site$record==a]
   site.meta$value[10] <- site$slope[site$record==a]
