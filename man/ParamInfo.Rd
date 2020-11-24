@@ -4,9 +4,11 @@
 \name{ParamInfo}
 \alias{ParamInfo}
 \title{Valid parameters and their default units.}
-\format{A data frame with columns: section (values site,
+\format{
+A data frame with columns: section (values site,
 stratum, species); param (standard parameter label);
-units (unit abbreviation or \code{NA} if dimensionless).}
+units (unit abbreviation or \code{NA} if dimensionless).
+}
 \usage{
 ParamInfo
 }
