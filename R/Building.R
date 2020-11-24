@@ -129,7 +129,6 @@ speciesBuilder <- function(Flora, site, a)
   # Enter values
   species.values$stratum <- as.numeric(fl$stratum)
   species.values$name <- as.character(fl$species)
-  species.values$species <- as.numeric(c(1:ro))
   species.values$liveLeafMoisture <- fl$moisture
   species.values$hc <- fl$base
   species.values$hp <- fl$top
@@ -140,6 +139,9 @@ speciesBuilder <- function(Flora, site, a)
   species.values$clumpSeparation <- fl$openness*species.values$clumpDiameter
   species.values$composition <- as.numeric(fl$comp)
   species.values$deadLeafMoisture <- si$dfmc
+  
+  species.values <- species.values[order(species.values$stratum),]
+  species.values$species <- as.numeric(c(1:ro))
   
   # Calculate gaps
   for(a in 1:ro) {
