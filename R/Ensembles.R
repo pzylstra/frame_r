@@ -353,6 +353,7 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
   
   #Filter variation table to record
   varRec <- Variation[Variation$record ==a, ]
+  varRec <- varRec[order(varRec$stratum),]
   
   # Loop through plant strata
   
@@ -372,8 +373,7 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
                                              "liveLeafMoisture", Mrand)
         (SpeciesN = SpeciesN + 1)
       }
-    }
-    else {
+    } else {
       for (f in 1:Strata$speciesN[si]) {
         tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
                                              "liveLeafMoisture", 100)
@@ -381,7 +381,7 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
       }
     }
     
-    # Modify plant dimansions for each species within the stratum
+    # Modify plant dimensions for each species within the stratum
     
     for (p in 1:Strata$speciesN[si]) {
       Hr <- varRec$Hr[SpeciesP]
@@ -798,7 +798,7 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
 #' Hs - Standard deviation of plant height variations
 #' Hr - Truncates plant height variability by +/- Hr * height
 #' @param updateProgress Progress bar for use in the dashboard
-#' Private function under development
+#' @export
 
 driversS <- function(base.params, a, db.path = "out_mc.db", jitters, windMin, windReps, windStep,
                      moistureMultiplier, moistureSD, moistureRange, Variation,
@@ -836,9 +836,10 @@ driversS <- function(base.params, a, db.path = "out_mc.db", jitters, windMin, wi
     }
     
     #  for (j in 1:jitters) {
+    
     #Randomise plant parameters
-    base.params <- plantVarS(base.params, a, Strata, Species, l = leafVar, Ms = moistureSD, 
-                             Pm = moistureMultiplier, Mr = moistureRange, Variation)
+    base.params <- plantVarS(base.params, Strata, Species, Variation, a, l = leafVar, 
+                             Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
     ffm_run(base.params, db.path, db.recreate = db.recreate)
     
     #  }
