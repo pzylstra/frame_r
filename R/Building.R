@@ -156,6 +156,16 @@ speciesBuilder <- function(Flora, site, a)
     }
   }
   
+  # Ensure strata are numbered consecutively
+  stratCurr <- as.data.frame(unique(species.values$stratum))
+  names(stratCurr) <- c("orig")
+  stratCurr$cor <- 1:as.numeric(count(stratCurr))
+  
+  #Check values
+  for(b in 1:as.numeric(count(stratCurr))) {
+    species.values$stratum[species.values$stratum == stratCurr$orig[b]] <- stratCurr$cor[b]
+  }
+  
   return(species.values)
 }
 
