@@ -32,9 +32,9 @@ siteBuilder <- function(site, Structure, a)
                                ifelse(Structure$m_c[Structure$record==a]=='f',"midstorey, canopy, not overlapped",
                                       "midstorey, canopy, automatic"))
   site.meta$value[6] <- site$litter[site$record==a]
-  site.meta$value[7] <- if (is.null(site$diameter[site$record==a])){
-    0.005}
-  else {
+  site.meta$value[7] <- if (is.null(site$diameter[site$record==a])) {
+    0.005
+  } else {
     site$diameter[site$record==a]
   }
   site.meta$value[8] <- 0.00025
@@ -129,7 +129,6 @@ speciesBuilder <- function(Flora, site, a)
   # Enter values
   species.values$stratum <- as.numeric(fl$stratum)
   species.values$name <- as.character(fl$species)
-  species.values$species <- as.numeric(c(1:ro))
   species.values$liveLeafMoisture <- fl$moisture
   species.values$hc <- fl$base
   species.values$hp <- fl$top
@@ -140,6 +139,9 @@ speciesBuilder <- function(Flora, site, a)
   species.values$clumpSeparation <- fl$openness*species.values$clumpDiameter
   species.values$composition <- as.numeric(fl$comp)
   species.values$deadLeafMoisture <- si$dfmc
+  
+  species.values <- species.values[order(species.values$stratum),]
+  species.values$species <- as.numeric(c(1:ro))
   
   # Calculate gaps
   for(a in 1:ro) {
@@ -152,6 +154,16 @@ speciesBuilder <- function(Flora, site, a)
     if(is.na(species.values$liveLeafMoisture[a])){
       species.values$liveLeafMoisture[a] <- 1
     }
+  }
+  
+  # Ensure strata are numbered consecutively
+  stratCurr <- as.data.frame(unique(species.values$stratum))
+  names(stratCurr) <- c("orig")
+  stratCurr$cor <- 1:as.numeric(count(stratCurr))
+  
+  #Check values
+  for(b in 1:as.numeric(count(stratCurr))) {
+    species.values$stratum[species.values$stratum == stratCurr$orig[b]] <- stratCurr$cor[b]
   }
   
   return(species.values)

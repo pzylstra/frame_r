@@ -32,7 +32,10 @@ Imports:
 Encoding: UTF-8
 LazyData: TRUE
 RoxygenNote: 7.1.1
+<<<<<<< HEAD
 Suggests: 
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+=======
+>>>>>>> 7b52f261e2d6862bd0d1a5ae53b2d16256271412
