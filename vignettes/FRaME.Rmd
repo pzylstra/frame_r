@@ -16,4 +16,133 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(frame)
+library(dplyr)
+library(extraDistr)
+library(kableExtra)
+library(rmarkdown)
 ```
+
+
+This script runs a deterministic prediction using a legacy file, which is the old .txt setup
+The steps are to import the file, run it, then load the database.
+
+## 1. LOAD THE INPUT FILES AND CONSTRUCT A PARAMETER TABLE
+Enter the full path to each file in quotes
+
+```{r}
+record <- 1
+data(site)
+data(structure)
+data(flora)
+data(traits)
+input <- paramBuilder(site, structure, flora, traits, record)
+
+
+```
+
+
+## 2. RUN THE MODEL
+Specify the name of the input file, name the sqLite database that it will write to, and whether you want each model run to overwrite the last (db.recreate = TRUE), or append to it. The model will first check that Java is up to date, then print "TRUE" if it could run the input file
+
+
+
+```{r warning=FALSE,message=FALSE, echo = TRUE, results='hide'}
+ffm_run(input, db.path = "out.db", db.recreate = TRUE)
+```
+
+
+
+
+
+## 3. LOAD THE DATABASE
+
+```{r}
+results<-ffm_db_load("out.db")
+```
+
+
+
+The database is a list of 7 dataframes, shown and described here: 
+Gives summary flame dimensions (m, radians) for each stratum. 'repid' will always be 1 for single runs. A runIndex of 2 indicates an active crown fire, causing the model to re-run with the shelter of the canopy removed
+```{r}
+results$FlameSummaries %>%
+ kbl() %>% 
+  kable_material(c("striped", "hover"))
+```
+  
+Gives x & y coordinates for the base (x0, y0) and top (x1, y1) of ignited segments in the named species, per second. The length of the segment 'length', and 'flameLength' is the length of the segment plus the flame extending beyond pathType is 'plant' if it occurs in a sinple plant, or 'stratum' if the fire is spread from plant to plant
+
+
+```{r}
+results$IgnitionPaths %>% 
+  paged_table()
+```
+
+
+
+Gives ROS (m/s) in each stratum
+```{r}
+results$ROS %>% 
+  kbl() %>% 
+  kable_material(c("striped", "hover"))
+```
+
+Lists the types of runIndex described above
+
+
+```{r}
+results$Runs %>% 
+  kbl() %>% 
+  kable_material(c("striped", "hover"))
+```
+
+
+
+Gives the input site conditions in m/s, degrees C, radians, kg/sqm, m, and proportion
+
+```{r}
+results$Sites%>% 
+  kbl() %>% 
+  kable_material(c("striped", "hover"))
+```
+
+
+Lists the component plant strata
+
+```{r}
+results$Strata%>% 
+  kbl() %>% 
+  kable_material(c("striped", "hover"))
+```
+
+Gives wind speed at ground level (m/s), and summary flame dimensions (m, radians) for fire in surface litter
+
+```{r}
+
+results$SurfaceResults%>% 
+  kbl() %>% 
+  kable_material(c("striped", "hover"))
+
+```
+
+## 4. DERIVED OUTPUT TABLES
+To organise the model results into formats useful for fire simulation and derive inputs into ecological effects modelling, FRaME provides a series of summary functions as below.
+The function `r frame::stratum() ` combines multiple base output tables and adds derived fields. The field `r ‘extinct’ = 1` if litter is sufficiently dry for fire to spread (deadFuelMoistureProp < 0.199), and 0 if higher. The field *litter* gives the weight of surface litter in *t.ha-1*, *slope_degrees* and *flameA_degrees* give slope and flame angle in degrees, *ros_kph* and *wind_kph* give rate of spread in km.h-1, *heightPlant* and *lengthPlant* give the maximum flame height and length from burning plants (not surface litter) in metres. The field *spread* is set to ‘1’ if fire can spread in that stratum (disregarding deadFuelMoistureProp), and *has.flame* is TRUE if that stratum can produce a flame.
+
+
+```{r}
+# x <- stratum(results$FlameSummaries, results$Sites, results$ROS, results$SurfaceResults)
+# 
+# 
+# head(x) %>% 
+#    kbl() %>% 
+#   kable_material(c("striped", "hover"))
+
+```
+
+
+
+
+
+
+

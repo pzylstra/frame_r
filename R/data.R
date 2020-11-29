@@ -30,7 +30,7 @@
 #' 
 #'}
 #'
-"floraMEE"
+"flora"
 
 
 
@@ -47,7 +47,7 @@
 #' \item{fLine}{Length of the active fire line (m)}
 #'}   
 #'     
-"siteMEE"
+"site"
 
 
 
@@ -86,7 +86,7 @@
 #'}                    
 #'                     
 #'                       
-"structureMEE"
+"structure"
 
 
 
@@ -100,22 +100,29 @@
 #' \item{name}{The name of the species}
 #' \tem{propDead}{Proportion of the foliage that is dead}
 #' \item{leafForm}{Allowable values are flat or round (e.g. terete)}
-#' \item{}{}
-#' \item{}{}
-#' \item{}{}
+#' \item{leafThickness}{Thickness of the leaf (m)}
+#' \item{leafWidth}{Width at the widest axis of the leaf (m)}
+#' \item{leafLength}{Length of the leaf (m)}
+#' \item{leafSeparation}{Separation between leaves along a stem}
+#' \item{stemOrder}{Stem ramification}
+#' \item{ignitionTemp}{Piloted ignition temperature of the leaf (deg.C)}
+#' \item{Field}{Description}
+#'}
+"traits"
+
+
+
 #'
-#'
-#'
-#'
-#'
+#'@format a data frame with 192 rows and4 columns 
+#'\describe{
+#' \item{tm}{Consecutive integer to reference the time period}
+#' \item{T}{Ambient air temperature (deg. C)}
+#' \item{W}{Wind velocity (km/h)}
+#' \item{DFMC}{Dead fuel moisture content (proportion oven dry weight)}
 #'
 #'}
-"traitsMEE"
-
-
-
-
-
+#'
+"WeatherJan10_13"
 
 
 
