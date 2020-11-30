@@ -2,6 +2,7 @@
 
 export(cambium)
 export(drivers)
+export(driversRand)
 export(driversS)
 export(ffm_assemble_table)
 export(ffm_check_java)

@@ -852,3 +852,83 @@ driversS <- function(base.params, a, db.path = "out_mc.db", jitters, windMin, wi
     setTxtProgressBar(pbar, i)
   }
 }
+
+######
+## drivers function with species-specific changes and greater user-control
+#####
+
+#' Models fire behaviour across ranged variables using species specific details
+#' @param base.params Input parameter file
+#' @param a A unique identifier for the record being run
+#' @param db.path Name of the exported database
+#' @param jitters Number of repetitions for each row in the weather table
+#' @param windMin Lowest wind velocity tested (km/h)
+#' @param windReps Number of wind speeds tested
+#' @param windStep Gap (km/h) between wind steps
+#' @param slopes List of slope values for testing
+#' @param DFMCs List of DFMC values for testing
+#' @param temperature Standardised air temperature for the test
+#' @param moistureMultiplier Multiplies all LFMC values by this number
+#' @param moistureSD Standard deviation of moisture
+#' @param moistureRange Truncates variability by +/- mean * range
+#' @param leafVar Variation around input leaf dimensions, equivalent to l
+#' @param Variation A database of plant variability in traits, with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' species - the name of the species, which will call trait data from 'default.species.params'
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' Hs - Standard deviation of plant height variations
+#' Hr - Truncates plant height variability by +/- Hr * height
+#' @param updateProgress Progress bar for use in the dashboard
+#' @export
+
+
+driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windMin, windReps, windStep,
+                        slopes, DFMCs, moistureMultiplier, moistureSD, moistureRange, temperature, Variation,
+                        leafVar,updateProgress = NULL) {
+  
+  # Collect original descriptors
+  Strata <- strata(base.params)
+  Species <- species(base.params)
+  
+  #Range environmental values
+  winds <- seq(windMin, (windReps*windStep+windMin), windStep)
+  
+  #Dataframe of orthogonal combinations
+  dat <- expand.grid(slope = slopes, DFMC = DFMCs, wind = winds)
+  Niter <- nrow(dat) * replicates
+  
+  #Set test temperature
+  base.params <- base.params %>%
+    ffm_set_site_param("temperature", temperature, "degC")
+  
+  #Loop through combinations
+  pbar <- txtProgressBar(max = Niter, style = 3)
+  for (i in 1:Niter) {
+    set <- ceiling(i / replicates)
+    db.recreate <- i == 1
+    s <- dat[set, "slope"]
+    d <- dat[set, "DFMC"]
+    w <- dat[set, "wind"]
+    
+    #Update environmental parameters if on a new row
+    if (set > ceiling((i-1) / replicates)) {
+      base.params <- base.params %>%
+        ffm_set_site_param("slope", s, "deg") %>%
+        ffm_set_site_param("deadFuelMoistureProp", d) %>%
+        ffm_set_site_param("windSpeed", w)
+    }
+    
+    #Randomise plant parameters
+    base.params <- plantVarS(base.params, Strata, Species, Variation, a, l = leafVar, 
+                             Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
+    ffm_run(base.params, db.path, db.recreate = db.recreate)
+    Sys.sleep(0.25)
+    
+    ####UpdateProgress
+    if (is.function(updateProgress)) {
+      text <- paste0("Number of remaining steps is ", Niter - i)
+      updateProgress(detail = text)
+    }
+    setTxtProgressBar(pbar, i)
+  }
+}
