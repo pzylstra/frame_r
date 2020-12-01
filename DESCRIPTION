@@ -32,8 +32,5 @@ Imports:
 Encoding: UTF-8
 LazyData: TRUE
 RoxygenNote: 7.1.1
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Your Vignette Title}
-  %\VignetteEncoding{UTF-8}
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
