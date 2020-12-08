@@ -894,7 +894,11 @@ driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windM
   winds <- seq(windMin, (windReps*windStep+windMin), windStep)
   
   #Dataframe of orthogonal combinations
-  dat <- expand.grid(slope = slopes, DFMC = DFMCs, wind = winds)
+  if (is.null(slopes)){
+    dat <- expand.grid(DFMC = DFMCs, wind = winds)
+  } else {
+    dat <- expand.grid(slope = slopes, DFMC = DFMCs, wind = winds)
+  }
   Niter <- nrow(dat) * replicates
   
   #Set test temperature
@@ -906,14 +910,17 @@ driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windM
   for (i in 1:Niter) {
     set <- ceiling(i / replicates)
     db.recreate <- i == 1
-    s <- dat[set, "slope"]
+    if (!is.null(slopes)){
+      s <- dat[set, "slope"]}
     d <- dat[set, "DFMC"]
     w <- dat[set, "wind"]
     
     #Update environmental parameters if on a new row
     if (set > ceiling((i-1) / replicates)) {
+      if (!is.null(slopes)){
+        base.params <- base.params %>%
+          ffm_set_site_param("slope", s, "deg")}
       base.params <- base.params %>%
-        ffm_set_site_param("slope", s, "deg") %>%
         ffm_set_site_param("deadFuelMoistureProp", d) %>%
         ffm_set_site_param("windSpeed", w)
     }
