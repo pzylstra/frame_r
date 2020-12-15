@@ -156,7 +156,7 @@ ffm_run_command <- function(param.path, db.path,
 #' @export
 #' 
 ffm_check_java <- function(quiet = FALSE) {
-  x <- system2("java", args = "-version", stdout = TRUE)
+  x <- system2("java", args = "-version", stdout = TRUE, stderr=TRUE)
   
   found <- any( grepl("version", x, ignore.case = TRUE) )
   
