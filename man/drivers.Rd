@@ -50,3 +50,21 @@ drivers(
 \description{
 Models fire behaviour across ranged variables
 }
+\examples{
+
+SPECIFY INPUTS
+record <- 1
+data(site)
+data(structure)
+data(flora)
+data(traits)
+base.params <- paramBuilder(site, structure, flora, traits, record)
+
+MODEL PROBABILISTIC FIRE BEHAVIOUR
+drivers(base.params, db.path = "out.db", jitters = REPLICATES, windMin = 0, windReps = 30,
+windStep = 2, moistureMultiplier = 1, moistureSD = 0.01, moistureRange = 1.001, 
+heightSD = 0.2, heightRange = 1.41, leafVar = 0.1, updateProgress = NULL)
+
+LOAD AND ORGANISE RESULTS
+res<-ffm_db_load("out.db")
+}

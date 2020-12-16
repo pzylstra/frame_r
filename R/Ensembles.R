@@ -18,6 +18,23 @@
 #' @param updateProgress Progress bar for use in the dashboard
 #' @return dataframe
 #' @export
+#' @examples
+#' 
+#' SPECIFY INPUTS
+#' record <- 1
+#' data(site)
+#' data(structure)
+#' data(flora)
+#' data(traits)
+#' data(Weather)
+#' base.params <- paramBuilder(site, structure, flora, traits, record)
+#' 
+#' RUN WEATHERSET
+#' weatherSet(base.params, weather, db.path = "out.db", jitters = 5, l = 0.1, 
+#' Ms = 0.01, Pm = 1, Mr = 1.001, Hs = 0.2, Hr = 1.41, updateProgress = NULL)
+#' 
+#' LOAD AND ORGANISE RESULTS
+#' res<-ffm_db_load("out.db")
 
 weatherSet <- function(base.params, weather, db.path = "out_mc.db", jitters = 10, l = 0.1,
                        Ms = 0.01, Pm = 1, Mr = 1.001, Hs = 0.2, Hr = 1.41,updateProgress = NULL)
@@ -643,6 +660,29 @@ heightSD, heightRange, leafVar, updateProgress = NULL)
 #' @param updateProgress Progress bar for use in the dashboard
 #' @return dataframe
 #' @export
+#' @examples
+#' 
+#' SPECIFY INPUTS
+#' record <- 1
+#' data(site)
+#' data(structure)
+#' data(flora)
+#' data(traits)
+#' base.params <- paramBuilder(site, structure, flora, traits, record)
+#' 
+#' MODEL PROBABILISTIC FIRE BEHAVIOUR
+#' probFire(base.params, db.path = "out.db", jitters = 50,
+#'          slope = 0, slopeSD = 2, slopeRange = 5, 
+#'          temp = 15, tempSD = 5, tempRange = 3,
+#'          DFMC = 0.1, DFMCSD = 0.01, DFMCRange = 2, 
+#'          wind = 5, windSD = 1, windRange = 2,
+#'          moistureMultiplier = 1, moistureSD = 0.01, moistureRange = 1.5,
+#'          heightSD = 2, heightRange = 1.41, 
+#'          leafVar = 0.1,
+#'          updateProgress = NULL)
+#' 
+#' LOAD AND ORGANISE RESULTS
+#' res<-ffm_db_load("out.db")
 
 probFire <- function(base.params, db.path = "out_mc.db", jitters,
                      slope, slopeSD, slopeRange, temp, tempSD, tempRange,
@@ -721,6 +761,23 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
 #' @param leafVar Variation around input leaf dimensions, equivalent to l
 #' @param updateProgress Progress bar for use in the dashboard
 #' @export
+#' @examples
+#' 
+#' SPECIFY INPUTS
+#' record <- 1
+#' data(site)
+#' data(structure)
+#' data(flora)
+#' data(traits)
+#' base.params <- paramBuilder(site, structure, flora, traits, record)
+#' 
+#' MODEL PROBABILISTIC FIRE BEHAVIOUR
+#' drivers(base.params, db.path = "out.db", jitters = REPLICATES, windMin = 0, windReps = 30,
+#' windStep = 2, moistureMultiplier = 1, moistureSD = 0.01, moistureRange = 1.001, 
+#' heightSD = 0.2, heightRange = 1.41, leafVar = 0.1, updateProgress = NULL)
+#' 
+#' LOAD AND ORGANISE RESULTS
+#' res<-ffm_db_load("out.db")
 
 drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windReps, windStep,
                     moistureMultiplier, moistureSD, moistureRange, heightSD, heightRange, 
