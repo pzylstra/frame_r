@@ -53,3 +53,21 @@ dataframe
 Updates parameter files with weather from a dataset,
 then models fire from non-deterministic plant parameters
 }
+\examples{
+
+SPECIFY INPUTS
+record <- 1
+data(site)
+data(structure)
+data(flora)
+data(traits)
+data(Weather)
+base.params <- paramBuilder(site, structure, flora, traits, record)
+
+RUN WEATHERSET
+weatherSet(base.params, weather, db.path = "out.db", jitters = 5, l = 0.1, 
+Ms = 0.01, Pm = 1, Mr = 1.001, Hs = 0.2, Hr = 1.41, updateProgress = NULL)
+
+LOAD AND ORGANISE RESULTS
+res<-ffm_db_load("out.db")
+}

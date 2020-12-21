@@ -232,6 +232,13 @@ unitBuilder <- function(Flora, a)
 #' @param default.species.params Leaf traits database
 #' @param a The record number for which to build the table
 #' @export
+#' @examples
+#' record <- 1
+#' data(site)
+#' data(structure)
+#' data(flora)
+#' data(traits)
+#' base.params <- paramBuilder(site, structure, flora, traits, record)
 
 paramBuilder <- function(site, Structure, Flora, default.species.params, a)
 {

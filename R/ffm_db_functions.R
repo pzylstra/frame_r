@@ -20,6 +20,19 @@
 #' }
 #'
 #' @export
+#' @examples
+#' SPECIFY INPUTS AND RUN THE MODEL
+#' record <- 1
+#' data(site)
+#' data(structure)
+#' data(flora)
+#' data(traits)
+#' base.params <- paramBuilder(site, structure, flora, traits, record) 
+#' ffm_run(base.params, db.path = "out.db", db.recreate = TRUE)
+#' 
+#' LOAD RESULTS
+#' res<-ffm_db_load("out.db")
+#' 
 ffm_db_load <- function(db.path) {
   con <- .get_sqlite_connection(db.path)
   

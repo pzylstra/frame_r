@@ -28,4 +28,16 @@ tbls <- ffm_db_load("c:/michael/somewhere/my_results.db")
 head( tbls$FlameSummaries)
 }
 
+SPECIFY INPUTS AND RUN THE MODEL
+record <- 1
+data(site)
+data(structure)
+data(flora)
+data(traits)
+base.params <- paramBuilder(site, structure, flora, traits, record) 
+ffm_run(base.params, db.path = "out.db", db.recreate = TRUE)
+
+LOAD RESULTS
+res<-ffm_db_load("out.db")
+
 }

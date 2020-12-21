@@ -43,3 +43,11 @@ openness - proportion of plant canopy occupied by gaps between clumps}
 \description{
 Constructs parameter files from imported tables
 }
+\examples{
+record <- 1
+data(site)
+data(structure)
+data(flora)
+data(traits)
+base.params <- paramBuilder(site, structure, flora, traits, record)
+}

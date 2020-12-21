@@ -41,6 +41,22 @@
 #'   the output database successfully; \code{FALSE} otherwise.
 #'
 #' @export
+#' @examples
+#' SPECIFY INPUTS
+#' record <- 1
+#' data(site)
+#' data(structure)
+#' data(flora)
+#' data(traits)
+#' base.params <- paramBuilder(site, structure, flora, traits, record)
+#' 
+#' RUN THE MODEL AND LOAD RESULTS
+#' Specify the name of the input file, name the sqLite database that it will write to, and whether you want each 
+#' model run to overwrite the last (db.recreate = TRUE), or append to it.
+#' The model will first check that Java is up to date, then print "TRUE" if it could run the input file
+#' 
+#' ffm_run(base.params, db.path = "out.db", db.recreate = TRUE)
+#' res<-ffm_db_load("out.db")
 #'
 ffm_run <- function(params, db.path, 
                     default.species.params = NULL, 

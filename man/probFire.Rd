@@ -80,3 +80,27 @@ dataframe
 \description{
 Models probabilistic fire behaviour
 }
+\examples{
+
+SPECIFY INPUTS
+record <- 1
+data(site)
+data(structure)
+data(flora)
+data(traits)
+base.params <- paramBuilder(site, structure, flora, traits, record)
+
+MODEL PROBABILISTIC FIRE BEHAVIOUR
+probFire(base.params, db.path = "out.db", jitters = 50,
+         slope = 0, slopeSD = 2, slopeRange = 5, 
+         temp = 15, tempSD = 5, tempRange = 3,
+         DFMC = 0.1, DFMCSD = 0.01, DFMCRange = 2, 
+         wind = 5, windSD = 1, windRange = 2,
+         moistureMultiplier = 1, moistureSD = 0.01, moistureRange = 1.5,
+         heightSD = 2, heightRange = 1.41, 
+         leafVar = 0.1,
+         updateProgress = NULL)
+
+LOAD AND ORGANISE RESULTS
+res<-ffm_db_load("out.db")
+}
