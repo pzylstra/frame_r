@@ -2,7 +2,15 @@
 % Please edit documentation in R/Flora.R
 \name{flora}
 \alias{flora}
-\title{Scorch height using an isotherm}
+\title{Scorch height using an isotherm
+Calculates the height to which vegetation will be consumed,
+and the height to a designated temperature isotherm reached for one second.
+Output fields are:
+Height - overall scorch height (m)
+ns, e, m, c - height of consumption in each stratum (m)
+b1, b2, b3, b4 - percentage of strata 1 (ns) to strata 4 (c) consumed
+sc1, sc2, sc3, sc4 - percentage of strata 1 (ns) to strata 4 (c) scorched
+d1, d2, d3, d4 - death (1) or survival (0) of standing foliage per stratum (50% or more scorch)}
 \usage{
 flora(Surf, Plant, Param = Param, Test = 70)
 }
@@ -20,10 +28,9 @@ such as produced using readLegacyParamFile}
 dataframe
 }
 \description{
+Scorch height using an isotherm
 Calculates the height to which vegetation will be consumed,
 and the height to a designated temperature isotherm reached for one second.
-}
-\details{
 Output fields are:
 Height - overall scorch height (m)
 ns, e, m, c - height of consumption in each stratum (m)
