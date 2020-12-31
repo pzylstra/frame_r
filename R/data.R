@@ -11,7 +11,7 @@
 #'
 "ParamInfo"
 
-#'
+
 #' @format a data frame with 14 rows and 13 columns
 #'\describe{
 #' \item{record}{Consecutive integer to reference the row}
@@ -30,11 +30,10 @@
 #' 
 #'}
 #'
-"flora"
+"Flora"
 
 
 
-#' 
 #'@format a dataframe with 3 rows and 8 columns
 #' \describe{
 #' \item{record}{Consecutive integer to reference the row}
@@ -47,11 +46,11 @@
 #' \item{fLine}{Length of the active fire line (m)}
 #'}   
 #'     
-"site"
+"Site"
 
 
 
-#'
+
 #'@format a dataframe with 11 columns and 3 rows
 #'\describe{  
 #' \item{record}{Consecutive integer to reference the row} 
@@ -86,7 +85,7 @@
 #'}                    
 #'                     
 #'                       
-"structure"
+"Structure"
 
 
 
@@ -94,7 +93,6 @@
 
 
 
-#'
 #'@format a data frame with 6 rows and 9 colomns
 #'\describe{
 #' \item{name}{The name of the species}
@@ -108,7 +106,7 @@
 #' \item{ignitionTemp}{Piloted ignition temperature of the leaf (deg.C)}
 #' \item{Field}{Description}
 #'}
-"traits"
+"Traits"
 
 
 
@@ -122,7 +120,7 @@
 #'
 #'}
 #'
-"WeatherJan10_13"
+"Weather"
 
 
 
