@@ -1,5 +1,5 @@
 #' Scorch height using an isotherm
-#'
+
 #' Calculates the height to which vegetation will be consumed,
 #' and the height to a designated temperature isotherm reached for one second.
 #'
