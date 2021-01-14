@@ -32,5 +32,5 @@ Imports:
 Encoding: UTF-8
 LazyData: TRUE
 RoxygenNote: 7.1.1
-Suggests: knitr, rmarkdown,kableExtra, markdown
+Suggests: knitr, rmarkdown,kableExtra
 VignetteBuilder: knitr
