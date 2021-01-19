@@ -12,7 +12,7 @@
 "ParamInfo"
 
 
-#' @format a data frame with 14 rows and 13 columns
+#' @format a data frame with 13 columns, and a row for each species per stratum, per site
 #'\describe{
 #' \item{record}{Consecutive integer to reference the row}
 #' \item{site}{A string to name the row}
@@ -30,11 +30,11 @@
 #' 
 #'}
 #'
-"Flora"
+"f_flora"
 
 
 
-#'@format a dataframe with 3 rows and 8 columns
+#'@format a dataframe with 8 columns, and a row for each site
 #' \describe{
 #' \item{record}{Consecutive integer to reference the row}
 #' \item{site}{A string to name the row}
@@ -44,14 +44,15 @@
 #' \item{dfmc}{Dead fuel moisture content (proportion oven dry weight)}
 #' \item{litter}{Weight (t/ha) of fine surface litter}
 #' \item{fLine}{Length of the active fire line (m)}
+#' \item{diameter}{mean diameter of litter particles (m)}
 #'}   
 #'     
-"Site"
+"f_site"
 
 
 
 
-#'@format a dataframe with 11 columns and 3 rows
+#'@format a dataframe with 11 columns and 1 row for each site
 #'\describe{  
 #' \item{record}{Consecutive integer to reference the row} 
 #' \item{site}{A string to name the row}
@@ -85,7 +86,7 @@
 #'}                    
 #'                     
 #'                       
-"Structure"
+"f_structure"
 
 
 
@@ -93,7 +94,7 @@
 
 
 
-#'@format a data frame with 6 rows and 9 colomns
+#'@format a data frame with 9 columns, and a row for each species
 #'\describe{
 #' \item{name}{The name of the species}
 #' \tem{propDead}{Proportion of the foliage that is dead}
@@ -106,12 +107,12 @@
 #' \item{ignitionTemp}{Piloted ignition temperature of the leaf (deg.C)}
 #' \item{Field}{Description}
 #'}
-"Traits"
+"f_traits"
 
 
 
 #'
-#'@format a data frame with 192 rows and4 columns 
+#'@format a data frame with 4 columns and a row for each time step
 #'\describe{
 #' \item{tm}{Consecutive integer to reference the time period}
 #' \item{T}{Ambient air temperature (deg. C)}
@@ -120,7 +121,7 @@
 #'
 #'}
 #'
-"Weather"
+"f_weather"
 
 
 

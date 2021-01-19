@@ -31,11 +31,11 @@ Enter the full path to each file in quotes
 
 ```{r params_input}
 record <- 1
-data(Site)
-data(Structure)
-data(Flora)
-data(Traits)
-input <- paramBuilder(Site, Structure, Flora, Traits, record)
+data(f_site)
+data(f_structure)
+data(f_flora)
+data(f_traits)
+input <- paramBuilder(f_site, f_structure, f_flora, f_traits, record)
 
 
 ```
