@@ -79,8 +79,8 @@ coverDyn <- function(dat, thres = 5, pnts = 10) {
     
     #Negative exponential
     init1<-c(k=50,r=0.5)
-    if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=Dat,start=init2,trace=T))) {
-      NE<-nls(y~k * (1-exp(-r*x)),data=Dat,start=init1,trace=T)
+    if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
+      NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
       NESum <- base::summary(NE)
       k <- round(NESum$coefficients[1],2)
       r <- round(NESum$coefficients[2],2)
@@ -133,8 +133,8 @@ coverDyn <- function(dat, thres = 5, pnts = 10) {
     
     #Binomial
     init3<-c(s=1,sd=5, m=20)
-    if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=Dat,start=init1,trace=T, control = control))) {
-      Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=Dat,start=init1,trace=T, control = control)
+    if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init1,trace=T, control = control))) {
+      Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init1,trace=T, control = control)
       BinSum <- base::summary(Bin)
       Bs <- round(BinSum$coefficients[1],2)
       Bsd <- round(BinSum$coefficients[2],2)
