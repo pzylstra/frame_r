@@ -39,7 +39,8 @@ coverDyn <- function(dat, thres = 5, pnts = 10) {
   fitCov <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
                        'k' = numeric(0), 'r' = numeric(0), 'NE_sigma' = numeric(0), 'NE_p' = numeric(0),
                        'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_p' = numeric(0),
-                       'linear' = character(0), 'NegExp' = character(0), 'Burr' = character(0), 'Mean' = character(0),
+                       'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_p' = numeric(0),
+                       'linear' = character(0), 'NegExp' = character(0), 'Burr' = character(0), 'Binomial' = character(0), 'Mean' = character(0),
                        'Status' = character(0), 'Model' = character(0), stringsAsFactors=F)
   
   for (sp in 1:length(spList)) {
@@ -130,6 +131,35 @@ coverDyn <- function(dat, thres = 5, pnts = 10) {
       B_sig <- ""
     }
     
+    #Binomial
+    init3<-c(s=1,sd=5, m=20)
+    if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=Dat,start=init1,trace=T, control = control))) {
+      Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=Dat,start=init1,trace=T, control = control)
+      BinSum <- base::summary(Bin)
+      Bs <- round(BinSum$coefficients[1],2)
+      Bsd <- round(BinSum$coefficients[2],2)
+      Bm <- round(BinSum$coefficients[3],2)
+      BinRSE <- round(BinSum$sigma,2)
+      Binp <- round(max(BinSum$coefficients[10],BinSum$coefficients[11],BinSum$coefficients[12]),5)
+      Bin_sig <- if (Binp < 0.001) {
+        "***"    
+      } else if (Binp < 0.01) {
+        "**"    
+      } else if (Binp < 0.05) {
+        "*" 
+      } else {
+        ""
+      }
+      rm(Bin)
+    } else {
+      Bs <- NA
+      Bsd <- NA
+      Bm <- NA
+      BinRSE <- NA
+      Binp <- NA
+      Bin_sig <- ""
+    }
+    
     #Summary stats
     meanCov <- round(mean(y),1)
     status <- if (meanCov >= thres) {
@@ -138,15 +168,19 @@ coverDyn <- function(dat, thres = 5, pnts = 10) {
       ""
     }
     model <- if (meanCov >= thres) {
-      if (min(Bp,NEp,LMp, na.rm = TRUE)<0.05) {
-        if (Bp<=min(LMp,NEp, na.rm = TRUE)) {
+      if (min(Binp,Bp,NEp,LMp, na.rm = TRUE)<0.05) {
+        if (Bp<=min(LMp,NEp,Binp, na.rm = TRUE)) {
           "Burr"
         } else {
-          if (LMp<=min(Bp,NEp, na.rm = TRUE)) {
+          if (LMp<=min(Bp,NEp,Binp, na.rm = TRUE)) {
             "Linear"
           } else {
-            if (NEp<=min(LMp,Bp, na.rm = TRUE)) {
+            if (NEp<=min(LMp,Bp,Binp, na.rm = TRUE)) {
               "NegExp"
+            } else {
+              if (Binp<=min(LMp,Bp,NEp, na.rm = TRUE)) {
+                "Binomial"
+              }
             }
           }
         }
@@ -155,7 +189,8 @@ coverDyn <- function(dat, thres = 5, pnts = 10) {
     
     #Record values
     fitCov[nrow(fitCov)+1,] <- c(as.character(spList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
-                                 Ba, Bb, BRSE, Bp, LM_sig, NE_sig, B_sig, meanCov, status, model)
+                                 Ba, Bb, BRSE, Bp, Bs, Bsd, Bm, BinRSE, Binp, LM_sig, NE_sig, B_sig, Bin_sig, 
+                                 meanCov, status, model)
   }
   
   return(fitCov)
