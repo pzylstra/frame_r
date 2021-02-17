@@ -4,14 +4,16 @@
 \alias{coverDyn}
 \title{Builds models for cover dynamics of surveyed species}
 \usage{
-coverDyn(dat, thres = 5, pnts = 10)
+coverDyn(dat, thres = 5, pnts = 10, p = 0.05)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}
 
-\item{thres}{The minimum percent cover (0-100) for following analyses}
+\item{thres}{The minimum percent cover (0-100) of a species that will be analysed}
 
 \item{pnts}{The number of points measured in a transect}
+
+\item{p}{The maximum allowable p value for a model}
 }
 \value{
 dataframe
@@ -21,4 +23,7 @@ Input table requires the following fields:
 Point - numbered point in a transect
 species - name of the surveyed species
 Age - age of the site since the triggering disturbance
+}
+\details{
+Species that are less common than the set threshold are combined as "Minor species"
 }

@@ -4,14 +4,17 @@
 #' Point - numbered point in a transect
 #' species - name of the surveyed species
 #' Age - age of the site since the triggering disturbance
+#' 
+#' Species that are less common than the set threshold are combined as "Minor species"
 #'
 #' @param dat The dataframe containing the input data,
-#' @param thres The minimum percent cover (0-100) for following analyses
+#' @param thres The minimum percent cover (0-100) of a species that will be analysed
 #' @param pnts The number of points measured in a transect
+#' @param p The maximum allowable p value for a model
 #' @return dataframe
 #' @export
 
-coverDyn <- function(dat, thres = 5, pnts = 10) {
+coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
   
   #List species and ages
   spList <- unique(dat$species, incomparables = FALSE)
@@ -31,9 +34,24 @@ coverDyn <- function(dat, thres = 5, pnts = 10) {
       covSp <- as.numeric(length(sppnts))*(100/pnts)
       
       #Record values
-      spCov[nrow(spCov)+1,] <- c(as.character(spList[sp]), age, covSp)
+      spCov[nrow(spCov)+1,] <- c(as.character(spList[sp]), as.numeric(age), as.numeric(covSp))
     }
   }
+  
+  #Group minor species
+  spCov$Cover <- as.numeric(as.character(spCov$Cover))
+  spShort <- spCov %>%
+    group_by(Species) %>%
+    summarise_if(is.numeric, mean)
+  #List minor species, then rename in dataset
+  minor <- spShort %>% filter(Cover < thres)
+  minList <- unique(minor$Species, incomparables = FALSE)
+  
+  for (snew in 1:length(minList)) {
+    spCov[spCov==minor$Species[snew]]<-"Minor species"
+  }
+  
+  priorList <- unique(spCov$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
   fitCov <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
@@ -41,13 +59,13 @@ coverDyn <- function(dat, thres = 5, pnts = 10) {
                        'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_p' = numeric(0),
                        'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_p' = numeric(0),
                        'linear' = character(0), 'NegExp' = character(0), 'Burr' = character(0), 'Binomial' = character(0), 'Mean' = character(0),
-                       'Status' = character(0), 'Model' = character(0), stringsAsFactors=F)
+                       'Model' = character(0), stringsAsFactors=F)
   
-  for (sp in 1:length(spList)) {
+  for (sp in 1:length(priorList)) {
     
     SpeciesNumber <- sp
     control=nls.control(maxiter=100000, tol=1e-7, minFactor = 1/999999999)
-    studySpecies <- spCov %>% filter(Species == spList[SpeciesNumber])
+    studySpecies <- spCov %>% filter(Species == priorList[SpeciesNumber])
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$Cover)
     
@@ -162,35 +180,28 @@ coverDyn <- function(dat, thres = 5, pnts = 10) {
     
     #Summary stats
     meanCov <- round(mean(y),1)
-    status <- if (meanCov >= thres) {
-      "common"
-    } else {
-      ""
-    }
-    model <- if (meanCov >= thres) {
-      if (min(Binp,Bp,NEp,LMp, na.rm = TRUE)<0.05) {
-        if (Bp<=min(LMp,NEp,Binp, na.rm = TRUE)) {
-          "Burr"
+    model <- if (min(Binp,Bp,NEp,LMp, na.rm = TRUE)<p) {
+      if (Bp<=min(LMp,NEp,Binp, na.rm = TRUE)) {
+        "Burr"
+      } else {
+        if (LMp<=min(Bp,NEp,Binp, na.rm = TRUE)) {
+          "Linear"
         } else {
-          if (LMp<=min(Bp,NEp,Binp, na.rm = TRUE)) {
-            "Linear"
+          if (NEp<=min(LMp,Bp,Binp, na.rm = TRUE)) {
+            "NegExp"
           } else {
-            if (NEp<=min(LMp,Bp,Binp, na.rm = TRUE)) {
-              "NegExp"
-            } else {
-              if (Binp<=min(LMp,Bp,NEp, na.rm = TRUE)) {
-                "Binomial"
-              }
+            if (Binp<=min(LMp,Bp,NEp, na.rm = TRUE)) {
+              "Binomial"
             }
           }
         }
-      } else {"Mean"}
-    } else {""}
+      }
+    } else {"Mean"}
     
     #Record values
-    fitCov[nrow(fitCov)+1,] <- c(as.character(spList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
+    fitCov[nrow(fitCov)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
                                  Ba, Bb, BRSE, Bp, Bs, Bsd, Bm, BinRSE, Binp, LM_sig, NE_sig, B_sig, Bin_sig, 
-                                 meanCov, status, model)
+                                 meanCov, model)
   }
   
   return(fitCov)
