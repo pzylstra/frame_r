@@ -23,8 +23,8 @@ library(rmarkdown)
 ```
 
 
-This script runs a deterministic prediction using a legacy file, which is the old .txt setup
-The steps are to import the file, run it, then load the database.
+This script runs a deterministic prediction from the input tables stored with the package,
+The steps are to import the files, build a parameter file, run it, then load the database.
 
 ## 1. LOAD THE INPUT FILES AND CONSTRUCT A PARAMETER TABLE
 Enter the full path to each file in quotes
