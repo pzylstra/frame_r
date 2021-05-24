@@ -1,3 +1,58 @@
+#' Finds % cover of surveyed species and groups minor species
+#'
+#' Input table requires the following fields:
+#' Point - numbered point in a transect
+#' species - name of the surveyed species
+#' Age - age of the site since the triggering disturbance
+#' 
+#' Species that are less common than the set threshold are combined as "Minor species"
+#'
+#' @param dat The dataframe containing the input data,
+#' @param thres The minimum percent cover (0-100) of a species that will be kept single
+#' @param pnts The number of points measured in a transect
+#' @return dataframe
+#' @export
+
+specCover <- function(dat, thres = 5, pnts = 10) {
+  
+  #List species and ages
+  spList <- unique(dat$species, incomparables = FALSE)
+  ages <- unique(dat$Age, incomparables = FALSE)
+  
+  #Create empty summary dataframe
+  spCover <- data.frame('Species' = character(0), 'Age' = numeric(0), 'Cover' = numeric(0), stringsAsFactors=F)
+  
+  #DATA COLLECTION
+  for (sp in 1:length(spList)) {
+    for (age in ages) {
+      spName <- dat %>% filter(species == spList[sp])
+      spAge <- spName %>% filter(Age == age)
+      
+      #Percent cover
+      sppnts <- unique(spAge$Point, incomparables = FALSE)
+      covSp <- as.numeric(length(sppnts))*(100/pnts)
+      
+      #Record values
+      spCover[nrow(spCover)+1,] <- c(as.character(spList[sp]), as.numeric(age), as.numeric(covSp))
+    }
+  }
+  
+  #Group minor species
+  spCover$Cover <- as.numeric(as.character(spCover$Cover))
+  spShort <- spCover %>%
+    group_by(Species) %>%
+    summarise_if(is.numeric, mean)
+  #List minor species, then rename in dataset
+  minor <- spShort %>% filter(Cover < thres)
+  minList <- unique(minor$Species, incomparables = FALSE)
+  
+  for (snew in 1:length(minList)) {
+    spCover[spCover==minor$Species[snew]]<-"Minor species"
+  }
+  return(spCover)
+}
+
+
 #' Builds models for cover dynamics of surveyed species
 #'
 #' Input table requires the following fields:
@@ -16,41 +71,7 @@
 
 coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
   
-  #List species and ages
-  spList <- unique(dat$species, incomparables = FALSE)
-  ages <- unique(dat$Age, incomparables = FALSE)
-  
-  #Create empty summary dataframe
-  spCov <- data.frame('Species' = character(0), 'Age' = numeric(0), 'Cover' = numeric(0), stringsAsFactors=F)
-  
-  #DATA COLLECTION
-  for (sp in 1:length(spList)) {
-    for (age in ages) {
-      spName <- dat %>% filter(species == spList[sp])
-      spAge <- spName %>% filter(Age == age)
-      
-      #Percent cover
-      sppnts <- unique(spAge$Point, incomparables = FALSE)
-      covSp <- as.numeric(length(sppnts))*(100/pnts)
-      
-      #Record values
-      spCov[nrow(spCov)+1,] <- c(as.character(spList[sp]), as.numeric(age), as.numeric(covSp))
-    }
-  }
-  
-  #Group minor species
-  spCov$Cover <- as.numeric(as.character(spCov$Cover))
-  spShort <- spCov %>%
-    group_by(Species) %>%
-    summarise_if(is.numeric, mean)
-  #List minor species, then rename in dataset
-  minor <- spShort %>% filter(Cover < thres)
-  minList <- unique(minor$Species, incomparables = FALSE)
-  
-  for (snew in 1:length(minList)) {
-    spCov[spCov==minor$Species[snew]]<-"Minor species"
-  }
-  
+spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
   priorList <- unique(spCov$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
@@ -58,7 +79,8 @@ coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
                        'k' = numeric(0), 'r' = numeric(0), 'NE_sigma' = numeric(0), 'NE_p' = numeric(0),
                        'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_p' = numeric(0),
                        'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_p' = numeric(0),
-                       'linear' = character(0), 'NegExp' = character(0), 'Burr' = character(0), 'Binomial' = character(0), 'Mean' = character(0),
+                       'Qa' = numeric(0), 'Qb' = numeric(0), 'Qc' = numeric(0), 'Q_sigma' = numeric(0), 'Q_p' = numeric(0),
+                       'linear' = character(0), 'NegExp' = character(0), 'Burr' = character(0), 'Binomial' = character(0), 'Quadratic' = character(0), 'Mean' = character(0),
                        'Model' = character(0), stringsAsFactors=F)
   
   for (sp in 1:length(priorList)) {
@@ -150,9 +172,9 @@ coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     }
     
     #Binomial
-    init3<-c(s=1,sd=5, m=20)
-    if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init1,trace=T, control = control))) {
-      Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init1,trace=T, control = control)
+    init3<-c(s=1,sd=3, m=20)
+    if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control))) {
+      Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control)
       BinSum <- base::summary(Bin)
       Bs <- round(BinSum$coefficients[1],2)
       Bsd <- round(BinSum$coefficients[2],2)
@@ -178,20 +200,60 @@ coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
       Bin_sig <- ""
     }
     
+    #Quadratic
+    init4 <- c(a = 1, b = 2, c = 0)
+    if (!berryFunctions::is.error(nls(y ~ a*x^2 + b*x + c, data = studySpecies, 
+                                      start = init4, trace = T, control = control))) {
+      q <- nls(y ~ a*x^2 + b*x + c, data = studySpecies, start = init4, 
+               trace = T, control = control)
+      qSum <- base::summary(q)
+      qa <- round(qSum$coefficients[1], 2)
+      qb <- round(qSum$coefficients[2], 2)
+      qc <- round(qSum$coefficients[3], 2)
+      qRSE <- round(qSum$sigma, 2)
+      qp <- round(max(qSum$coefficients[10], qSum$coefficients[11], 
+                      qSum$coefficients[12]), 5)
+      q_sig <- if (qp < 0.001) {
+        "***"
+      }
+      else if (qp < 0.01) {
+        "**"
+      }
+      else if (qp < 0.05) {
+        "*"
+      }
+      else {
+        ""
+      }
+      rm(q)
+    }
+    else {
+      qa <- NA
+      qb <- NA
+      qc <- NA
+      qRSE <- NA
+      qp <- NA
+      q_sig <- ""
+    }
+    
     #Summary stats
     meanCov <- round(mean(y),1)
     model <- if (min(Binp,Bp,NEp,LMp, na.rm = TRUE)<p) {
-      if (Bp<=min(LMp,NEp,Binp, na.rm = TRUE)) {
+      if (Bp<=min(LMp,NEp,Binp, qp, na.rm = TRUE)) {
         "Burr"
       } else {
-        if (LMp<=min(Bp,NEp,Binp, na.rm = TRUE)) {
+        if (LMp<=min(Bp,NEp,Binp, qp, na.rm = TRUE)) {
           "Linear"
         } else {
-          if (NEp<=min(LMp,Bp,Binp, na.rm = TRUE)) {
+          if (NEp<=min(LMp,Bp,Binp, qp, na.rm = TRUE)) {
             "NegExp"
           } else {
-            if (Binp<=min(LMp,Bp,NEp, na.rm = TRUE)) {
+            if (Binp<=min(LMp,Bp,NEp, qp, na.rm = TRUE)) {
               "Binomial"
+            } else {
+              if (qp<=min(LMp,Bp,NEp, Binp, na.rm = TRUE)) {
+                "Quadratic"
+              }
             }
           }
         }
@@ -200,7 +262,8 @@ coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     
     #Record values
     fitCov[nrow(fitCov)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
-                                 Ba, Bb, BRSE, Bp, Bs, Bsd, Bm, BinRSE, Binp, LM_sig, NE_sig, B_sig, Bin_sig, 
+                                 Ba, Bb, BRSE, Bp, Bs, Bsd, Bm, BinRSE, Binp, qa, qb, qc, qRSE, qp, 
+                                 LM_sig, NE_sig, B_sig, Bin_sig, q_sig,
                                  meanCov, model)
   }
   
