@@ -1,22 +1,22 @@
-#' Finds % cover of surveyed species and groups minor species
+#' Finds % cover of surveyed Species and groups minor Species
 #'
 #' Input table requires the following fields:
 #' Point - numbered point in a transect
-#' species - name of the surveyed species
+#' Species - name of the surveyed Species
 #' Age - age of the site since the triggering disturbance
 #' 
-#' Species that are less common than the set threshold are combined as "Minor species"
+#' Species that are less common than the set threshold are combined as "Minor Species"
 #'
 #' @param dat The dataframe containing the input data,
-#' @param thres The minimum percent cover (0-100) of a species that will be kept single
+#' @param thres The minimum percent cover (0-100) of a Species that will be kept single
 #' @param pnts The number of points measured in a transect
 #' @return dataframe
 #' @export
 
 specCover <- function(dat, thres = 5, pnts = 10) {
   
-  #List species and ages
-  spList <- unique(dat$species, incomparables = FALSE)
+  #List Species and ages
+  spList <- unique(dat$Species, incomparables = FALSE)
   ages <- unique(dat$Age, incomparables = FALSE)
   
   #Create empty summary dataframe
@@ -25,7 +25,7 @@ specCover <- function(dat, thres = 5, pnts = 10) {
   #DATA COLLECTION
   for (sp in 1:length(spList)) {
     for (age in ages) {
-      spName <- dat %>% filter(species == spList[sp])
+      spName <- dat %>% filter(Species == spList[sp])
       spAge <- spName %>% filter(Age == age)
       
       #Percent cover
@@ -37,17 +37,17 @@ specCover <- function(dat, thres = 5, pnts = 10) {
     }
   }
   
-  #Group minor species
+  #Group minor Species
   spCover$Cover <- as.numeric(as.character(spCover$Cover))
   spShort <- spCover %>%
     group_by(Species) %>%
     summarise_if(is.numeric, mean)
-  #List minor species, then rename in dataset
+  #List minor Species, then rename in dataset
   minor <- spShort %>% filter(Cover < thres)
   minList <- unique(minor$Species, incomparables = FALSE)
   
   for (snew in 1:length(minList)) {
-    spCover[spCover==minor$Species[snew]]<-"Minor species"
+    spCover[spCover==minor$Species[snew]]<-"Minor Species"
   }
   return(spCover)
 }
@@ -71,17 +71,17 @@ mRSE <- function(dat){
 }
 
 
-#' Builds models for cover dynamics of surveyed species
+#' Builds models for cover dynamics of surveyed Species
 #'
 #' Input table requires the following fields:
 #' Point - numbered point in a transect
-#' species - name of the surveyed species
+#' Species - name of the surveyed Species
 #' Age - age of the site since the triggering disturbance
 #' 
-#' Species that are less common than the set threshold are combined as "Minor species"
+#' Species that are less common than the set threshold are combined as "Minor Species"
 #'
 #' @param dat The dataframe containing the input data,
-#' @param thres The minimum percent cover (0-100) of a species that will be analysed
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
 #' @param p The maximum allowable p value for a model
 #' @return dataframe
@@ -290,17 +290,17 @@ spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
 
 
 
-#' Builds models for top height dynamics of surveyed species
+#' Builds models for top height dynamics of surveyed Species
 #'
 #' Input table requires the following fields:
 #' Point - numbered point in a transect
-#' species - name of the surveyed species
+#' Species - name of the surveyed Species
 #' Age - age of the site since the triggering disturbance
 #' 
-#' Species that are less common than the set threshold are combined as "Minor species"
+#' Species that are less common than the set threshold are combined as "Minor Species"
 #'
 #' @param dat The dataframe containing the input data,
-#' @param thres The minimum percent cover (0-100) of a species that will be analysed
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
 #' @param p The maximum allowable p value for a model
 #' @return dataframe
@@ -312,9 +312,9 @@ topDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
   dat <- left_join(dat, spCov)%>%
-    mutate(species = replace(species, which(Cover < thres), "Minor species"))
+    mutate(Species = replace(Species, which(Cover < thres), "Minor Species"))
   
-  priorList <- unique(dat$species, incomparables = FALSE)
+  priorList <- unique(dat$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
   fitTop <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
@@ -329,7 +329,7 @@ topDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     
     SpeciesNumber <- sp
     control=nls.control(maxiter=100000, tol=1e-7, minFactor = 1/999999999)
-    studySpecies <- dat %>% filter(species == priorList[SpeciesNumber])
+    studySpecies <- dat %>% filter(Species == priorList[SpeciesNumber])
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$top)
     
@@ -513,17 +513,17 @@ topDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
 }
 
 
-#' Builds models for top-base height allometry dynamics of surveyed species
+#' Builds models for top-base height allometry dynamics of surveyed Species
 #'
 #' Input table requires the following fields:
 #' Point - numbered point in a transect
-#' species - name of the surveyed species
+#' Species - name of the surveyed Species
 #' Age - age of the site since the triggering disturbance
 #' 
-#' Species that are less common than the set threshold are combined as "Minor species"
+#' Species that are less common than the set threshold are combined as "Minor Species"
 #'
 #' @param dat The dataframe containing the input data,
-#' @param thres The minimum percent cover (0-100) of a species that will be analysed
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
 #' @param p The maximum allowable p value for a model
 #' @return dataframe
@@ -535,10 +535,10 @@ baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
   dat <- left_join(dat, spCov)%>%
-    mutate(species = replace(species, which(Cover < thres), "Minor species"),
+    mutate(Species = replace(Species, which(Cover < thres), "Minor Species"),
            bRat = base/top)
   
-  priorList <- unique(dat$species, incomparables = FALSE)
+  priorList <- unique(dat$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
   fitBase <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
@@ -553,7 +553,7 @@ baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     
     SpeciesNumber <- sp
     control=nls.control(maxiter=100000, tol=1e-7, minFactor = 1/999999999)
-    studySpecies <- dat %>% filter(species == priorList[SpeciesNumber])
+    studySpecies <- dat %>% filter(Species == priorList[SpeciesNumber])
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$bRat)
     
@@ -729,6 +729,9 @@ baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
         }
       }
     } else {"Mean"}
+    model <- if (min(LMRSE, NERSE, BRSE, BinRSE, qRSE, na.rm = TRUE) < m_sig){
+      model
+    } else {"Mean"}
     
     #Record values
     fitBase[nrow(fitBase)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
@@ -740,17 +743,17 @@ baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
 }
 
 
-#' Builds models for top-he height allometry dynamics of surveyed species
+#' Builds models for top-he height allometry dynamics of surveyed Species
 #'
 #' Input table requires the following fields:
 #' Point - numbered point in a transect
-#' species - name of the surveyed species
+#' Species - name of the surveyed Species
 #' Age - age of the site since the triggering disturbance
 #' 
-#' Species that are less common than the set threshold are combined as "Minor species"
+#' Species that are less common than the set threshold are combined as "Minor Species"
 #'
 #' @param dat The dataframe containing the input data,
-#' @param thres The minimum percent cover (0-100) of a species that will be analysed
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
 #' @param p The maximum allowable p value for a model
 #' @return dataframe
@@ -762,10 +765,10 @@ heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
   dat <- left_join(dat, spCov)%>%
-    mutate(species = replace(species, which(Cover < thres), "Minor species"),
+    mutate(Species = replace(Species, which(Cover < thres), "Minor Species"),
            bRat = he/top)
   
-  priorList <- unique(dat$species, incomparables = FALSE)
+  priorList <- unique(dat$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
   fithe <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
@@ -780,7 +783,7 @@ heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     
     SpeciesNumber <- sp
     control=nls.control(maxiter=100000, tol=1e-7, minFactor = 1/999999999)
-    studySpecies <- dat %>% filter(species == priorList[SpeciesNumber])
+    studySpecies <- dat %>% filter(Species == priorList[SpeciesNumber])
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$bRat)
     
@@ -956,6 +959,9 @@ heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
         }
       }
     } else {"Mean"}
+    model <- if (min(LMRSE, NERSE, BRSE, BinRSE, qRSE, na.rm = TRUE) < m_sig){
+      model
+    } else {"Mean"}
     
     #Record values
     fithe[nrow(fithe)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
@@ -966,17 +972,17 @@ heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
   return(fithe)
 }
 
-#' Builds models for top-ht height allometry dynamics of surveyed species
+#' Builds models for top-ht height allometry dynamics of surveyed Species
 #'
 #' Input table requires the following fields:
 #' Point - numbered point in a transect
-#' species - name of the surveyed species
+#' Species - name of the surveyed Species
 #' Age - age of the site since the triggering disturbance
 #' 
-#' Species that are less common than the set threshold are combined as "Minor species"
+#' Species that are less common than the set threshold are combined as "Minor Species"
 #'
 #' @param dat The dataframe containing the input data,
-#' @param thres The minimum percent cover (0-100) of a species that will be analysed
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
 #' @param p The maximum allowable p value for a model
 #' @return dataframe
@@ -988,10 +994,10 @@ htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
   dat <- left_join(dat, spCov)%>%
-    mutate(species = replace(species, which(Cover < thres), "Minor species"),
+    mutate(Species = replace(Species, which(Cover < thres), "Minor Species"),
            Rat = ht/top)
   
-  priorList <- unique(dat$species, incomparables = FALSE)
+  priorList <- unique(dat$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
   fitht <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
@@ -1006,7 +1012,7 @@ htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     
     SpeciesNumber <- sp
     control=nls.control(maxiter=100000, tol=1e-7, minFactor = 1/999999999)
-    studySpecies <- dat %>% filter(species == priorList[SpeciesNumber])
+    studySpecies <- dat %>% filter(Species == priorList[SpeciesNumber])
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$Rat)
     
@@ -1182,6 +1188,9 @@ htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
         }
       }
     } else {"Mean"}
+    model <- if (min(LMRSE, NERSE, BRSE, BinRSE, qRSE, na.rm = TRUE) < m_sig){
+      model
+    } else {"Mean"}
     
     #Record values
     fitht[nrow(fitht)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
@@ -1193,17 +1202,17 @@ htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
 }
 
 
-#' Builds models for top-w height allometry dynamics of surveyed species
+#' Builds models for top-w height allometry dynamics of surveyed Species
 #'
 #' Input table requires the following fields:
 #' Point - numbered point in a transect
-#' species - name of the surveyed species
+#' Species - name of the surveyed Species
 #' Age - age of the site since the triggering disturbance
 #' 
-#' Species that are less common than the set threshold are combined as "Minor species"
+#' Species that are less common than the set threshold are combined as "Minor Species"
 #'
 #' @param dat The dataframe containing the input data,
-#' @param thres The minimum percent cover (0-100) of a species that will be analysed
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
 #' @param p The maximum allowable p value for a model
 #' @return dataframe
@@ -1215,10 +1224,10 @@ wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
   dat <- left_join(dat, spCov)%>%
-    mutate(species = replace(species, which(Cover < thres), "Minor species"),
+    mutate(Species = replace(Species, which(Cover < thres), "Minor Species"),
            Rat = as.numeric(width)/top)
   
-  priorList <- unique(dat$species, incomparables = FALSE)
+  priorList <- unique(dat$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
   fitw <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
@@ -1233,7 +1242,7 @@ wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     
     SpeciesNumber <- sp
     control=nls.control(maxiter=100000, tol=1e-7, minFactor = 1/999999999)
-    studySpecies <- dat %>% filter(species == priorList[SpeciesNumber])
+    studySpecies <- dat %>% filter(Species == priorList[SpeciesNumber])
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$Rat)
     
@@ -1408,6 +1417,9 @@ wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
         }
       }
     } else {"Mean"}
+    model <- if (min(LMRSE, NERSE, BRSE, BinRSE, qRSE, na.rm = TRUE) < m_sig){
+      model
+    } else {"Mean"}
     
     #Record values
     fitw[nrow(fitw)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
@@ -1418,3 +1430,648 @@ wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
   
   return(fitw)
 }
+
+
+#' Collects parameters for the best models of each Species structural parameter
+#' 
+#'
+#' Input table requires the following fields:
+#' Point - numbered point in a transect
+#' Species - name of the surveyed Species
+#' Age - age of the site since the triggering disturbance
+#' 
+#' Species that are less common than the set threshold are combined as "Minor Species"
+#'
+#' @param dat The dataframe containing the input data,
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
+#' @param pnts The number of points measured in a transect
+#' @param p The maximum allowable p value for a model
+#' @return dataframe
+#' @export
+
+modCollector <- function(dat, thres = 5, pnts = 10, p = 0.01){
+  
+  coverChange <- coverDyn(dat, thres = thres, pnts = pnts, p = p)
+  topChange <- topDyn(dat, thres = thres, pnts = pnts, p = p)
+  baseChange <- baseDyn(dat, thres = thres, pnts = pnts, p = p)
+  he_Change <- heDyn(dat, thres = thres, pnts = pnts, p = p)
+  ht_Change <- htDyn(dat, thres = thres, pnts = pnts, p = p)
+  w_Change <- wDyn(dat, thres = thres, pnts = pnts, p = p)
+  
+  # Collect models
+  # Cover
+  a <- rep(NA, length(coverChange$Species))
+  for (sp in 1:length(coverChange$Species)) {
+    if (coverChange$Model[sp] == 'Linear') {
+      a[sp] <- coverChange$lin_a[sp]
+    } else
+      if (coverChange$Model[sp] == 'NegExp') {
+        a[sp] <- coverChange$k[sp]
+      } else
+        if (coverChange$Model[sp] == 'Burr') {
+          a[sp] <- coverChange$Ba[sp]
+        } else
+          if (coverChange$Model[sp] == 'Binomial') {
+            a[sp] <- coverChange$scale[sp]
+          } else
+            if (coverChange$Model[sp] == 'Quadratic') {
+              a[sp] <- coverChange$Qa[sp]
+            } else {a[sp] <- 0}
+  }
+  b <- rep(NA, length(coverChange$Species))
+  for (sp in 1:length(coverChange$Species)) {
+    if (coverChange$Model[sp] == 'Linear') {
+      b[sp] <- coverChange$lin_b[sp]
+    } else
+      if (coverChange$Model[sp] == 'NegExp') {
+        b[sp] <- coverChange$r[sp]
+      } else
+        if (coverChange$Model[sp] == 'Burr') {
+          b[sp] <- coverChange$Bb[sp]
+        } else
+          if (coverChange$Model[sp] == 'Binomial') {
+            b[sp] <- coverChange$sd[sp]
+          } else
+            if (coverChange$Model[sp] == 'Quadratic') {
+              b[sp] <- coverChange$Qb[sp]
+            } else {b[sp] <- coverChange$Mean[sp]}
+  }
+  c <- rep(NA, length(coverChange$Species))
+  for (sp in 1:length(coverChange$Species)) {
+    if (coverChange$Model[sp] == 'Linear') {
+      c[sp] <- NA
+    } else
+      if (coverChange$Model[sp] == 'NegExp') {
+        c[sp] <- NA
+      } else
+        if (coverChange$Model[sp] == 'Burr') {
+          c[sp] <- NA
+        } else
+          if (coverChange$Model[sp] == 'Binomial') {
+            c[sp] <- coverChange$Binm[sp]
+          } else
+            if (coverChange$Model[sp] == 'Quadratic') {
+              c[sp] <- coverChange$Qc[sp]
+            } else {c[sp] <- NA}
+  }
+  RSE <- rep(NA, length(coverChange$Species))
+  for (sp in 1:length(coverChange$Species)) {
+    if (coverChange$Model[sp] == 'Linear') {
+      RSE[sp] <- coverChange$lin_Sigma[sp]
+    } else
+      if (coverChange$Model[sp] == 'NegExp') {
+        RSE[sp] <- coverChange$NE_sigma[sp]
+      } else
+        if (coverChange$Model[sp] == 'Burr') {
+          RSE[sp] <- coverChange$B_sigma[sp]
+        } else
+          if (coverChange$Model[sp] == 'Binomial') {
+            RSE[sp] <- coverChange$Bin_sigma[sp]
+          } else
+            if (coverChange$Model[sp] == 'Quadratic') {
+              RSE[sp] <- coverChange$Q_sigma[sp]
+            } else {RSE[sp] <- coverChange$Mean_sigma[sp]}
+  }
+  
+  # Height
+  aa <- rep(NA, length(topChange$Species))
+  for (sp in 1:length(topChange$Species)) {
+    if (topChange$Model[sp] == 'Linear') {
+      aa[sp] <- topChange$lin_a[sp]
+    } else
+      if (topChange$Model[sp] == 'NegExp') {
+        aa[sp] <- topChange$k[sp]
+      } else
+        if (topChange$Model[sp] == 'Burr') {
+          aa[sp] <- topChange$Ba[sp]
+        } else
+          if (topChange$Model[sp] == 'Binomial') {
+            aa[sp] <- topChange$scale[sp]
+          } else
+            if (topChange$Model[sp] == 'Quadratic') {
+              aa[sp] <- topChange$Qa[sp]
+            } else {aa[sp] <- 0}
+  }
+  bb <- rep(NA, length(topChange$Species))
+  for (sp in 1:length(topChange$Species)) {
+    if (topChange$Model[sp] == 'Linear') {
+      bb[sp] <- topChange$lin_b[sp]
+    } else
+      if (topChange$Model[sp] == 'NegExp') {
+        bb[sp] <- topChange$r[sp]
+      } else
+        if (topChange$Model[sp] == 'Burr') {
+          bb[sp] <- topChange$Bb[sp]
+        } else
+          if (topChange$Model[sp] == 'Binomial') {
+            bb[sp] <- topChange$sd[sp]
+          } else
+            if (topChange$Model[sp] == 'Quadratic') {
+              bb[sp] <- topChange$Qb[sp]
+            } else {bb[sp] <- topChange$Mean[sp]}
+  }
+  cc <- rep(NA, length(topChange$Species))
+  for (sp in 1:length(topChange$Species)) {
+    if (topChange$Model[sp] == 'Linear') {
+      cc[sp] <- NA
+    } else
+      if (topChange$Model[sp] == 'NegExp') {
+        cc[sp] <- NA
+      } else
+        if (topChange$Model[sp] == 'Burr') {
+          cc[sp] <- NA
+        } else
+          if (topChange$Model[sp] == 'Binomial') {
+            cc[sp] <- topChange$Binm[sp]
+          } else
+            if (topChange$Model[sp] == 'Quadratic') {
+              cc[sp] <- topChange$Qc[sp]
+            } else {cc[sp] <- NA}
+  }
+  RSE1 <- rep(NA, length(topChange$Species))
+  for (sp in 1:length(topChange$Species)) {
+    if (topChange$Model[sp] == 'Linear') {
+      RSE1[sp] <- topChange$lin_Sigma[sp]
+    } else
+      if (topChange$Model[sp] == 'NegExp') {
+        RSE1[sp] <- topChange$NE_sigma[sp]
+      } else
+        if (topChange$Model[sp] == 'Burr') {
+          RSE1[sp] <- topChange$B_sigma[sp]
+        } else
+          if (topChange$Model[sp] == 'Binomial') {
+            RSE1[sp] <- topChange$Bin_sigma[sp]
+          } else
+            if (topChange$Model[sp] == 'Quadratic') {
+              RSE1[sp] <- topChange$Q_sigma[sp]
+            } else {RSE1[sp] <- topChange$Mean_sigma[sp]}
+  }
+  
+  # Base
+  aaa <- rep(NA, length(baseChange$Species))
+  for (sp in 1:length(baseChange$Species)) {
+    if (baseChange$Model[sp] == 'Linear') {
+      aaa[sp] <- baseChange$lin_a[sp]
+    } else
+      if (baseChange$Model[sp] == 'NegExp') {
+        aaa[sp] <- baseChange$k[sp]
+      } else
+        if (baseChange$Model[sp] == 'Burr') {
+          aaa[sp] <- baseChange$Ba[sp]
+        } else
+          if (baseChange$Model[sp] == 'Binomial') {
+            aaa[sp] <- baseChange$scale[sp]
+          } else
+            if (baseChange$Model[sp] == 'Quadratic') {
+              aaa[sp] <- baseChange$Qa[sp]
+            } else {aaa[sp] <- 0}
+  }
+  bbb <- rep(NA, length(baseChange$Species))
+  for (sp in 1:length(baseChange$Species)) {
+    if (baseChange$Model[sp] == 'Linear') {
+      bbb[sp] <- baseChange$lin_b[sp]
+    } else
+      if (baseChange$Model[sp] == 'NegExp') {
+        bbb[sp] <- baseChange$r[sp]
+      } else
+        if (baseChange$Model[sp] == 'Burr') {
+          bbb[sp] <- baseChange$Bb[sp]
+        } else
+          if (baseChange$Model[sp] == 'Binomial') {
+            bbb[sp] <- baseChange$sd[sp]
+          } else
+            if (baseChange$Model[sp] == 'Quadratic') {
+              bbb[sp] <- baseChange$Qb[sp]
+            } else {bbb[sp] <- baseChange$Mean[sp]}
+  }
+  ccc <- rep(NA, length(baseChange$Species))
+  for (sp in 1:length(baseChange$Species)) {
+    if (baseChange$Model[sp] == 'Linear') {
+      ccc[sp] <- NA
+    } else
+      if (baseChange$Model[sp] == 'NegExp') {
+        ccc[sp] <- NA
+      } else
+        if (baseChange$Model[sp] == 'Burr') {
+          ccc[sp] <- NA
+        } else
+          if (baseChange$Model[sp] == 'Binomial') {
+            ccc[sp] <- baseChange$Binm[sp]
+          } else
+            if (baseChange$Model[sp] == 'Quadratic') {
+              ccc[sp] <- baseChange$Qc[sp]
+            } else {ccc[sp] <- NA}
+  }
+  RSE2 <- rep(NA, length(baseChange$Species))
+  for (sp in 1:length(baseChange$Species)) {
+    if (baseChange$Model[sp] == 'Linear') {
+      RSE2[sp] <- baseChange$lin_Sigma[sp]
+    } else
+      if (baseChange$Model[sp] == 'NegExp') {
+        RSE2[sp] <- baseChange$NE_sigma[sp]
+      } else
+        if (baseChange$Model[sp] == 'Burr') {
+          RSE2[sp] <- baseChange$B_sigma[sp]
+        } else
+          if (baseChange$Model[sp] == 'Binomial') {
+            RSE2[sp] <- baseChange$Bin_sigma[sp]
+          } else
+            if (baseChange$Model[sp] == 'Quadratic') {
+              RSE2[sp] <- baseChange$Q_sigma[sp]
+            } else {RSE2[sp] <- baseChange$Mean_sigma[sp]}
+  }
+  
+  # He
+  aA <- rep(NA, length(he_Change$Species))
+  for (sp in 1:length(he_Change$Species)) {
+    if (he_Change$Model[sp] == 'Linear') {
+      aA[sp] <- he_Change$lin_a[sp]
+    } else
+      if (he_Change$Model[sp] == 'NegExp') {
+        aA[sp] <- he_Change$k[sp]
+      } else
+        if (he_Change$Model[sp] == 'Burr') {
+          aA[sp] <- he_Change$Ba[sp]
+        } else
+          if (he_Change$Model[sp] == 'Binomial') {
+            aA[sp] <- he_Change$scale[sp]
+          } else
+            if (he_Change$Model[sp] == 'Quadratic') {
+              aA[sp] <- he_Change$Qa[sp]
+            } else {aA[sp] <- 0}
+  }
+  bB <- rep(NA, length(he_Change$Species))
+  for (sp in 1:length(he_Change$Species)) {
+    if (he_Change$Model[sp] == 'Linear') {
+      bB[sp] <- he_Change$lin_b[sp]
+    } else
+      if (he_Change$Model[sp] == 'NegExp') {
+        bB[sp] <- he_Change$r[sp]
+      } else
+        if (he_Change$Model[sp] == 'Burr') {
+          bB[sp] <- he_Change$Bb[sp]
+        } else
+          if (he_Change$Model[sp] == 'Binomial') {
+            bB[sp] <- he_Change$sd[sp]
+          } else
+            if (he_Change$Model[sp] == 'Quadratic') {
+              bB[sp] <- he_Change$Qb[sp]
+            } else {bB[sp] <- he_Change$Mean[sp]}
+  }
+  cC <- rep(NA, length(he_Change$Species))
+  for (sp in 1:length(he_Change$Species)) {
+    if (he_Change$Model[sp] == 'Linear') {
+      cC[sp] <- NA
+    } else
+      if (he_Change$Model[sp] == 'NegExp') {
+        cC[sp] <- NA
+      } else
+        if (he_Change$Model[sp] == 'Burr') {
+          cC[sp] <- NA
+        } else
+          if (he_Change$Model[sp] == 'Binomial') {
+            cC[sp] <- he_Change$Binm[sp]
+          } else
+            if (he_Change$Model[sp] == 'Quadratic') {
+              cC[sp] <- he_Change$Qc[sp]
+            } else {cC[sp] <- NA}
+  }
+  RSE3 <- rep(NA, length(he_Change$Species))
+  for (sp in 1:length(he_Change$Species)) {
+    if (he_Change$Model[sp] == 'Linear') {
+      RSE3[sp] <- he_Change$lin_Sigma[sp]
+    } else
+      if (he_Change$Model[sp] == 'NegExp') {
+        RSE3[sp] <- he_Change$NE_sigma[sp]
+      } else
+        if (he_Change$Model[sp] == 'Burr') {
+          RSE3[sp] <- he_Change$B_sigma[sp]
+        } else
+          if (he_Change$Model[sp] == 'Binomial') {
+            RSE3[sp] <- he_Change$Bin_sigma[sp]
+          } else
+            if (he_Change$Model[sp] == 'Quadratic') {
+              RSE3[sp] <- he_Change$Q_sigma[sp]
+            } else {RSE3[sp] <- he_Change$Mean_sigma[sp]}
+  }
+  
+  # Ht
+  aT <- rep(NA, length(ht_Change$Species))
+  for (sp in 1:length(ht_Change$Species)) {
+    if (ht_Change$Model[sp] == 'Linear') {
+      aT[sp] <- ht_Change$lin_a[sp]
+    } else
+      if (ht_Change$Model[sp] == 'NegExp') {
+        aT[sp] <- ht_Change$k[sp]
+      } else
+        if (ht_Change$Model[sp] == 'Burr') {
+          aT[sp] <- ht_Change$Ba[sp]
+        } else
+          if (ht_Change$Model[sp] == 'Binomial') {
+            aT[sp] <- ht_Change$scale[sp]
+          } else
+            if (ht_Change$Model[sp] == 'Quadratic') {
+              aT[sp] <- ht_Change$Qa[sp]
+            } else {aT[sp] <- 0}
+  }
+  bT <- rep(NA, length(ht_Change$Species))
+  for (sp in 1:length(ht_Change$Species)) {
+    if (ht_Change$Model[sp] == 'Linear') {
+      bT[sp] <- ht_Change$lin_b[sp]
+    } else
+      if (ht_Change$Model[sp] == 'NegExp') {
+        bT[sp] <- ht_Change$r[sp]
+      } else
+        if (ht_Change$Model[sp] == 'Burr') {
+          bT[sp] <- ht_Change$Bb[sp]
+        } else
+          if (ht_Change$Model[sp] == 'Binomial') {
+            bT[sp] <- ht_Change$sd[sp]
+          } else
+            if (ht_Change$Model[sp] == 'Quadratic') {
+              bT[sp] <- ht_Change$Qb[sp]
+            } else {bT[sp] <- ht_Change$Mean[sp]}
+  }
+  cT <- rep(NA, length(ht_Change$Species))
+  for (sp in 1:length(ht_Change$Species)) {
+    if (ht_Change$Model[sp] == 'Linear') {
+      cT[sp] <- NA
+    } else
+      if (ht_Change$Model[sp] == 'NegExp') {
+        cT[sp] <- NA
+      } else
+        if (ht_Change$Model[sp] == 'Burr') {
+          cT[sp] <- NA
+        } else
+          if (ht_Change$Model[sp] == 'Binomial') {
+            cT[sp] <- ht_Change$Binm[sp]
+          } else
+            if (ht_Change$Model[sp] == 'Quadratic') {
+              cT[sp] <- ht_Change$Qc[sp]
+            } else {cT[sp] <- NA}
+  }
+  RSEt <- rep(NA, length(ht_Change$Species))
+  for (sp in 1:length(ht_Change$Species)) {
+    if (ht_Change$Model[sp] == 'Linear') {
+      RSEt[sp] <- ht_Change$lin_Sigma[sp]
+    } else
+      if (ht_Change$Model[sp] == 'NegExp') {
+        RSEt[sp] <- ht_Change$NE_sigma[sp]
+      } else
+        if (ht_Change$Model[sp] == 'Burr') {
+          RSEt[sp] <- ht_Change$B_sigma[sp]
+        } else
+          if (ht_Change$Model[sp] == 'Binomial') {
+            RSEt[sp] <- ht_Change$Bin_sigma[sp]
+          } else
+            if (ht_Change$Model[sp] == 'Quadratic') {
+              RSEt[sp] <- ht_Change$Q_sigma[sp]
+            } else {RSEt[sp] <- ht_Change$Mean_sigma[sp]}
+  }
+  
+  # Width
+  aw <- rep(NA, length(w_Change$Species))
+  for (sp in 1:length(w_Change$Species)) {
+    if (w_Change$Model[sp] == 'Linear') {
+      aw[sp] <- w_Change$lin_a[sp]
+    } else
+      if (w_Change$Model[sp] == 'NegExp') {
+        aw[sp] <- w_Change$k[sp]
+      } else
+        if (w_Change$Model[sp] == 'Burr') {
+          aw[sp] <- w_Change$Ba[sp]
+        } else
+          if (w_Change$Model[sp] == 'Binomial') {
+            aw[sp] <- w_Change$scale[sp]
+          } else
+            if (w_Change$Model[sp] == 'Quadratic') {
+              aw[sp] <- w_Change$Qa[sp]
+            } else {aw[sp] <- 0}
+  }
+  bw <- rep(NA, length(w_Change$Species))
+  for (sp in 1:length(w_Change$Species)) {
+    if (w_Change$Model[sp] == 'Linear') {
+      bw[sp] <- w_Change$lin_b[sp]
+    } else
+      if (w_Change$Model[sp] == 'NegExp') {
+        bw[sp] <- w_Change$r[sp]
+      } else
+        if (w_Change$Model[sp] == 'Burr') {
+          bw[sp] <- w_Change$Bb[sp]
+        } else
+          if (w_Change$Model[sp] == 'Binomial') {
+            bw[sp] <- w_Change$sd[sp]
+          } else
+            if (w_Change$Model[sp] == 'Quadratic') {
+              bw[sp] <- w_Change$Qb[sp]
+            } else {bw[sp] <- w_Change$Mean[sp]}
+  }
+  cw <- rep(NA, length(w_Change$Species))
+  for (sp in 1:length(w_Change$Species)) {
+    if (w_Change$Model[sp] == 'Linear') {
+      cw[sp] <- NA
+    } else
+      if (w_Change$Model[sp] == 'NegExp') {
+        cw[sp] <- NA
+      } else
+        if (w_Change$Model[sp] == 'Burr') {
+          cw[sp] <- NA
+        } else
+          if (w_Change$Model[sp] == 'Binomial') {
+            cw[sp] <- w_Change$Binm[sp]
+          } else
+            if (w_Change$Model[sp] == 'Quadratic') {
+              cw[sp] <- w_Change$Qc[sp]
+            } else {cw[sp] <- NA}
+  }
+  RSEw <- rep(NA, length(w_Change$Species))
+  for (sp in 1:length(w_Change$Species)) {
+    if (w_Change$Model[sp] == 'Linear') {
+      RSEw[sp] <- w_Change$lin_Sigma[sp]
+    } else
+      if (w_Change$Model[sp] == 'NegExp') {
+        RSEw[sp] <- w_Change$NE_sigma[sp]
+      } else
+        if (w_Change$Model[sp] == 'Burr') {
+          RSEw[sp] <- w_Change$B_sigma[sp]
+        } else
+          if (w_Change$Model[sp] == 'Binomial') {
+            RSEw[sp] <- w_Change$Bin_sigma[sp]
+          } else
+            if (w_Change$Model[sp] == 'Quadratic') {
+              RSEw[sp] <- w_Change$Q_sigma[sp]
+            } else {RSEw[sp] <- w_Change$Mean_sigma[sp]}
+  }
+  
+  models <- data.frame('Species'=coverChange$Species, 
+                       'Cover' = coverChange$Model, 'C_a' = a, 'C_b' = b, 'C_c' = c, 'C_RSE' = RSE,
+                       'Top' = topChange$Model, 'T_a' = aa, 'T_b' = bb, 'T_c' = cc, 'T_RSE' = RSE1,
+                       'Base' = baseChange$Model, 'B_a' = aaa, 'B_b' = bbb, 'B_c' = ccc, 'B_RSE' = RSE2, 
+                       'He' = he_Change$Model, 'He_a' = aA, 'He_b' = bB, 'He_c' = cC, 'He_RSE' = RSE3, 
+                       'Ht' = ht_Change$Model, 'Ht_a' = aT, 'Ht_b' = bT, 'Ht_c' = cT, 'Ht_RSE' = RSEt,  
+                       'Width' = w_Change$Model, 'w_a' = aw, 'w_b' = bw, 'w_c' = cw, 'w_RSE' = RSEw)
+  return(models)
+}
+
+#' Predicts proportion cover at a given age
+#' 
+#' Selects model from tabled models per species
+#' @param mods A table of models fit to species, format as per modCollector
+#' @param sp The name of a species in the table mods
+#' @param Age The age of the plant (years since fire)
+#' @return value
+#' @export
+#' 
+pCover <- function(mods, sp, Age = 10){
+  n <- as.numeric(which(mods$Species == sp))
+  if (mods$Cover[n] == "NegExp") {
+    c <- as.numeric(mods$C_a[n]) * (1 - exp(-as.numeric(mods$C_b[n]) * Age))
+  } else if (mods$Cover[n] == "Burr") {
+    c <- as.numeric(mods$C_a[n]) * as.numeric(mods$C_b[n]) * ((0.1 * Age ^ (as.numeric(mods$C_a[n]) - 1)) / ((1 + (0.1 * Age) ^ as.numeric(mods$C_a[n])) ^ as.numeric(mods$C_b[n]) + 1))
+  } else if (mods$Cover[n] == "Linear") {
+    c <- as.numeric(mods$C_a[n]) * Age + as.numeric(mods$C_b[n])
+  } else if (mods$Cover[n] == "Binomial") {
+    c <- as.numeric(mods$C_a[n])*(1/(as.numeric(mods$C_b[n])*sqrt(2*pi)))*exp(-((Age-as.numeric(mods$C_c[n]))^2)/(2*as.numeric(mods$C_b[n])^2))
+  } else if (mods$Cover[n] == "Quadratic") {
+    c <- as.numeric(mods$C_a[n])*Age^2 + as.numeric(mods$C_b[n])*Age + as.numeric(mods$C_c[n])
+  } else if (mods$Cover[n] == "Mean") {
+    c <- as.numeric(mods$C_a[n]) * Age + as.numeric(mods$C_b[n])
+  }
+  return(c)
+}
+
+#' Predicts plant top height at a given age
+#' 
+#' Selects model from tabled models per species
+#' @param mods A table of models fit to species, format as per modCollector
+#' @param sp The name of a species in the table mods
+#' @param Age The age of the plant (years since fire)
+#' @return value
+#' @export
+#' 
+pTop <- function(mods, sp, Age = 10){
+  n <- as.numeric(which(mods$Species == sp))
+  if (mods$Top[n] == "NegExp") {
+    c <- as.numeric(mods$T_a[n]) * (1 - exp(-as.numeric(mods$T_b[n]) * Age))
+  } else if (mods$Top[n] == "Burr") {
+    c <- as.numeric(mods$T_a[n]) * as.numeric(mods$T_b[n]) * ((0.1 * Age ^ (as.numeric(mods$T_a[n]) - 1)) / ((1 + (0.1 * Age) ^ as.numeric(mods$T_a[n])) ^ as.numeric(mods$T_b[n]) + 1))
+  } else if (mods$Top[n] == "Linear") {
+    c <- as.numeric(mods$T_a[n]) * Age + as.numeric(mods$T_b[n])
+  } else if (mods$Top[n] == "Binomial") {
+    c <- as.numeric(mods$T_a[n])*(1/(as.numeric(mods$T_b[n])*sqrt(2*pi)))*exp(-((Age-as.numeric(mods$T_c[n]))^2)/(2*as.numeric(mods$T_b[n])^2))
+  } else if (mods$Top[n] == "Quadratic") {
+    c <- as.numeric(mods$T_a[n])*Age^2 + as.numeric(mods$T_b[n])*Age + as.numeric(mods$T_c[n])
+  } else if (mods$Top[n] == "Mean") {
+    c <- as.numeric(mods$T_a[n]) * Age + as.numeric(mods$T_b[n])
+  }
+  return(c)
+}
+
+#' Predicts plant base height at a given age
+#' 
+#' Selects model from tabled models per species
+#' @param mods A table of models fit to species, format as per modCollector
+#' @param sp The name of a species in the table mods
+#' @param Age The age of the plant (years since fire)
+#' @return value
+#' @export
+#' 
+pBase <- function(mods, sp, Age = 10){
+  n <- as.numeric(which(mods$Species == sp))
+  if (mods$Base[n] == "NegExp") {
+    c <- as.numeric(mods$B_a[n]) * (1 - exp(-as.numeric(mods$B_b[n]) * Age))
+  } else if (mods$Base[n] == "Burr") {
+    c <- as.numeric(mods$B_a[n]) * as.numeric(mods$B_b[n]) * ((0.1 * Age ^ (as.numeric(mods$B_a[n]) - 1)) / ((1 + (0.1 * Age) ^ as.numeric(mods$B_a[n])) ^ as.numeric(mods$B_b[n]) + 1))
+  } else if (mods$Base[n] == "Linear") {
+    c <- as.numeric(mods$B_a[n]) * Age + as.numeric(mods$B_b[n])
+  } else if (mods$Base[n] == "Binomial") {
+    c <- as.numeric(mods$B_a[n])*(1/(as.numeric(mods$B_b[n])*sqrt(2*pi)))*exp(-((Age-as.numeric(mods$B_c[n]))^2)/(2*as.numeric(mods$B_b[n])^2))
+  } else if (mods$Base[n] == "Quadratic") {
+    c <- as.numeric(mods$B_a[n])*Age^2 + as.numeric(mods$B_b[n])*Age + as.numeric(mods$B_c[n])
+  } else if (mods$Base[n] == "Mean") {
+    c <- as.numeric(mods$B_a[n]) * Age + as.numeric(mods$B_b[n])
+  }
+  return(c)
+}
+
+#' Predicts plant He at a given age
+#' 
+#' Selects model from tabled models per species
+#' @param mods A table of models fit to species, format as per modCollector
+#' @param sp The name of a species in the table mods
+#' @param Age The age of the plant (years since fire)
+#' @return value
+#' @export
+#' 
+pHe <- function(mods, sp, Age = 10){
+  n <- as.numeric(which(mods$Species == sp))
+  if (mods$He[n] == "NegExp") {
+    c <- as.numeric(mods$He_a[n]) * (1 - exp(-as.numeric(mods$He_b[n]) * Age))
+  } else if (mods$He[n] == "Burr") {
+    c <- as.numeric(mods$He_a[n]) * as.numeric(mods$He_b[n]) * ((0.1 * Age ^ (as.numeric(mods$He_a[n]) - 1)) / ((1 + (0.1 * Age) ^ as.numeric(mods$He_a[n])) ^ as.numeric(mods$He_b[n]) + 1))
+  } else if (mods$He[n] == "Linear") {
+    c <- as.numeric(mods$He_a[n]) * Age + as.numeric(mods$He_b[n])
+  } else if (mods$He[n] == "Binomial") {
+    c <- as.numeric(mods$He_a[n])*(1/(as.numeric(mods$He_b[n])*sqrt(2*pi)))*exp(-((Age-as.numeric(mods$He_c[n]))^2)/(2*as.numeric(mods$He_b[n])^2))
+  } else if (mods$He[n] == "Quadratic") {
+    c <- as.numeric(mods$He_a[n])*Age^2 + as.numeric(mods$He_b[n])*Age + as.numeric(mods$He_c[n])
+  } else if (mods$He[n] == "Mean") {
+    c <- as.numeric(mods$He_a[n]) * Age + as.numeric(mods$He_b[n])
+  }
+  return(c)
+}
+
+#' Predicts plant Ht at a given age
+#' 
+#' Selects model from tabled models per species
+#' @param mods A table of models fit to species, format as per modCollector
+#' @param sp The name of a species in the table mods
+#' @param Age The age of the plant (years since fire)
+#' @return value
+#' @export
+#' 
+pHt <- function(mods, sp, Age = 10){
+  n <- as.numeric(which(mods$Species == sp))
+  if (mods$Ht[n] == "NegExp") {
+    c <- as.numeric(mods$Ht_a[n]) * (1 - exp(-as.numeric(mods$Ht_b[n]) * Age))
+  } else if (mods$Ht[n] == "Burr") {
+    c <- as.numeric(mods$Ht_a[n]) * as.numeric(mods$Ht_b[n]) * ((0.1 * Age ^ (as.numeric(mods$Ht_a[n]) - 1)) / ((1 + (0.1 * Age) ^ as.numeric(mods$Ht_a[n])) ^ as.numeric(mods$Ht_b[n]) + 1))
+  } else if (mods$Ht[n] == "Linear") {
+    c <- as.numeric(mods$Ht_a[n]) * Age + as.numeric(mods$Ht_b[n])
+  } else if (mods$Ht[n] == "Binomial") {
+    c <- as.numeric(mods$Ht_a[n])*(1/(as.numeric(mods$Ht_b[n])*sqrt(2*pi)))*exp(-((Age-as.numeric(mods$Ht_c[n]))^2)/(2*as.numeric(mods$Ht_b[n])^2))
+  } else if (mods$Ht[n] == "Quadratic") {
+    c <- as.numeric(mods$Ht_a[n])*Age^2 + as.numeric(mods$Ht_b[n])*Age + as.numeric(mods$Ht_c[n])
+  } else if (mods$Ht[n] == "Mean") {
+    c <- as.numeric(mods$Ht_a[n]) * Age + as.numeric(mods$Ht_b[n])
+  }
+  return(c)
+}
+
+#' Predicts plant crown width at a given age
+#' 
+#' Selects model from tabled models per species
+#' @param mods A table of models fit to species, format as per modCollector
+#' @param sp The name of a species in the table mods
+#' @param Age The age of the plant (years since fire)
+#' @return value
+#' @export
+#' 
+pWidth <- function(mods, sp, Age = 10){
+  n <- as.numeric(which(mods$Species == sp))
+  if (mods$Width[n] == "NegExp") {
+    c <- as.numeric(mods$w_a[n]) * (1 - exp(-as.numeric(mods$w_b[n]) * Age))
+  } else if (mods$Width[n] == "Burr") {
+    c <- as.numeric(mods$w_a[n]) * as.numeric(mods$w_b[n]) * ((0.1 * Age ^ (as.numeric(mods$w_a[n]) - 1)) / ((1 + (0.1 * Age) ^ as.numeric(mods$w_a[n])) ^ as.numeric(mods$w_b[n]) + 1))
+  } else if (mods$Width[n] == "Linear") {
+    c <- as.numeric(mods$w_a[n]) * Age + as.numeric(mods$w_b[n])
+  } else if (mods$Width[n] == "Binomial") {
+    c <- as.numeric(mods$w_a[n])*(1/(as.numeric(mods$w_b[n])*sqrt(2*pi)))*exp(-((Age-as.numeric(mods$w_c[n]))^2)/(2*as.numeric(mods$w_b[n])^2))
+  } else if (mods$Width[n] == "Quadratic") {
+    c <- as.numeric(mods$w_a[n])*Age^2 + as.numeric(mods$w_b[n])*Age + as.numeric(mods$w_c[n])
+  } else if (mods$Width[n] == "Mean") {
+    c <- as.numeric(mods$w_a[n]) * Age + as.numeric(mods$w_b[n])
+  }
+  return(c)
+}
+

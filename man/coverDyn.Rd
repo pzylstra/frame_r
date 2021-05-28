@@ -2,14 +2,14 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{coverDyn}
 \alias{coverDyn}
-\title{Builds models for cover dynamics of surveyed species}
+\title{Builds models for cover dynamics of surveyed Species}
 \usage{
 coverDyn(dat, thres = 5, pnts = 10, p = 0.05)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}
 
-\item{thres}{The minimum percent cover (0-100) of a species that will be analysed}
+\item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
 \item{pnts}{The number of points measured in a transect}
 
@@ -21,9 +21,9 @@ dataframe
 \description{
 Input table requires the following fields:
 Point - numbered point in a transect
-species - name of the surveyed species
+Species - name of the surveyed Species
 Age - age of the site since the triggering disturbance
 }
 \details{
-Species that are less common than the set threshold are combined as "Minor species"
+Species that are less common than the set threshold are combined as "Minor Species"
 }
