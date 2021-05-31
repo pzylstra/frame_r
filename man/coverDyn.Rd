@@ -4,7 +4,7 @@
 \alias{coverDyn}
 \title{Builds models for cover dynamics of surveyed Species}
 \usage{
-coverDyn(dat, thres = 5, pnts = 10, p = 0.05)
+coverDyn(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}
@@ -14,6 +14,11 @@ coverDyn(dat, thres = 5, pnts = 10, p = 0.05)
 \item{pnts}{The number of points measured in a transect}
 
 \item{p}{The maximum allowable p value for a model}
+
+\item{bTest}{Multiples of mean + mRSE for which Burr & quadratic models can predict 
+beyond the observed mean + standard deviation}
+
+\item{maxiter}{The maximum number of iterations for model fitting}
 }
 \value{
 dataframe

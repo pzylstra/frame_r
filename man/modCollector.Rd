@@ -4,7 +4,7 @@
 \alias{modCollector}
 \title{Collects parameters for the best models of each Species structural parameter}
 \usage{
-modCollector(dat, thres = 5, pnts = 10, p = 0.01)
+modCollector(dat, thres = 5, pnts = 10, p = 0.01, bTest = 10, maxiter = 1000)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}
@@ -14,6 +14,8 @@ modCollector(dat, thres = 5, pnts = 10, p = 0.01)
 \item{pnts}{The number of points measured in a transect}
 
 \item{p}{The maximum allowable p value for a model}
+
+\item{maxiter}{The maximum number of iterations for model fitting}
 }
 \value{
 dataframe
