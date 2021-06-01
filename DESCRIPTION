@@ -1,7 +1,7 @@
 Package: frame
 Type: Package
 Title: Fire Research and Modelling Environment
-Version: 0.3.1
+Version: 0.3.2
 Date: 2020-07-03
 Authors@R: as.person( c(
     "Philip Zylstra <pzylstra@uow.edu.au> [cre]",
@@ -28,7 +28,7 @@ Imports:
     RSQLite(>= 2.1.1),
     stringr(>= 1.4.0),
     tidyr(>= 0.8.0),
-    extraDistr
+    extraDistr(>= 1.9.0)
 Encoding: UTF-8
 LazyData: TRUE
 RoxygenNote: 7.1.1
