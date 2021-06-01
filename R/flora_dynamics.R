@@ -1,58 +1,3 @@
-#' Finds % cover of surveyed Species and groups minor Species
-#'
-#' Input table requires the following fields:
-#' Point - numbered point in a transect
-#' Species - name of the surveyed Species
-#' Age - age of the site since the triggering disturbance
-#' 
-#' Species that are less common than the set threshold are combined as "Minor Species"
-#'
-#' @param dat The dataframe containing the input data,
-#' @param thres The minimum percent cover (0-100) of a Species that will be kept single
-#' @param pnts The number of points measured in a transect
-#' @return dataframe
-#' @export
-
-specCover <- function(dat, thres = 5, pnts = 10) {
-  
-  #List Species and ages
-  spList <- unique(dat$Species, incomparables = FALSE)
-  ages <- unique(dat$Age, incomparables = FALSE)
-  
-  #Create empty summary dataframe
-  spCover <- data.frame('Species' = character(0), 'Age' = numeric(0), 'Cover' = numeric(0), stringsAsFactors=F)
-  
-  #DATA COLLECTION
-  for (sp in 1:length(spList)) {
-    for (age in ages) {
-      spName <- dat %>% filter(Species == spList[sp])
-      spAge <- spName %>% filter(Age == age)
-      
-      #Percent cover
-      sppnts <- unique(spAge$Point, incomparables = FALSE)
-      covSp <- as.numeric(length(sppnts))*(100/pnts)
-      
-      #Record values
-      spCover[nrow(spCover)+1,] <- c(as.character(spList[sp]), as.numeric(age), as.numeric(covSp))
-    }
-  }
-  
-  #Group minor Species
-  spCover$Cover <- as.numeric(as.character(spCover$Cover))
-  spShort <- spCover %>%
-    group_by(Species) %>%
-    summarise_if(is.numeric, mean)
-  #List minor Species, then rename in dataset
-  minor <- spShort %>% filter(Cover < thres)
-  minList <- unique(minor$Species, incomparables = FALSE)
-  if (length(minList)>0) {
-    for (snew in 1:length(minList)) {
-      spCover[spCover == minor$Species[snew]] <- "Minor Species"
-    }
-  }
-  return(spCover)
-}
-
 #' Finds the RSE for the mean of a vector
 #'
 #' @param vec A vector of the values being predicted
@@ -1865,25 +1810,130 @@ pWidth <- function(mods, sp, Age = 10){
   return(c)
 }
 
-
-#' Counts species richness at a point
+#' Arranges survey data into strata using k-means clustering
 #' 
-#' Selects model from tabled models per species
-#' @param dat 
+#' @param veg A dataframe listing plant species with columns describing crown dimensions
+#' @param cols A list of the columns that will be used for classification
+#' @param nstrat Number of strata. Defaults to 4
+#' @return Dataframe
+#' @export
+
+stratify <- function(veg, cols, nstrat = 4)
+{
+  df <- scale(veg[,cols])
+  set.seed(123)
+  km.res <- kmeans(df, 4, nstart = 25)
+  clust <- cbind(veg, cluster = km.res$cluster)
+  h <- clust %>% group_by(cluster) %>%
+    summarise_if(is.numeric, mean) %>%
+    arrange(hp) %>%
+    mutate(Stratum = 1:nstrat) %>%
+    select(cluster, Stratum)
+  
+  strat <- left_join(clust,h, by = 'cluster') %>%
+    select(!cluster) %>%
+    arrange(Stratum, species)
+  return(strat)
+}
+
+
+#' Finds the distribution of species richness at a point
+#'
+#' Input table requires the following fields:
+#' Point - numbered point in a transect
+#' Species - name of the surveyed Species
+#' Age - age of the site since the triggering disturbance
+#' 
+#' Species that are less common than the set threshold are combined as "Minor Species"
+#'
+#' @param dat The dataframe containing the input data,
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
+#' @param pnts The number of points measured in a transect
+#' @param p The maximum allowable p value for a model
+#' @param bTest Multiples of mean + mRSE for which Burr & quadratic models can predict 
+#' beyond the observed mean + standard deviation
+#' @param maxiter The maximum number of iterations for model fitting
 #' @return dataframe
 #' @export
+
+rich <- function(dat, thres = 5, pnts = 10, p = 0.05) {
+  
+  spCov <- frame::specCover(dat = dat, thres = 0, pnts = pnts)%>%
+    group_by(Species)%>%
+    summarise_if(is.numeric, mean)
+  dat <- suppressMessages(left_join(dat, spCov))%>%
+    mutate(Species = replace(Species, which(Cover < thres), "Minor Species"))
+  
+  y <- suppressMessages(dat %>%
+                          group_by(Site, Point) %>%
+                          summarise(n_distinct(Species)))
+  
+  #DATA ANALYSIS
+  fitr <- data.frame('Mean' = character(0), 'SD' = character(0), 'Min' = character(0), 'Max' = character(0), stringsAsFactors=F)
+  
+  #Summary stats
+  meanw <- round(mean(y$`n_distinct(Species)`, na.rm = TRUE),1)
+  sdw <- round(sd(y$`n_distinct(Species)`, na.rm = TRUE), 2)
+  minw <- as.numeric(min(y$`n_distinct(Species)`, na.rm = TRUE))
+  maxw <- as.numeric(max(y$`n_distinct(Species)`, na.rm = TRUE))
+  
+  #Record values
+  fitr[nrow(fitr)+1,] <- c(meanw, sdw, minw, maxw)
+  
+  return(fitr)
+}
+
+#' Finds % cover of surveyed Species and groups minor Species
+#'
+#' Input table requires the following fields:
+#' Point - numbered point in a transect
+#' Species - name of the surveyed Species
+#' Age - age of the site since the triggering disturbance
 #' 
-ageRich <- function(dat){
+#' Species that are less common than the set threshold are combined as "Minor Species"
+#'
+#' @param dat The dataframe containing the input data,
+#' @param thres The minimum percent cover (0-100) of a Species that will be kept single
+#' @param pnts The number of points measured in a transect
+#' @return dataframe
+#' @export
+
+specCover <- function(dat, thres = 5, pnts = 10) {
   
-  sites <- unique(dat$Site)
-  ageR <- data.frame('Age' = numeric(0), 'r' = numeric(0))
+  #List Species and ages
+  spList <- unique(dat$Species, incomparables = FALSE)
+  ages <- unique(dat$Age, incomparables = FALSE)
   
-  for (a in 1:length(sites)) {
-    DT <- data.table::data.table(filter(dat, Site == sites[a]))
-    y <- as.data.frame(DT[, .(r = uniqueN(Species)), by = Point]) 
-    y$Age <- DT$Age[1]
-    y <- y%>% select(Age, r)
-    ageR <- rbind(ageR,y)
+  #Create empty summary dataframe
+  spCover <- data.frame('Species' = character(0), 'Age' = numeric(0), 'Cover' = numeric(0), stringsAsFactors=F)
+  
+  #DATA COLLECTION
+  for (sp in 1:length(spList)) {
+    for (age in ages) {
+      spName <- dat %>% filter(Species == spList[sp])
+      spAge <- spName %>% filter(Age == age)
+      
+      #Percent cover
+      sppnts <- unique(spAge$Point, incomparables = FALSE)
+      covSp <- as.numeric(length(sppnts))*(100/pnts)
+      
+      #Record values
+      spCover[nrow(spCover)+1,] <- c(as.character(spList[sp]), as.numeric(age), as.numeric(covSp))
+    }
   }
-  return(ageR)
+  
+  #Group minor Species
+  spCover$Cover <- as.numeric(as.character(spCover$Cover))
+  spShort <- spCover %>%
+    group_by(Species) %>%
+    summarise_if(is.numeric, mean)
+  #List minor Species, then rename in dataset
+  minor <- spShort %>% filter(Cover < thres)
+  minList <- unique(minor$Species, incomparables = FALSE)
+  if (length(minList)>0) {
+    for (snew in 1:length(minList)) {
+      spCover[spCover == minor$Species[snew]] <- "Minor Species"
+    }
+  }
+  return(spCover)
 }
