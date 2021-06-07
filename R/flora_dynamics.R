@@ -1825,15 +1825,15 @@ stratify <- function(veg, cols, nstrat = 4)
   set.seed(123)
   km.res <- kmeans(df, centers = nstrat, nstart = 25)
   clust <- cbind(veg, cluster = km.res$cluster)
-  h <- clust %>% group_by(cluster) %>%
-    summarise_if(is.numeric, mean) %>%
-    arrange(hp) %>%
-    mutate(Stratum = 1:nstrat) %>%
+  h <- clust %>% 
+    group_by(cluster) %>% 
+    summarise_if(is.numeric, mean) %>% 
+    arrange(top) %>% 
+    mutate(Stratum = 1:nstrat) %>% 
     select(cluster, Stratum)
-  
-  strat <- left_join(clust,h, by = 'cluster') %>%
-    select(!cluster) %>%
-    arrange(Stratum, species)
+  strat <- left_join(clust, h, by = "cluster") %>% 
+    select(!cluster) %>% 
+    arrange(Stratum)
   return(strat)
 }
 
