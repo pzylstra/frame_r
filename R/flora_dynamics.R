@@ -1820,9 +1820,10 @@ pWidth <- function(mods, sp, Age = 10){
 
 stratify <- function(veg, cols, nstrat = 4)
 {
-  df <- scale(veg[,cols])
+  veg <- veg[complete.cases(veg), ]
+  df <- scale(veg[, cols])
   set.seed(123)
-  km.res <- kmeans(df, 4, nstart = 25)
+  km.res <- kmeans(df, centers = nstrat, nstart = 25)
   clust <- cbind(veg, cluster = km.res$cluster)
   h <- clust %>% group_by(cluster) %>%
     summarise_if(is.numeric, mean) %>%
