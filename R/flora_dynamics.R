@@ -1884,6 +1884,43 @@ rich <- function(dat, thres = 5, pnts = 10, p = 0.05) {
   return(fitr)
 }
 
+
+#' Divides site data into consecutively numbered strata with
+#' base and top heights
+#'
+#' Input table requires the following fields:
+#' Point - numbered point in a transect
+#' A field with the base height of the plants
+#' A field with the top height of the plants
+#' 
+#' Species that are less common than the set threshold are combined as "Minor Species"
+#'
+#' @param dat The dataframe containing the input data
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
+#' @param pnts The number of points measured in a transect
+#' @param base Name of the field with the base height
+#' @param top Name of the field with tghe top height
+#' @return dataframe
+#' @export
+#' 
+stratSite <- function(dat, thres = 0, pnts = 10, base = "base", top = "top")  {
+  strataDet <- data.frame(Stratum = numeric(0), Cover = numeric(0), 
+                          Base = numeric(0), Top = numeric(0), stringsAsFactors = F)
+  r <- rich(dat, thres = thres, pnts = pnts)
+  nstrat <- round(min(4, as.numeric(r$Mean)),0)
+  strat <- stratify(dat, cols = c(3:6), nstrat = nstrat)
+  for (st in 1:nstrat) {
+    stratSub <- strat %>% filter(Stratum == st)
+    spnts <- unique(stratSub$Point, incomparables = FALSE)
+    co <- length(spnts)/pnts
+    b <- mean(stratSub$base)
+    t <- mean(stratSub$top)
+    strataDet[nrow(strataDet) + 1, ] <- c(as.numeric(st), as.numeric(co),
+                                          as.numeric(b), as.numeric(t))
+  }
+  return(strataDet)
+}
+
 #' Finds % cover of surveyed Species and groups minor Species
 #'
 #' Input table requires the following fields:
