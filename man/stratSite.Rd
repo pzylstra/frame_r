@@ -16,7 +16,7 @@ stratSite(dat, thres = 0, pnts = 10, base = "base", top = "top")
 
 \item{base}{Name of the field with the base height}
 
-\item{top}{Name of the field with tghe top height}
+\item{top}{Name of the field with the top height}
 }
 \value{
 dataframe
