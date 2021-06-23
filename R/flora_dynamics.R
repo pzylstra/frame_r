@@ -1670,7 +1670,7 @@ pCover <- function(mods, sp, Age = 10){
   } else if (mods$Cover[n] == "Quadratic") {
     c <- as.numeric(mods$C_a[n])*Age^2 + as.numeric(mods$C_b[n])*Age + as.numeric(mods$C_c[n])
   } else if (mods$Cover[n] == "Mean") {
-    c <- as.numeric(mods$C_a[n])
+    c <- as.numeric(mods$C_b[n])
   }
   return(c)
 }
@@ -1697,7 +1697,7 @@ pTop <- function(mods, sp, Age = 10){
   } else if (mods$Top[n] == "Quadratic") {
     c <- as.numeric(mods$T_a[n])*Age^2 + as.numeric(mods$T_b[n])*Age + as.numeric(mods$T_c[n])
   } else if (mods$Top[n] == "Mean") {
-    c <- as.numeric(mods$T_a[n])
+    c <- as.numeric(mods$T_b[n])
   }
   return(c)
 }
@@ -1724,7 +1724,7 @@ pBase <- function(mods, sp, Age = 10){
   } else if (mods$Base[n] == "Quadratic") {
     c <- as.numeric(mods$B_a[n])*Age^2 + as.numeric(mods$B_b[n])*Age + as.numeric(mods$B_c[n])
   } else if (mods$Base[n] == "Mean") {
-    c <- as.numeric(mods$B_a[n])
+    c <- as.numeric(mods$B_b[n])
   }
   return(c)
 }
@@ -1751,7 +1751,7 @@ pHe <- function(mods, sp, Age = 10){
   } else if (mods$He[n] == "Quadratic") {
     c <- as.numeric(mods$He_a[n])*Age^2 + as.numeric(mods$He_b[n])*Age + as.numeric(mods$He_c[n])
   } else if (mods$He[n] == "Mean") {
-    c <- as.numeric(mods$He_a[n])
+    c <- as.numeric(mods$He_b[n])
   }
   return(c)
 }
@@ -1778,7 +1778,7 @@ pHt <- function(mods, sp, Age = 10){
   } else if (mods$Ht[n] == "Quadratic") {
     c <- as.numeric(mods$Ht_a[n])*Age^2 + as.numeric(mods$Ht_b[n])*Age + as.numeric(mods$Ht_c[n])
   } else if (mods$Ht[n] == "Mean") {
-    c <- as.numeric(mods$Ht_a[n])
+    c <- as.numeric(mods$Ht_b[n])
   }
   return(c)
 }
@@ -1805,7 +1805,7 @@ pWidth <- function(mods, sp, Age = 10){
   } else if (mods$Width[n] == "Quadratic") {
     c <- as.numeric(mods$w_a[n])*Age^2 + as.numeric(mods$w_b[n])*Age + as.numeric(mods$w_c[n])
   } else if (mods$Width[n] == "Mean") {
-    c <- as.numeric(mods$w_a[n])
+    c <- as.numeric(mods$w_b[n])
   }
   return(c)
 }
