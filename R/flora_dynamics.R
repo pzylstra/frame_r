@@ -218,7 +218,7 @@ spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
     }
     
     #Summary stats
-    meanCov <- round(mean(y),1)
+    meanCov <- round(mean(y, na.rm = TRUE),1)
     m_sig <- round(mRSE(dat = y),3)
     model <- if (min(Binp,Bp,NEp,LMp, qp, na.rm = TRUE)<p) {
       if (Bp<=min(LMp,NEp,Binp, qp, na.rm = TRUE)) {
@@ -459,7 +459,7 @@ topDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 10
     }
     
     #Summary stats
-    meanTop <- round(mean(y),1)
+    meanTop <- round(mean(y, na.rm = TRUE),1)
     m_sig <- round(mRSE(dat = y),3)
     model <- if (min(Binp,Bp,NEp,LMp, qp, na.rm = TRUE)<p) {
       if (Bp<=min(LMp,NEp,Binp, qp, na.rm = TRUE)) {
@@ -703,7 +703,7 @@ baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1
     }
     
     #Summary stats
-    meanBase <- round(mean(y),1)
+    meanBase <- round(mean(y, na.rm = TRUE),1)
     m_sig <- round(mRSE(dat = y),3)
     model <- if (min(Binp,Bp,NEp,LMp, qp, na.rm = TRUE)<p) {
       if (Bp<=min(LMp,NEp,Binp, qp, na.rm = TRUE)) {
