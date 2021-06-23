@@ -1820,7 +1820,11 @@ pWidth <- function(mods, sp, Age = 10){
 
 stratify <- function(veg, cols, nstrat = 4)
 {
-  veg <- veg[complete.cases(veg), ]
+  veg <- veg %>%
+    mutate(base = case_when(base == 0 ~ 0.001,
+                            TRUE ~ base),
+           base = log(base),
+           top = log(top))
   df <- scale(veg[, cols])
   set.seed(123)
   km.res <- kmeans(df, centers = nstrat, nstart = 25)
@@ -1833,7 +1837,9 @@ stratify <- function(veg, cols, nstrat = 4)
     select(cluster, Stratum)
   strat <- left_join(clust, h, by = "cluster") %>% 
     select(!cluster) %>% 
-    arrange(Stratum)
+    arrange(Stratum) %>%
+    mutate(base = exp(base),
+           top = exp(top))
   return(strat)
 }
 
