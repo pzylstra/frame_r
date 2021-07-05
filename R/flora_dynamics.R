@@ -1820,6 +1820,8 @@ pWidth <- function(mods, sp, Age = 10){
 
 stratify <- function(veg, cols, nstrat = 4)
 {
+  veg_subset <- veg[ , cols]
+  veg <- veg[complete.cases(veg_subset), ] # Omit NAs in relevant columns
   veg <- veg %>%
     mutate(base = case_when(base == 0 ~ 0.001,
                             TRUE ~ base),
@@ -1842,7 +1844,6 @@ stratify <- function(veg, cols, nstrat = 4)
            top = exp(top))
   return(strat)
 }
-
 
 #' Finds the distribution of species richness at a point
 #'
