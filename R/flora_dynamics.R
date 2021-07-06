@@ -1166,8 +1166,10 @@ wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000
 }
 
 
-#' Collects parameters for the best models of each Species structural parameter
+#' Builds the plant growth table used in dynamic modelling
 #' 
+#' Models plant growth from field data in a series of models,
+#' selecting the best model and providing error statistics.
 #'
 #' Input table requires the following fields:
 #' Point - numbered point in a transect
@@ -1184,7 +1186,7 @@ wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000
 #' @return dataframe
 #' @export
 
-modCollector <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxiter = 1000){
+growthTable <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxiter = 1000){
   
   coverChange <- coverDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = bTest, maxiter = maxiter)
   topChange <- topDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = bTest, maxiter = maxiter)
