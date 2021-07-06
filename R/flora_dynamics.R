@@ -1891,6 +1891,44 @@ rich <- function(dat, thres = 5, pnts = 10, p = 0.05) {
   return(fitr)
 }
 
+#' Finds the distribution of species richness per stratum
+#'
+#' Input table requires the following fields:
+#' Point - numbered point in a transect
+#' Species - name of the surveyed Species
+#' base - base height of each species
+#' top - top height of each species
+#' 
+#' Species that are less common than the set threshold are combined as "Minor Species"
+#'
+#' @param dat The dataframe containing the input data,
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
+#' @param cols A list of the columns to be used for stratification, including base & top
+#' @param pnts The number of points measured in a transect
+#' @param p The maximum allowable p value for a model
+#' @param nstrat The maximum number of strata
+#' @return dataframe
+#' @export
+
+richStrat <- function(dat, thres = 5, cols, pnts = 10, p = 0.05, nstrat = 4) {
+  
+  spCov <- frame::specCover(dat = dat, thres = 0, pnts = pnts)%>%
+    group_by(Species)%>%
+    summarise_if(is.numeric, mean)
+  dat <- suppressMessages(left_join(dat, spCov))%>%
+    mutate(Species = replace(Species, which(Cover < thres), "Minor Species"))
+  
+  datS <- stratify(veg = dat, cols = cols, nstrat = nstrat)
+  
+  out <- suppressMessages(datS %>%
+                            group_by(Stratum) %>%
+                            summarise(n_distinct(Species)))
+  out$Richness <- as.numeric(out$`n_distinct(Species)`)
+  out <- out %>% select(Stratum, Richness)
+  
+  return(out)
+}
+
 
 #' Divides site data into consecutively numbered strata with
 #' base and top heights
