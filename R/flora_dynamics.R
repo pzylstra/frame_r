@@ -1944,7 +1944,7 @@ richStrat <- function(dat, thres = 5, cols, pnts = 10, p = 0.05, nstrat = 4) {
 #' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
 #' @param base Name of the field with the base height
-#' @param top Name of the field with tghe top height
+#' @param top Name of the field with the top height
 #' @return dataframe
 #' @export
 #' 
