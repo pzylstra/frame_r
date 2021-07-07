@@ -1937,9 +1937,8 @@ rich <- function(dat, thres = 5, pnts = 10, p = 0.05) {
 #' @param p The maximum allowable p value for a model
 #' @param nstrat The maximum number of strata
 #' @return dataframe
-#' @export
 
-richStrat <- function(dat, thres = 5, cols, pnts = 10, p = 0.05, nstrat = 4) {
+richS <- function(dat, thres = 5, cols, pnts = 10, nstrat = 4) {
   
   spCov <- frame::specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
@@ -1993,6 +1992,77 @@ stratSite <- function(dat, thres = 0, pnts = 10, base = "base", top = "top")  {
                                           as.numeric(b), as.numeric(t))
   }
   return(strataDet)
+}
+
+
+#' Calculates the range, mean and sd of 
+#' species richness in each plant stratum
+#'
+#' Input table requires the following fields:
+#' Point - numbered point in a transect
+#' A field with the base height of the plants
+#' A field with the top height of the plants
+#' 
+#' Species that are less common than the set threshold are combined as "Minor Species"
+#'
+#' @param dat The dataframe containing the input data
+#' @param cols A list of column numbers used for stratifying
+#' @param thres The minimum percent cover (0-100) of a Species that will be analysed
+#' @param pnts The number of points measured in a transect
+#' @param nstrat Maximum number of strata
+#' @return dataframe
+#' @export
+#' 
+stratRich <- function(dat, cols, thres = 5, pnts = 10, nstrat = 4) {
+  
+  richList <- data.frame('S1' = numeric(0), 'S2' = numeric(0),
+                         'S3' = numeric(0), 'S4' = numeric(0))
+  slist <- unique(dat$Site, incomparables = FALSE)
+  
+  for (s in slist) {
+    datSite <- filter(dat, Site == s)
+    sRich <- richS(dat = datSite, cols = cols, thres = thres, 
+                   pnts = pnts, nstrat = 4)
+    nstrat <- as.numeric(max(sRich$Stratum))
+    # Record values
+    richList[which(slist == s), 1] <- sRich$Richness[1]
+    if (nstrat > 1) {
+      richList[which(slist == s),2] <- sRich$Richness[2]
+    }
+    if (nstrat > 2) {
+      richList[which(slist == s),3] <- sRich$Richness[3]
+    }
+    if (nstrat > 3) {
+      richList[which(slist == s),4] <- sRich$Richness[4]
+    }
+  }
+  
+  #DATA ANALYSIS
+  fitr <- data.frame('Stratum' = numeric(0), 'Mean' = numeric(0), 'SD' = numeric(0), 
+                     'Min' = numeric(0), 'Max' = numeric(0), stringsAsFactors=F)
+  fitr[1,1] <- 1
+  fitr[1,2] <- mean(richList$S1, na.rm = TRUE)
+  fitr[1,3] <- sd(richList$S1, na.rm = TRUE)
+  fitr[1,4] <- min(richList$S1, na.rm = TRUE)
+  fitr[1,5] <- max(richList$S1, na.rm = TRUE)
+  fitr[2,1] <- 2
+  fitr[2,2] <- mean(richList$S2, na.rm = TRUE)
+  fitr[2,3] <- sd(richList$S2, na.rm = TRUE)
+  fitr[2,4] <- min(richList$S2, na.rm = TRUE)
+  fitr[2,5] <- max(richList$S2, na.rm = TRUE)
+  fitr[3,1] <- 3
+  fitr[3,2] <- mean(richList$S3, na.rm = TRUE)
+  fitr[3,3] <- sd(richList$S3, na.rm = TRUE)
+  fitr[3,4] <- min(richList$S3, na.rm = TRUE)
+  fitr[3,5] <- max(richList$S3, na.rm = TRUE)
+  fitr[4,1] <- 4
+  fitr[4,2] <- mean(richList$S4, na.rm = TRUE)
+  fitr[4,3] <- sd(richList$S4, na.rm = TRUE)
+  fitr[4,4] <- min(richList$S4, na.rm = TRUE)
+  fitr[4,5] <- max(richList$S4, na.rm = TRUE)
+  
+  
+  return(fitr)
 }
 
 #' Finds % cover of surveyed Species and groups minor Species
