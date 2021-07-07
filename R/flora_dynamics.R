@@ -1186,7 +1186,9 @@ wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000
 #' @return dataframe
 #' @export
 
-growthTable <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxiter = 1000){
+floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxiter = 1000,
+                          Sr = 0, Sk = 0, Sa = 0, Sb = 0, Sc = 0, 
+                          NSr = 0, NSk = 0, NSa = 0, NSb = 0, NSc = 0){
   
   coverChange <- coverDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = bTest, maxiter = maxiter)
   topChange <- topDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = bTest, maxiter = maxiter)
@@ -1647,6 +1649,31 @@ growthTable <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxite
                        'He' = he_Change$Model, 'He_a' = aA, 'He_b' = bB, 'He_c' = cC, 'He_RSE' = RSE3, 
                        'Ht' = ht_Change$Model, 'Ht_a' = aT, 'Ht_b' = bT, 'Ht_c' = cT, 'Ht_RSE' = RSEt,  
                        'Width' = w_Change$Model, 'w_a' = aw, 'w_b' = bw, 'w_c' = cw, 'w_RSE' = RSEw)
+  # Dead biomass
+  litter <- case_when(
+    Sr != 0  ~ "NegExp",
+    Sa != 0 ~ "Quadratic",
+    TRUE ~ as.character("Set")
+  ) 
+  suspNS <- case_when(
+    NSr != 0  ~ "NegExp",
+    NSa != 0 ~ "Quadratic",
+    TRUE ~ as.character("Set")
+  )
+  models[length(models$Species)+1,1] <- "Litter"
+  models$Dead[length(models$Species)] <- litter
+  models$d_Max[length(models$Species)] <- Sk
+  models$d_Rate[length(models$Species)] <- Sr
+  models$d_a[length(models$Species)] <- Sa
+  models$d_b[length(models$Species)] <- Sb
+  models$d_c[length(models$Species)] <- Sc
+  models[length(models$Species)+1,1] <- "suspNS"
+  models$Dead[length(models$Species)] <- suspNS
+  models$d_Max[length(models$Species)] <- NSk
+  models$d_Rate[length(models$Species)] <- NSr
+  models$d_a[length(models$Species)] <- NSa
+  models$d_b[length(models$Species)] <- NSb
+  models$d_c[length(models$Species)] <- NSc
   return(models)
 }
 
