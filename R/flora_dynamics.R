@@ -1995,7 +1995,7 @@ stratSite <- function(dat, thres = 0, pnts = 10, base = "base", top = "top")  {
 }
 
 
-#' Calculates the range, mean and sd of 
+#' Calculates the range, mean and sd of .
 #' species richness in each plant stratum
 #'
 #' Input table requires the following fields:
