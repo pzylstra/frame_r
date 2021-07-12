@@ -1842,7 +1842,7 @@ pWidth <- function(mods, sp, Age = 10){
 #' Arranges survey data into strata using k-means clustering
 #' 
 #' @param veg A dataframe listing plant species with columns describing crown dimensions
-#' @param cols A list of the columns that will be used for classification
+#' @param cols A list of the columns that will be used for classification, and the species name
 #' @param nstrat Number of strata. Defaults to 4
 #' @return Dataframe
 #' @export
@@ -1850,28 +1850,26 @@ pWidth <- function(mods, sp, Age = 10){
 stratify <- function(veg, cols, nstrat = 4)
 {
   veg_subset <- veg[ , cols]
-  veg <- veg[complete.cases(veg_subset), ] # Omit NAs in relevant columns
-  veg <- veg %>%
-    mutate(base = case_when(base == 0 ~ 0.001,
-                            TRUE ~ base),
-           base = log(base),
-           top = log(top))
-  df <- scale(veg[, cols])
+  veg_subset <- veg_subset[complete.cases(veg_subset), ] # Omit NAs in relevant columns
+  veg_subset <- veg_subset %>%
+    mutate(base = case_when(veg_subset[,3] == 0 ~ 0.001, TRUE ~ veg_subset[,3]),
+           top = log(veg_subset[2]),
+           base = log(base))
+  df <- scale(veg_subset[, c(4,5)])
   set.seed(123)
   km.res <- kmeans(df, centers = nstrat, nstart = 25)
-  clust <- cbind(veg, cluster = km.res$cluster)
-  h <- clust %>% 
+  clust <- cbind(veg_subset, cluster = km.res$cluster)
+  h <- clust[order(clust[,2]),] %>% 
     group_by(cluster) %>% 
-    summarise_if(is.numeric, mean) %>% 
-    arrange(top) %>% 
+    summarise_if(is.numeric, mean)
+  
+  h <- h[order(h[,2]),] %>% 
     mutate(Stratum = 1:nstrat) %>% 
     select(cluster, Stratum)
   strat <- left_join(clust, h, by = "cluster") %>% 
-    select(!cluster) %>% 
-    arrange(Stratum) %>%
-    mutate(base = exp(base),
-           top = exp(top))
-  return(strat)
+    select(Species, Stratum) 
+  veg <- left_join(veg, strat, by = "Species")
+  return(veg)
 }
 
 #' Finds the distribution of species richness at a point

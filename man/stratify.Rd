@@ -9,7 +9,7 @@ stratify(veg, cols, nstrat = 4)
 \arguments{
 \item{veg}{A dataframe listing plant species with columns describing crown dimensions}
 
-\item{cols}{A list of the columns that will be used for classification}
+\item{cols}{A list of the columns that will be used for classification, and the species name}
 
 \item{nstrat}{Number of strata. Defaults to 4}
 }
