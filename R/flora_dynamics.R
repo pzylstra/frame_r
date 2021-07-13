@@ -1840,35 +1840,40 @@ pWidth <- function(mods, sp, Age = 10){
 }
 
 #' Arranges survey data into strata using k-means clustering
+#' Strata are sorted by top height and appended to the original data
 #' 
 #' @param veg A dataframe listing plant species with columns describing crown dimensions
-#' @param cols A list of the columns that will be used for classification, and the species name
+#' @param pN The number of the point in the transect
+#' @param spName Name of the field with the species name
+#' @param pBase Name of the field with the base height
+#' @param pTop Name of the field with the top height
 #' @param nstrat Number of strata. Defaults to 4
 #' @return Dataframe
 #' @export
 
-stratify <- function(veg, cols, nstrat = 4)
+stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop = "top", nstrat = 4)
 {
-  veg_subset <- veg[ , cols]
+  veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, pBase, pTop)))
   veg_subset <- veg_subset[complete.cases(veg_subset), ] # Omit NAs in relevant columns
   veg_subset <- veg_subset %>%
     mutate(base = case_when(veg_subset[,3] == 0 ~ 0.001, TRUE ~ veg_subset[,3]),
-           top = log(veg_subset[2]),
-           base = log(base))
-  df <- scale(veg_subset[, c(4,5)])
+           lBase = log(veg_subset[,3]),
+           lBase = case_when(is.infinite(lBase) ~ -6.9, TRUE ~ veg_subset[,3]),
+           lTop = log(veg_subset[,4]))
+  df <- scale(veg_subset[, c(5,6)])
   set.seed(123)
   km.res <- kmeans(df, centers = nstrat, nstart = 25)
   clust <- cbind(veg_subset, cluster = km.res$cluster)
-  h <- clust[order(clust[,2]),] %>% 
+  h <- clust %>% 
     group_by(cluster) %>% 
     summarise_if(is.numeric, mean)
   
-  h <- h[order(h[,2]),] %>% 
+  h <- h[wrapr::orderv(h[,4]),] %>% 
     mutate(Stratum = 1:nstrat) %>% 
     select(cluster, Stratum)
   strat <- left_join(clust, h, by = "cluster") %>% 
-    select(Species, Stratum) 
-  veg <- left_join(veg, strat, by = "Species")
+    dplyr::select(all_of(c(pN, spName, pTop, "Stratum")))
+  veg <- left_join(veg, strat, by = c(pN, spName, pTop))
   return(veg)
 }
 
