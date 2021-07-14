@@ -2068,6 +2068,83 @@ stratRich <- function(dat, cols, thres = 5, pnts = 10, nstrat = 4) {
   return(fitr)
 }
 
+#' Constructs the table f_flora from formatted survey data
+#'
+#' @param veg The dataframe containing the input data
+#' @param pN The number of the point in the transect
+#' @param spName Name of the field with the species name
+#' @param pBase Name of the field with the base height
+#' @param pTop Name of the field with the top height
+#' @param hE Name of the field with dimension he
+#' @param hT Name of the field with dimension ht
+#' @param wid Name of the field with dimension width
+#' @param rec Name of the field with the record number
+#' @param sN Optional field with a site name
+#' @param surf Weight of surface litter in t/ha
+#' @param suspNS Weight of suspended litter in t/ha
+#' @param nstrat Number of strata. Defaults to 4
+#' @return dataframe
+#' @export
+#'
+#'
+f_floraBuild <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
+                         wid = "width", rec = "Site", sN, surf = 20, suspNS = 20, nstrat = 4) {
+  
+  vegA <- frame::stratify(veg = veg, pN = pN, spName = spName,  pBase = pBase, pTop = pTop, nstrat = nstrat)
+  
+  # Summarise species
+  spCount <- vegA %>%
+    dplyr::count(Stratum, Species, name = "comp")
+  spM <- vegA %>%
+    group_by(Stratum, Species) %>%
+    # Deprecated in dplyr 0.9.0. Previous: 
+    # summarise_if(is.numeric, mean, na.rm = TRUE)
+    summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)))
+  spSD <- vegA %>%
+    group_by(Stratum, Species) %>%
+    summarise(across(where(is.numeric), ~ sd(.x, na.rm = TRUE)))
+  spMax <- vegA %>%
+    group_by(Stratum, Species) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))
+  spMin <- vegA %>%
+    group_by(Stratum, Species) %>%
+    summarise(across(where(is.numeric), ~ min(.x, na.rm = TRUE)))
+  
+  # Collate into table
+  ns <- vegA %>% dplyr::select(all_of(c(rec, sN)))
+  record <- matrix(nrow = length(spCount$Stratum))
+  florTab <- data.frame(record)
+  if (hasArg(rec)) {
+    florTab$record <- ns$Site[1]
+  } else {
+    print("record field has not been named")
+  }
+  
+  if (hasArg(sN)) {
+    florTab$site <- ns$SiteName[1]
+  } else {
+    florTab$site <- NA
+    print("site field has not been named")
+  }
+  
+  florTab$species <- spCount$Species
+  florTab$stratum <- spCount$Stratum
+  florTab$comp <- spCount$comp
+  florTab$base <- round(spM$base,2)
+  florTab$he <- round(spM$he,2)
+  florTab$ht <- spM$ht
+  florTab$top <- spM$top
+  florTab$w <- spM$width
+  florTab$Hs <- round(spSD$top,2)
+  florTab$Hr <- spMax$top - spMin$top
+  florTab$weight <- NA
+  s <- c(florTab$record[1], florTab$site[1], "Litter", NA, NA, NA, NA, NA, NA, NA, NA, NA, surf)
+  suspNS <- c(florTab$record[1], florTab$site[1], "suspNS", NA, NA, NA, NA, NA, NA, NA, NA, NA, suspNS)
+  florTab <- rbind(florTab, s, suspNS)
+  
+  return(florTab)
+}
+
 #' Finds % cover of surveyed Species and groups minor Species
 #'
 #' Input table requires the following fields:
