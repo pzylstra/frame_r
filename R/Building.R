@@ -1,4 +1,23 @@
-# Builds the dataframe site.meta from input tables
+#' Builds the dataframe site.meta from input tables
+#' 
+#' @param site A dataframe with the six fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' slope - slope in degrees
+#' wind - velocity in km/h
+#' temp - ambient temperature deg. C
+#' dfmc - moisture content of fine dead fuels in whole numbers (eg 0.1 for 10%)
+#' litter - weight in t/ha of fine dead organic material forming the O horizon
+#' diameter - mean diameter of surface litter in m
+#' fline - the fireline length in m
+#' @param Structure A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. Acceptable values
+#' are t, f, or blank, where the outcome will be decided by the relative stratum heights.
+#' @param a The number of the record for the site
 
 siteBuilder <- function(site, Structure, a)
 {
@@ -275,4 +294,88 @@ paramBuilder <- function(site, Structure, Flora, default.species.params, a)
     param <- ffm_complete_params(param,default.species.params)
     
     return(param)
+}
+
+#' Builds the dataframe site.meta from input tables
+#' 
+#' @param Flora A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - A name for the site
+#' species - the name of the species, which will call trait data from 
+#' 'default.species.params'
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - % composition of that species in the stratum. 
+#'    If absent, all species will be considered equally.
+#' base - base height of plant crowns (m)
+#' he - he height of plant crowns (m)
+#' ht - ht height of plant crowns (m)
+#' top - top height of plant crowns (m)
+#' w - width of plant crowns (m)
+#' Hs - standard deviation of the top height of plant crowns (m)
+#' Hr - range of the top height of plant crowns (m)
+#' weight - weight in t/ha of fine dead organic material forming 
+#'    the surface and suspNS layers
+#' diameter - mean diameter of surface and suspNS litter in m
+#' @param Structure A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. 
+#'    Acceptable values are TRUE, FALSE, or blank, where the outcome 
+#'    will be decided by the relative stratum heights.
+#' nsR, eR, mR, cR. Species richness (number of species) in each stratum
+#' @param a The number of the record for the site
+#' @param fline - the fireline length in m
+#' @param slope - slope in degrees
+#' @param temp - ambient temperature deg. C
+#' @param dfmc - moisture content of fine dead fuels in whole numbers (eg 0.1 for 10%)
+#' @param wind - velocity in km/h
+
+buildSite <- function(Structure, Flora, a, fLine = 100, slope = 0,
+                      temp = 30, dfmc = 0.1, wind = 10)
+{
+  
+  # CREATE site.meta
+  paramSite <- c('overlapping','overlapping','overlapping','overlapping','overlapping', 'fuelLoad',
+                 'meanFuelDiameter','meanFinenessLeaves', 'fireLineLength', 'slope', 'temperature',
+                 'deadFuelMoistureProp', 'windSpeed')
+  
+  
+  unitsSite <- c(NA, NA, NA, NA, NA, 't/ha', 'm', 'm', 'm', 'deg', 'degC', NA, 'km/h')
+  site.meta <- data.frame(matrix(NA, nrow=13, ncol = 5))
+  
+  names(site.meta) <- c("stratum", "species", "param", "value", "units")
+  site.meta$param <- paramSite
+  site.meta$units <- unitsSite
+  # ENTER VARIABLES
+  site.meta$value[1] <- ifelse(Structure$ns_e[Structure$record==a]==TRUE,"near surface, elevated, overlapped",
+                               ifelse(Structure$ns_e[Structure$record==a]==FALSE,"near surface, elevated, not overlapped",
+                                      "near surface, elevated, automatic"))
+  site.meta$value[2] <- ifelse(Structure$ns_m[Structure$record==a]==TRUE,"near surface, midstorey, overlapped",
+                               ifelse(Structure$ns_m[Structure$record==a]==FALSE,"near surface, midstorey, not overlapped",
+                                      "near surface, midstorey, automatic"))
+  site.meta$value[3] <- ifelse(Structure$e_m[Structure$record==a]==TRUE,"elevated, midstorey, overlapped",
+                               ifelse(Structure$e_m[Structure$record==a]==FALSE,"elevated, midstorey, not overlapped",
+                                      "elevated, midstorey, automatic"))
+  site.meta$value[4] <- ifelse(Structure$e_c[Structure$record==a]==TRUE,"elevated, canopy, overlapped",
+                               ifelse(Structure$e_c[Structure$record==a]==FALSE,"elevated, canopy, not overlapped",
+                                      "elevated, canopy, automatic"))
+  site.meta$value[5] <- ifelse(Structure$m_c[Structure$record==a]==TRUE,"midstorey, canopy, overlapped",
+                               ifelse(Structure$m_c[Structure$record==a]==FALSE,"midstorey, canopy, not overlapped",
+                                      "midstorey, canopy, automatic"))
+  site.meta$value[6] <- as.numeric(Flora$weight[Flora$record==a & Flora$species=="Litter"])
+  site.meta$value[7] <- if (is.null(as.numeric(Flora$diameter[Flora$record==a & Flora$species=="Litter"]))) {
+    0.005
+  } else {
+    as.numeric(Flora$diameter[Flora$record==a & Flora$species=="Litter"])
+  }
+  site.meta$value[8] <- 0.00025
+  site.meta$value[9] <- fLine
+  site.meta$value[10] <- slope
+  site.meta$value[11] <- temp
+  site.meta$value[12] <- dfmc
+  site.meta$value[13] <- wind
+  
+  return(site.meta)
 }
