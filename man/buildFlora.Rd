@@ -16,8 +16,7 @@ buildFlora(
   rec = "Site",
   sN = "SiteName",
   surf = 20,
-  suspNS = 20,
-  stratSig = 0.05
+  suspNS = 20
 )
 }
 \arguments{
@@ -44,8 +43,6 @@ buildFlora(
 \item{surf}{Weight of surface litter in t/ha}
 
 \item{suspNS}{Weight of suspended litter in t/ha}
-
-\item{stratSig}{Value for test of significance}
 }
 \value{
 dataframe

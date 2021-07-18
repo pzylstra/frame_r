@@ -2,17 +2,9 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{stratify}
 \alias{stratify}
-\title{Arranges survey data into strata using k-means clustering
-Strata are sorted by top height and appended to the original data}
+\title{Arranges survey data into strata using k-means clustering}
 \usage{
-stratify(
-  veg,
-  pN = "Point",
-  spName = "Species",
-  pBase = "base",
-  pTop = "top",
-  nstrat = 4
-)
+stratify(veg, pN = "Point", spName = "Species", pBase = "base", pTop = "top")
 }
 \arguments{
 \item{veg}{A dataframe listing plant species with columns describing crown dimensions}
@@ -24,13 +16,12 @@ stratify(
 \item{pBase}{Name of the field with the base height}
 
 \item{pTop}{Name of the field with the top height}
-
-\item{nstrat}{Number of strata. Defaults to 4}
 }
 \value{
 Dataframe
 }
 \description{
-Arranges survey data into strata using k-means clustering
+Data are stratified into 2-4 strata, then the number of strata 
+with greatest significance is chosen.
 Strata are sorted by top height and appended to the original data
 }

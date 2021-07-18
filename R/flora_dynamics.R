@@ -1840,18 +1840,21 @@ pWidth <- function(mods, sp, Age = 10){
 }
 
 #' Arranges survey data into strata using k-means clustering
+#' 
+#' Data are stratified into 2-4 strata, then the number of strata 
+#' with greatest significance is chosen.
 #' Strata are sorted by top height and appended to the original data
+#' 
 #' 
 #' @param veg A dataframe listing plant species with columns describing crown dimensions
 #' @param pN The number of the point in the transect
 #' @param spName Name of the field with the species name
 #' @param pBase Name of the field with the base height
 #' @param pTop Name of the field with the top height
-#' @param nstrat Number of strata. Defaults to 4
 #' @return Dataframe
 #' @export
 
-stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop = "top", nstrat = 4)
+stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop = "top")
 {
   veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, pBase, pTop)))
   veg_subset <- veg_subset[complete.cases(veg_subset), ] # Omit NAs in relevant columns
@@ -1861,9 +1864,21 @@ stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop
            lBase = case_when(is.infinite(lBase) ~ -6.9, TRUE ~ veg_subset[,3]),
            lTop = log(veg_subset[,4]))
   df <- scale(veg_subset[, c(5,6)])
+  
+  # Find the most significant division of strata
+  sig <- vector()
+  for (nstrat in 2:4) {
+    set.seed(123)
+    km.res <- kmeans(df, centers = nstrat, nstart = 25)
+    clust <- cbind(veg_subset, cluster = km.res$cluster)
+    test <- aov(cluster ~ base * top, data = clust)
+    sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[3]]
+  }
+  nstrat <- as.numeric(which(sig == min(sig, na.rm = TRUE)))
   set.seed(123)
   km.res <- kmeans(df, centers = nstrat, nstart = 25)
   clust <- cbind(veg_subset, cluster = km.res$cluster)
+  
   h <- clust %>% 
     group_by(cluster) %>% 
     summarise_if(is.numeric, mean)
@@ -2068,7 +2083,7 @@ stratRich <- function(dat, cols, thres = 5, pnts = 10, nstrat = 4) {
   return(fitr)
 }
 
-#' Constructs the table f_flora from formatted survey data
+#' Constructs the table F_flora from formatted survey data
 #'
 #' @param veg The dataframe containing the input data
 #' @param pN The number of the point in the transect
@@ -2082,33 +2097,33 @@ stratRich <- function(dat, cols, thres = 5, pnts = 10, nstrat = 4) {
 #' @param sN Optional field with a site name
 #' @param surf Weight of surface litter in t/ha
 #' @param suspNS Weight of suspended litter in t/ha
-#' @param nstrat Number of strata. Defaults to 4
 #' @return dataframe
 #' @export
 #'
 #'
-f_floraBuild <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
-                         wid = "width", rec = "Site", sN, surf = 20, suspNS = 20, nstrat = 4) {
+
+buildFlora <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
+                       wid = "width", rec = "Site", sN = "SiteName", surf = 20, suspNS = 20) {
   
-  vegA <- frame::stratify(veg = veg, pN = pN, spName = spName,  pBase = pBase, pTop = pTop, nstrat = nstrat)
+  vegA <- frame::stratify(veg = veg, pN = pN, spName = spName,  pBase = pBase, pTop = pTop)
   
   # Summarise species
   spCount <- vegA %>%
     dplyr::count(Stratum, Species, name = "comp")
-  spM <- vegA %>%
-    group_by(Stratum, Species) %>%
-    # Deprecated in dplyr 0.9.0. Previous: 
-    # summarise_if(is.numeric, mean, na.rm = TRUE)
-    summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)))
-  spSD <- vegA %>%
-    group_by(Stratum, Species) %>%
-    summarise(across(where(is.numeric), ~ sd(.x, na.rm = TRUE)))
-  spMax <- vegA %>%
-    group_by(Stratum, Species) %>%
-    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))
-  spMin <- vegA %>%
-    group_by(Stratum, Species) %>%
-    summarise(across(where(is.numeric), ~ min(.x, na.rm = TRUE)))
+  suppressMessages(spM <- vegA %>%
+                     group_by(Stratum, Species) %>%
+                     # Deprecated in dplyr 0.9.0. Previous: 
+                     # summarise_if(is.numeric, mean, na.rm = TRUE)
+                     summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))))
+  suppressMessages(spSD <- vegA %>%
+                     group_by(Stratum, Species) %>%
+                     summarise(across(where(is.numeric), ~ sd(.x, na.rm = TRUE))))
+  suppressMessages(spMax <- vegA %>%
+                     group_by(Stratum, Species) %>%
+                     summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE))))
+  suppressMessages(spMin <- vegA %>%
+                     group_by(Stratum, Species) %>%
+                     summarise(across(where(is.numeric), ~ min(.x, na.rm = TRUE))))
   
   # Collate into table
   ns <- vegA %>% dplyr::select(all_of(c(rec, sN)))
@@ -2132,18 +2147,158 @@ f_floraBuild <- function(veg, pN ="Point",  spName ="Species", pBase = "base", p
   florTab$comp <- spCount$comp
   florTab$base <- round(spM$base,2)
   florTab$he <- round(spM$he,2)
-  florTab$ht <- spM$ht
-  florTab$top <- spM$top
-  florTab$w <- spM$width
+  florTab$ht <- round(spM$ht,2)
+  florTab$top <- round(spM$top,2)
+  florTab$w <- round(spM$width,2)
   florTab$Hs <- round(spSD$top,2)
-  florTab$Hr <- spMax$top - spMin$top
+  florTab$Hr <- round(spMax$top - spMin$top,2)
   florTab$weight <- NA
-  s <- c(florTab$record[1], florTab$site[1], "Litter", NA, NA, NA, NA, NA, NA, NA, NA, NA, surf)
-  suspNS <- c(florTab$record[1], florTab$site[1], "suspNS", NA, NA, NA, NA, NA, NA, NA, NA, NA, suspNS)
+  florTab$diameter <- NA
+  s <- c(florTab$record[1], florTab$site[1], "Litter", NA, NA, NA, NA, NA, NA, NA, NA, NA, surf, 0.005)
+  suspNS <- c(florTab$record[1], florTab$site[1], "suspNS", NA, NA, NA, NA, NA, NA, NA, NA, NA, suspNS, 0.015)
   florTab <- rbind(florTab, s, suspNS)
   
   return(florTab)
 }
+
+#' Constructs the table F_structure from formatted survey data
+#'
+#' @param veg The dataframe containing the input data
+#' @param pN The number of the point in the transect
+#' @param spName Name of the field with the species name
+#' @param pBase Name of the field with the base height
+#' @param pTop Name of the field with the top height
+#' @param rec Name of the field with the record number
+#' @param sN Optional field with a site name
+#' @return dataframe
+#' @export
+#'
+
+buildStructure <- function(veg, pN ="Point", spName ="Species", pBase = "base", pTop = "top",  
+                           rec = "Site", sN = "SiteName") {
+  
+  # 1. Horizontal relationships  
+  vegA <- frame::stratify(veg = veg, pN = pN, spName = spName, pBase = pBase,
+                          pTop = pTop)
+  suppressMessages(StratC <- vegA %>%
+                     select(Point, Stratum)%>%
+                     group_by(Stratum, Point) %>%
+                     summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))))
+  suppressMessages(StratW <- vegA %>%
+                     select(Stratum, width)%>%
+                     group_by(Stratum) %>%
+                     summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))))
+  
+  sepTab <- as.data.frame(table(StratC$Stratum))
+  pnts <- n_distinct(StratC$Point)
+  sep <- vector()
+  for (s in 1:max(StratC$Stratum)) {
+    sep[s] <- max(sqrt((as.numeric(StratW[s,2])^2)/(sepTab[s,2]/pnts)), as.numeric(StratW[s,2]))
+  }
+  
+  # 2. Vertical relationships
+  StratO <- as.data.frame(table(StratC))
+  ns_e <- vector()
+  ns_m <- vector()
+  e_m <- vector()
+  e_c <- vector()
+  m_c <- vector()
+  for (pt in unique(StratO$Point, incomparables = FALSE)) {
+    point <- filter(StratO, Point == pt)
+    if (max(StratC$Stratum) > 2) {
+      ns_e[pt] <- point$Freq[1]*point$Freq[2]
+      if (max(StratC$Stratum) == 4) {
+        ns_m[pt] <- point$Freq[1]*point$Freq[3]
+        e_m[pt] <- point$Freq[2]*point$Freq[3]
+        e_c[pt] <- point$Freq[2]*point$Freq[4]
+        m_c[pt] <- point$Freq[3]*point$Freq[4]
+      } else {
+        e_c[pt] <- point$Freq[2]*point$Freq[3]
+      }
+    } else {
+      ns_c[pt] <- point$Freq[1]*point$Freq[2]
+    }
+  }
+  
+  # 3. Species richness
+  suppressMessages(StratR <- vegA %>%
+                     select(Stratum, Species)%>%
+                     group_by(Stratum) %>%
+                     summarise(across(everything(), n_distinct)))
+  
+  # Collate into table
+  ns <- vegA %>% dplyr::select(all_of(c(rec, sN)))
+  record <- matrix(nrow = 1)
+  strucTab <- data.frame(record)
+  if (hasArg(rec)) {
+    strucTab$record <- ns$Site[1]
+  } else {
+    print("record field has not been named")
+  }
+  
+  if (hasArg(sN)) {
+    strucTab$site <- ns$SiteName[1]
+  } else {
+    strucTab$site <- NA
+    print("site field has not been named")
+  }
+  ## Separation
+  strucTab$NS <- NA
+  strucTab$El <- NA
+  strucTab$Mid <- NA
+  strucTab$Can <- NA
+  strucTab$NS <- round(sep[1],2)
+  if (max(StratC$Stratum) > 2) {
+    strucTab$El <- round(sep[2],2)
+    if (max(StratC$Stratum) == 4) {
+      strucTab$Mid <- round(sep[3],2)
+      strucTab$Can <- round(sep[4],2)
+    } else {
+      strucTab$Can <- round(sep[3],2)
+    }
+  } else {
+    strucTab$Can <- round(sep[2],2)
+  }
+  ## Overlap
+  strucTab$ns_e <- NA
+  strucTab$ns_m <- NA
+  strucTab$e_m <- NA
+  strucTab$e_c <- NA
+  strucTab$m_c <- NA
+  if (max(StratC$Stratum) > 2) {
+    strucTab$ns_e <- sum(ns_e)>0
+    if (max(StratC$Stratum) == 4) {
+      strucTab$ns_m <- sum(ns_m)>0
+      strucTab$e_m <- sum(e_m)>0
+      strucTab$e_c <- sum(e_c)>0
+      strucTab$m_c <- sum(m_c)>0
+    } else {
+      strucTab$e_c <- sum(e_c)>0
+    }
+  } else {
+    strucTab$ns_c <- sum(ns_c)>0
+  }
+  ## Richness
+  strucTab$nsR <- NA
+  strucTab$eR <- NA
+  strucTab$mR <- NA
+  strucTab$cR <- NA
+  strucTab$nsR <- StratR$Species[1]
+  if (max(StratC$Stratum) > 2) {
+    strucTab$eR <- StratR$Species[2]
+    if (max(StratC$Stratum) == 4) {
+      strucTab$mR <- StratR$Species[3]
+      strucTab$cR <- StratR$Species[4]
+    } else {
+      strucTab$cR <- StratR$Species[3]
+    }
+  } else {
+    strucTab$cR <- StratR$Species[2]
+  }
+  
+  return(strucTab)
+}
+
 
 #' Finds % cover of surveyed Species and groups minor Species
 #'

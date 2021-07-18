@@ -11,8 +11,7 @@ buildStructure(
   pBase = "base",
   pTop = "top",
   rec = "Site",
-  sN = "SiteName",
-  stratSig = 0.01
+  sN = "SiteName"
 )
 }
 \arguments{
@@ -29,8 +28,6 @@ buildStructure(
 \item{rec}{Name of the field with the record number}
 
 \item{sN}{Optional field with a site name}
-
-\item{stratSig}{Value for test of significance}
 }
 \value{
 dataframe
