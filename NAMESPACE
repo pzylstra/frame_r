@@ -2,6 +2,7 @@
 
 export(baseDyn)
 export(buildFlora)
+export(buildParams)
 export(buildStructure)
 export(cambium)
 export(coverDyn)

@@ -85,7 +85,6 @@ weatherSet <- function(base.params, weather, db.path = "out_mc.db", jitters = 10
   
   cat("Finished.  Output written to", db.path)
 }
-#######################################################################
 
 #' Updates parameter files with weather from a dataset,
 #' then models fire from non-deterministic plant parameters
@@ -167,7 +166,7 @@ weatherSetS <- function(base.params, weather, Variation, Structure, a, db.path =
   cat("Finished.  Output written to", db.path)
 }
 
-####################################################################
+
 #' Models fires using sites constructed from imported tables
 #' 
 #' Private function in development
@@ -277,7 +276,7 @@ fireSet <- function(site, Structure, Flora, traits = default.species.params)
   return(runs)
 }
 
-#####################################################################
+
 
 #' Randomly modifies plant traits within defined ranges for non-deterministic predictions
 #' @param base.params Parameter input table
@@ -338,7 +337,7 @@ plantVar <- function (base.params, Strata, Species,
   return(tbl)
 }
 
-#####################################################################
+
 
 #' Randomly modifies plant traits within defined ranges for non-deterministic predictions
 #' Differs from plantVar by modifying individual species by their own rules
@@ -418,7 +417,8 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
   return(tbl)
 }
 
-#####################################################################
+
+
 #' Selects random species from the available list, weighted by their frequency
 #' Modifies a parameter table to the shortened list
 #'
@@ -491,7 +491,7 @@ specPoint <- function(base.params, Structure, a)
 }
 
 
-#####################################################################
+
 #' Models fire behaviour in each species of a parameter table,
 #' summarising the combustibility from the length of flame divided
 #' by the length of segment ignited
@@ -581,8 +581,7 @@ spComb <- function(Flora, Structure, default.species.params, a)
   return(combustibility)
 }
 
-## conDrivers 
-#####
+
 
 #' Models fire behaviour across defined slopes and DFMCs, 
 #' with varied plants and random winds and within a defined range
@@ -742,10 +741,6 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
 }
 
 
-######
-## drivers function
-#####
-
 #' Models fire behaviour across ranged variables
 #' @param base.params Input parameter file
 #' @param db.path Name of the exported database
@@ -832,9 +827,8 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
   }
 }
 
-######
-## drivers function with species-specific changes
-#####
+
+
 
 #' Models fire behaviour across ranged variables using species specific details
 #' @param base.params Input parameter file
@@ -910,9 +904,8 @@ driversS <- function(base.params, a, db.path = "out_mc.db", jitters, windMin, wi
   }
 }
 
-######
-## drivers function with species-specific changes and greater user-control
-#####
+
+
 
 #' Models fire behaviour across ranged variables using species specific details
 #' @param base.params Input parameter file

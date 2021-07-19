@@ -2300,7 +2300,8 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", pBase = "base", 
 }
 
 
-#' Finds % cover of surveyed Species and groups minor Species
+
+#' Finds percent cover of surveyed Species and groups minor Species
 #'
 #' Input table requires the following fields:
 #' Point - numbered point in a transect
