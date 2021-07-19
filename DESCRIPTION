@@ -28,7 +28,10 @@ Imports:
     RSQLite(>= 2.1.1),
     stringr(>= 1.4.0),
     tidyr(>= 0.8.0),
-    extraDistr(>= 1.9.0)
+    extraDistr(>= 1.9.0),
+    Rfast(>= 2.0.3),
+    berryFunctions(>= 1.20.1),
+    wrapr(>= 2.0.8)
 Encoding: UTF-8
 LazyData: TRUE
 RoxygenNote: 7.1.1
