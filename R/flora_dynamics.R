@@ -2103,7 +2103,7 @@ stratRich <- function(dat, cols, thres = 5, pnts = 10, nstrat = 4) {
 #'
 
 buildFlora <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
-                       wid = "width", rec = "Site", sN = "SiteName", surf = 20, suspNS = 20) {
+                       wid = "width", rec = "Site", sN = "SiteName", surf = 20) {
   
   vegA <- frame::stratify(veg = veg, pN = pN, spName = spName,  pBase = pBase, pTop = pTop)
   
@@ -2155,8 +2155,7 @@ buildFlora <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTo
   florTab$weight <- NA
   florTab$diameter <- NA
   s <- c(florTab$record[1], florTab$site[1], "Litter", NA, NA, NA, NA, NA, NA, NA, NA, NA, surf, 0.005)
-  suspNS <- c(florTab$record[1], florTab$site[1], "suspNS", NA, NA, NA, NA, NA, NA, NA, NA, NA, suspNS, 0.015)
-  florTab <- rbind(florTab, s, suspNS)
+  florTab <- rbind(florTab, s)
   
   return(florTab)
 }
@@ -2215,8 +2214,6 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", pBase = "base", 
       } else {
         e_c[pt] <- point$Freq[2]*point$Freq[3]
       }
-    } else {
-      ns_c[pt] <- point$Freq[1]*point$Freq[2]
     }
   }
   
@@ -2299,6 +2296,76 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", pBase = "base", 
   return(strucTab)
 }
 
+
+#' Adds parameters for suspended litter to tables Flora & Structure
+#' 
+#' @param Structure A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. 
+#'    Acceptable values are TRUE, FALSE, or blank, where the outcome 
+#'    will be decided by the relative stratum heights.
+#' nsR, eR, mR, cR. Species richness (number of species) in each stratum
+#' @param Flora A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - A name for the site
+#' species - the name of the species, which will call trait data from 
+#' 'default.species.params'
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - Percent composition of that species in the stratum. 
+#'    If absent, all species will be considered equally.
+#' base - base height of plant crowns (m)
+#' he - he height of plant crowns (m)
+#' ht - ht height of plant crowns (m)
+#' top - top height of plant crowns (m)
+#' w - width of plant crowns (m)
+#' Hs - standard deviation of the top height of plant crowns (m)
+#' Hr - range of the top height of plant crowns (m)
+#' weight - weight in t/ha of fine dead organic material forming 
+#'    the surface and suspNS layers
+#' diameter - mean diameter of surface and suspNS litter in m 
+#' @param default.species.params Plant traits database
+#' @param density Wood density (kg.m-3)
+#' @param top Top height of suspended layer
+#' @param cover Percent cover of suspended layer
+#' @param pnts Number of surveyed points
+#' @param age Years since last fire
+#' @param aQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
+#' @param bQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
+#' @param cQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
+#' @param max Parameter for a negative exponential trend; leave as NA if trend is quadratic
+#' @param rate Parameter for a negative exponential trend; leave as NA if trend is quadratic
+#' @return List
+#' @export
+
+susp <- function(Flora, Structure, default.species.params, density = 300, top = 0.5, cover = 0.8, pnts = 10,
+                 age = 10, aQ = NA, bQ = NA, cQ = NA, max = NA, rate = NA)
+{
+  T <- filter(default.species.params, name == "suspNS")
+  
+  # Model packing
+  suspNS <- if (!is.na(max)) {
+    max*(1-exp(-rate*age))
+  } else if (!is.na(aQ)) {
+    pmax(0.1,(aQ * age^2 + bQ * age + cQ))
+  } else {
+    0.1
+  }
+  lengthS <- (0.6*((0.1 * suspNS) / (top * density))) / (pi * (T$leafThickness[1]/2)^2)
+  sepS <- mean(sqrt(sqrt(top/lengthS)^2*2),sqrt(top/lengthS))
+  wNS <- as.numeric(max(filter(Flora, stratum == 1)$w, na.rm = TRUE))
+  sepNS <- sqrt(wNS^2/cover)
+  
+  #Update tables
+  row <- length(Flora$species)+1
+  ns <- c(as.numeric(Flora$record[row-1]), Flora$site[row-1], "suspNS", 1, cover * pnts, 0, 0, top, top, max(1,Flora$w, na.rm = TRUE), 0.1, 0.1, suspNS, 0.015)
+  Flora <- rbind(Flora, ns)
+  Structure$NS[1] <- min(Structure$NS[1], sepNS)
+  
+  return(list(Flora, Structure))
+}
 
 
 #' Finds percent cover of surveyed Species and groups minor Species

@@ -488,7 +488,7 @@ buildStrataMeta <- function(Structure, a)
 buildSpeciesValues <- function(Flora, default.species.params, a)
 {
   # Collect subsets for site
-  fl <- Flora[Flora$record==a & Flora$species != "Litter" & Flora$species != "suspNS",] %>%
+  fl <- Flora[Flora$record==a & Flora$species != "Litter",] %>%
     mutate("name" = species) %>%
     left_join(default.species.params, by = "name") %>%
     select(species, stratum, comp, base, top, he, ht, w, moisture, C.C_rat, G.C_rat)

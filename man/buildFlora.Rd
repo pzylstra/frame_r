@@ -15,8 +15,7 @@ buildFlora(
   wid = "width",
   rec = "Site",
   sN = "SiteName",
-  surf = 20,
-  suspNS = 20
+  surf = 20
 )
 }
 \arguments{
