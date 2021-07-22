@@ -2360,7 +2360,7 @@ susp <- function(Flora, Structure, default.species.params, density = 300, top = 
   
   #Update tables
   row <- length(Flora$species)+1
-  ns <- c(as.numeric(Flora$record[row-1]), Flora$site[row-1], "suspNS", 1, cover * pnts, 0, 0, top, top, max(1,Flora$w, na.rm = TRUE), 0.1, 0.1, suspNS, 0.015)
+  ns <- c(as.numeric(Flora$record[row-1]), Flora$site[row-1], "suspNS", 1, cover * pnts, 0, 0, top, top, max(1,Flora$w, na.rm = TRUE), 1.1, 1.1, suspNS, 0.015)
   Flora <- rbind(Flora, ns)
   Structure$NS[1] <- min(Structure$NS[1], sepNS)
   
