@@ -2367,6 +2367,22 @@ susp <- function(Flora, Structure, default.species.params, density = 300, top = 
   return(list(Flora, Structure))
 }
 
+#' Models the weight of surface litter from time since fire 
+#' using an Olson negative exponential function
+#'
+#' @param max Maximum weight (t/ha)
+#' @param rate	Rate of growth for a negative exponential function
+#' @param age The number of years since last fire
+#' @return dataframe
+#' @export
+
+olson <- function(max = 54.22, rate = 0.026, age = 10)
+{
+  surf <- max(4, max*(1-exp(-rate*age)))
+  
+  return(surf)
+}
+
 
 #' Finds percent cover of surveyed Species and groups minor Species
 #'
