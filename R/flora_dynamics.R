@@ -2096,7 +2096,6 @@ stratRich <- function(dat, cols, thres = 5, pnts = 10, nstrat = 4) {
 #' @param rec Name of the field with the record number
 #' @param sN Optional field with a site name
 #' @param surf Weight of surface litter in t/ha
-#' @param suspNS Weight of suspended litter in t/ha
 #' @return dataframe
 #' @export
 #'
@@ -2272,9 +2271,7 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", pBase = "base", 
     } else {
       strucTab$e_c <- sum(e_c)>0
     }
-  } else {
-    strucTab$ns_c <- sum(ns_c)>0
-  }
+  } 
   ## Richness
   strucTab$nsR <- NA
   strucTab$eR <- NA
@@ -2381,6 +2378,74 @@ olson <- function(max = 54.22, rate = 0.026, age = 10)
   surf <- max(4, max*(1-exp(-rate*age)))
   
   return(surf)
+}
+
+#' Processes field survey data into tables formatted for fire modelling
+#'
+#' @param dat The dataframe containing the formatted field survey data
+#' @param pN The number of the point in the transect
+#' @param spName Name of the field with the species name
+#' @param pBase Name of the field with the base height
+#' @param pTop Name of the field with the top height
+#' @param hE Name of the field with dimension he
+#' @param hT Name of the field with dimension ht
+#' @param wid Name of the field with dimension width
+#' @param rec Name of the field with the record number
+#' @param sN Optional field with a site name
+#' @param max Maximum weight of surface litter (t/ha)
+#' @param rate Growth rate for surface litter in a negative exponential function
+#' @param age Optional field with site age 
+#' @param surf Weight of surface litter in t/ha
+#' @return list
+#' @export
+#' 
+
+frameSurvey <- function(dat, pN ="Point", spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
+                        wid = "width", rec = "Site", sN = "SiteName", max = 54, rate = 0.026, age = NA, surf = 10) {
+  Structure <- data.frame()
+  Flora <- data.frame()
+  
+  # Find missing data
+  entries <- which(is.na(dat[pTop]))
+  if (length(entries)>0) {
+    cat(" These rows were removed as they were missing top heights", "\n", entries, "\n", "\n")
+    dat <- dat[-entries,] 
+  }
+  
+  # Fill empty dimensions
+  entries <- which(is.na(dat[hT])|is.na(dat[hE]))
+  if (length(entries)>0) {
+    cat(" Empty values of ht & he were filled with top and base heights for these rows", "\n", entries, "\n", "\n")
+    dat[hT][is.na(dat[hT])]<-dat[pTop][is.na(dat[hT])]
+    dat[hE][is.na(dat[hE])]<-dat[pBase][is.na(dat[hE])]
+  }
+  
+  # Remove faulty data
+  entries <- which(dat[hT]<dat[hE]|dat[pTop]<dat[pBase])
+  if (length(entries)>0) {
+    cat(" These rows were removed as upper and lower heights conflicted", "\n", entries)
+    dat <- dat[-entries,]
+  }
+  
+  # Loop through records
+  silist <- unique(dat$Site, incomparables = FALSE)
+  
+  for (record in silist) {
+    veg <- filter(dat, Site == record)
+    # Find surface fuels
+    if (!is.na(age)) {
+      surf <- round(olson(max, rate, veg[1,age]),0)
+    }
+    
+    Struct <- buildStructure(veg, pN ="Point", spName ="Species", pBase = "base", pTop = "top", 
+                             rec = "Site", sN = "SiteName")
+    Flor <- buildFlora(veg, pN ="Point",  spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
+                       wid = "width", rec = "Site", sN = "SiteName", surf = surf)
+    Structure <- rbind(Structure, Struct)
+    Flora <- rbind(Flora, Flor)
+  }
+
+  return(list(Flora, Structure))
 }
 
 

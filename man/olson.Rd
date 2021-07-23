@@ -5,14 +5,14 @@
 \title{Models the weight of surface litter from time since fire 
 using an Olson negative exponential function}
 \usage{
-olson(max = 54.22, growth = 0.026, age = 10)
+olson(max = 54.22, rate = 0.026, age = 10)
 }
 \arguments{
 \item{max}{Maximum weight (t/ha)}
 
-\item{age}{The number of years since last fire}
-
 \item{rate}{Rate of growth for a negative exponential function}
+
+\item{age}{The number of years since last fire}
 }
 \value{
 dataframe
