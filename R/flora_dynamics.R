@@ -1865,7 +1865,7 @@ stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop
            lTop = log(veg_subset[,4]))
   df <- scale(veg_subset[, c(5,6)])
   
-  # Find the most significant division of strata
+  # Find the best division of strata
   sig <- vector()
   for (nstrat in 2:4) {
     set.seed(123)
@@ -1874,7 +1874,11 @@ stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop
     test <- aov(cluster ~ base * top, data = clust)
     sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[3]]
   }
-  nstrat <- as.numeric(which(sig == min(sig, na.rm = TRUE)))
+  if (length(which(sig < 0.01)) > 0) {
+    nstrat <- as.numeric(max(which(sig < 0.01)))
+  } else {
+    nstrat <- as.numeric(which(sig == min(sig, na.rm = TRUE)))
+  }
   set.seed(123)
   km.res <- kmeans(df, centers = nstrat, nstart = 25)
   clust <- cbind(veg_subset, cluster = km.res$cluster)
@@ -2383,6 +2387,7 @@ olson <- function(max = 54.22, rate = 0.026, age = 10)
 #' Processes field survey data into tables formatted for fire modelling
 #'
 #' @param dat The dataframe containing the formatted field survey data
+#' @param default.species.params Plant traits database
 #' @param pN The number of the point in the transect
 #' @param spName Name of the field with the species name
 #' @param pBase Name of the field with the base height
@@ -2396,12 +2401,21 @@ olson <- function(max = 54.22, rate = 0.026, age = 10)
 #' @param rate Growth rate for surface litter in a negative exponential function
 #' @param age Optional field with site age 
 #' @param surf Weight of surface litter in t/ha
+#' @param density Wood density (kg.m-3)
+#' @param top Top height of suspended layer
+#' @param cover Percent cover of suspended layer
+#' @param aQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
+#' @param bQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
+#' @param cQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
+#' @param maxNS Parameter for a negative exponential trend; leave as NA if trend is quadratic
+#' @param rateNS Parameter for a negative exponential trend; leave as NA if trend is quadratic
 #' @return list
 #' @export
 #' 
 
-frameSurvey <- function(dat, pN ="Point", spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
-                        wid = "width", rec = "Site", sN = "SiteName", max = 54, rate = 0.026, age = NA, surf = 10) {
+frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
+                        wid = "width", rec = "Site", sN = "SiteName", max = 54, rate = 0.026, age = NA, surf = 10, density = 300, 
+                        top = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA) {
   Structure <- data.frame()
   Flora <- data.frame()
   
@@ -2432,8 +2446,10 @@ frameSurvey <- function(dat, pN ="Point", spName ="Species", pBase = "base", pTo
   
   for (record in silist) {
     veg <- filter(dat, Site == record)
+    print(record)
     # Find surface fuels
     if (!is.na(age)) {
+      AGE <- veg[1,age]
       surf <- round(olson(max, rate, veg[1,age]),0)
     }
     
@@ -2443,8 +2459,15 @@ frameSurvey <- function(dat, pN ="Point", spName ="Species", pBase = "base", pTo
                        wid = "width", rec = "Site", sN = "SiteName", surf = surf)
     Structure <- rbind(Structure, Struct)
     Flora <- rbind(Flora, Flor)
+    
+    # Add suspended litter
+    pnts <- as.numeric(n_distinct(dat[pN]))
+    tabs <- susp(Flora, Structure, default.species.params, density = density, top = top, cover = cover, pnts = pnts,
+                 age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, max = maxNS, rate = rateNS)
+    Flora <- tabs[[1]]
+    Structure <- tabs[[2]]
   }
-
+  
   return(list(Flora, Structure))
 }
 
