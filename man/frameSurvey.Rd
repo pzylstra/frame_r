@@ -6,6 +6,7 @@
 \usage{
 frameSurvey(
   dat,
+  default.species.params,
   pN = "Point",
   spName = "Species",
   pBase = "base",
@@ -18,11 +19,21 @@ frameSurvey(
   max = 54,
   rate = 0.026,
   age = NA,
-  surf = 10
+  surf = 10,
+  density = 300,
+  top = 0.5,
+  cover = 0.8,
+  aQ = NA,
+  bQ = NA,
+  cQ = NA,
+  maxNS = NA,
+  rateNS = NA
 )
 }
 \arguments{
 \item{dat}{The dataframe containing the formatted field survey data}
+
+\item{default.species.params}{Plant traits database}
 
 \item{pN}{The number of the point in the transect}
 
@@ -49,6 +60,22 @@ frameSurvey(
 \item{age}{Optional field with site age}
 
 \item{surf}{Weight of surface litter in t/ha}
+
+\item{density}{Wood density (kg.m-3)}
+
+\item{top}{Top height of suspended layer}
+
+\item{cover}{Percent cover of suspended layer}
+
+\item{aQ}{Parameter for a quadratic trend; leave as NA if trend is negative exponential}
+
+\item{bQ}{Parameter for a quadratic trend; leave as NA if trend is negative exponential}
+
+\item{cQ}{Parameter for a quadratic trend; leave as NA if trend is negative exponential}
+
+\item{maxNS}{Parameter for a negative exponential trend; leave as NA if trend is quadratic}
+
+\item{rateNS}{Parameter for a negative exponential trend; leave as NA if trend is quadratic}
 }
 \value{
 list
