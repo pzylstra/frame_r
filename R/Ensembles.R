@@ -446,6 +446,7 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
   varRec <- Flora[Flora$record==a & Flora$species!="Litter",]
   varRec$Hs[is.na(varRec$Hs)]<-0.001
   varRec$Hr[varRec$Hr==0]<-0.001 
+  varRec$Hs[varRec$Hs==0]<-0.001 
   varRec$Hr<-as.numeric(varRec$Hr)+1 
   varRec <- varRec %>% 
     mutate(name = species,
@@ -1108,6 +1109,7 @@ weatherSet_Frame <- function(base.params, weather, Structure, Flora, a, db.path 
   
   # Read weather values from the table
   for (i in 1:max(weather$tm)) {
+    cat("\n", " Modelling time-step number", i, "\n")
     w <- weather$W[[i]]
     t <- weather$T[[i]]
     d <- max(0.01,min(0.199,weather$DFMC[[i]]))
