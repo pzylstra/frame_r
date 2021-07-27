@@ -2416,8 +2416,7 @@ olson <- function(max = 54.22, rate = 0.026, age = 10)
 frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
                         wid = "width", rec = "Site", sN = "SiteName", max = 54, rate = 0.026, age = NA, surf = 10, density = 300, 
                         top = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA) {
-  Structure <- data.frame()
-  Flora <- data.frame()
+  
   
   # Find missing data
   entries <- which(is.na(dat[pTop]))
@@ -2443,10 +2442,12 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
   
   # Loop through records
   silist <- unique(dat$Site, incomparables = FALSE)
+  Structure <- data.frame()
+  Flora <- data.frame()
   
-  for (record in silist) {
-    veg <- filter(dat, Site == record)
-    print(record)
+  for (rec in silist) {
+    veg <- filter(dat, Site == rec)
+    print(rec)
     # Find surface fuels
     if (!is.na(age)) {
       AGE <- veg[1,age]
@@ -2457,15 +2458,13 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
                              rec = "Site", sN = "SiteName")
     Flor <- buildFlora(veg, pN ="Point",  spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
                        wid = "width", rec = "Site", sN = "SiteName", surf = surf)
-    Structure <- rbind(Structure, Struct)
-    Flora <- rbind(Flora, Flor)
     
     # Add suspended litter
     pnts <- as.numeric(n_distinct(dat[pN]))
-    tabs <- susp(Flora, Structure, default.species.params, density = density, top = top, cover = cover, pnts = pnts,
+    tabs <- susp(Flora = Flor, Structure = Struct, default.species.params, density = density, top = top, cover = cover, pnts = pnts,
                  age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, max = maxNS, rate = rateNS)
-    Flora <- tabs[[1]]
-    Structure <- tabs[[2]]
+    Structure <- rbind(Structure, tabs[[2]])
+    Flora <- rbind(Flora, tabs[[1]])
   }
   
   return(list(Flora, Structure))
