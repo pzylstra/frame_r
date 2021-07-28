@@ -779,7 +779,7 @@ heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     y <- as.numeric(studySpecies$bRat)
     
     #Linear
-    if (!berryFunctions::is.error(lm(y ~ x))) {
+    if (!berryFunctions::is.error(lm(y ~ x)) && length(unique(x, incomparables = FALSE))>1) {
       LM<-lm(y ~ x)
       LMSum <- base::summary(LM)
       LMa <- LMSum$coefficients[2]
@@ -868,7 +868,7 @@ htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     y <- as.numeric(studySpecies$bRat)
     
     #Linear
-    if (!berryFunctions::is.error(lm(y ~ x))) {
+    if (!berryFunctions::is.error(lm(y ~ x)) && length(unique(x, incomparables = FALSE))>1) {
       LM<-lm(y ~ x)
       LMSum <- base::summary(LM)
       LMa <- LMSum$coefficients[2]
@@ -2115,22 +2115,44 @@ buildFlora <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTo
     dplyr::count(Stratum, Species, name = "comp")
   suppressMessages(spM <- vegA %>%
                      group_by(Stratum, Species) %>%
-                     # Deprecated in dplyr 0.9.0. Previous: 
-                     # summarise_if(is.numeric, mean, na.rm = TRUE)
                      summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))))
+  # Remove faulty data
+  entries <- which(is.na(spM[wid]))
+  if (length(entries)>0) {
+    cat(length(entries), "Species were removed due to faulty crown width data", "\n")
+    spM <- spM[-entries,]
+  }
+  
   suppressMessages(spSD <- vegA %>%
                      group_by(Stratum, Species) %>%
                      summarise(across(where(is.numeric), ~ sd(.x, na.rm = TRUE))))
+  if (length(entries)>0) {
+    spSD <- spSD[-entries,]
+  }
+  
+  # Correct empty entries
+  singles <- which(is.na(spSD[pTop]))
+  if (length(singles)>0) {
+    spSD[pTop][is.na(spSD[pTop])]<-0.01
+  }
+  
   suppressMessages(spMax <- vegA %>%
                      group_by(Stratum, Species) %>%
                      summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE))))
+  if (length(entries)>0) {
+    spMax <- spMax[-entries,]
+  }
   suppressMessages(spMin <- vegA %>%
                      group_by(Stratum, Species) %>%
                      summarise(across(where(is.numeric), ~ min(.x, na.rm = TRUE))))
+  if (length(entries)>0) {
+    spMin <- spMin[-entries,]
+  }
+  tab <- (left_join(spMin, spCount, by = c("Stratum", "Species")))
   
   # Collate into table
   ns <- vegA %>% dplyr::select(all_of(c(rec, sN)))
-  record <- matrix(nrow = length(spCount$Stratum))
+  record <- matrix(nrow = length(spMin$Species))
   florTab <- data.frame(record)
   if (hasArg(rec)) {
     florTab$record <- ns$Site[1]
@@ -2145,9 +2167,9 @@ buildFlora <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTo
     print("site field has not been named")
   }
   
-  florTab$species <- spCount$Species
-  florTab$stratum <- spCount$Stratum
-  florTab$comp <- spCount$comp
+  florTab$species <- tab$Species
+  florTab$stratum <- tab$Stratum
+  florTab$comp <- tab$comp
   florTab$base <- round(spM$base,2)
   florTab$he <- round(spM$he,2)
   florTab$ht <- round(spM$ht,2)
