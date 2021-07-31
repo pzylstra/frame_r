@@ -4,7 +4,15 @@
 \alias{stratify}
 \title{Arranges survey data into strata using k-means clustering}
 \usage{
-stratify(veg, pN = "Point", spName = "Species", pBase = "base", pTop = "top")
+stratify(
+  veg,
+  pN = "Point",
+  spName = "Species",
+  pBase = "base",
+  pTop = "top",
+  hE = "he",
+  hT = "ht"
+)
 }
 \arguments{
 \item{veg}{A dataframe listing plant species with columns describing crown dimensions}
@@ -16,12 +24,19 @@ stratify(veg, pN = "Point", spName = "Species", pBase = "base", pTop = "top")
 \item{pBase}{Name of the field with the base height}
 
 \item{pTop}{Name of the field with the top height}
+
+\item{hE}{Name of the field with dimension he}
+
+\item{hT}{Name of the field with dimension ht}
 }
 \value{
 Dataframe
 }
 \description{
-Data are stratified into 2-4 strata, then the number of strata 
-with greatest significance is chosen.
+Data are stratified into 2-4 strata, then the largest number of strata 
+are chosen where p<0.01. If none qualify, then the most significant
+division is chosen.
+}
+\details{
 Strata are sorted by top height and appended to the original data
 }

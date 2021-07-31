@@ -1841,8 +1841,10 @@ pWidth <- function(mods, sp, Age = 10){
 
 #' Arranges survey data into strata using k-means clustering
 #' 
-#' Data are stratified into 2-4 strata, then the number of strata 
-#' with greatest significance is chosen.
+#' Data are stratified into 2-4 strata, then the largest number of strata 
+#' are chosen where p<0.01. If none qualify, then the most significant
+#' division is chosen.
+#' 
 #' Strata are sorted by top height and appended to the original data
 #' 
 #' 
@@ -1851,19 +1853,25 @@ pWidth <- function(mods, sp, Age = 10){
 #' @param spName Name of the field with the species name
 #' @param pBase Name of the field with the base height
 #' @param pTop Name of the field with the top height
+#' @param hE Name of the field with dimension he
+#' @param hT Name of the field with dimension ht
 #' @return Dataframe
 #' @export
 
-stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop = "top")
+stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop = "top", hE = "he", hT = "ht")
 {
-  veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, pBase, pTop)))
+  veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, pBase, pTop, hE, hT)))
   veg_subset <- veg_subset[complete.cases(veg_subset), ] # Omit NAs in relevant columns
   veg_subset <- veg_subset %>%
     mutate(base = case_when(veg_subset[,3] == 0 ~ 0.001, TRUE ~ veg_subset[,3]),
            lBase = log(veg_subset[,3]),
            lBase = case_when(is.infinite(lBase) ~ -6.9, TRUE ~ veg_subset[,3]),
-           lTop = log(veg_subset[,4]))
-  df <- scale(veg_subset[, c(5,6)])
+           lTop = log(veg_subset[,4]),
+           he = case_when(veg_subset[,5] == 0 ~ 0.001, TRUE ~ veg_subset[,5]),
+           lhe = log(veg_subset[,5]),
+           lhe = case_when(is.infinite(lhe) ~ -6.9, TRUE ~ veg_subset[,5]),
+           lht = log(veg_subset[,6]))
+  df <- scale(veg_subset[, c(7,8,9,10)])
   
   # Find the best division of strata
   sig <- vector()
@@ -1871,7 +1879,7 @@ stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop
     set.seed(123)
     km.res <- kmeans(df, centers = nstrat, nstart = 25)
     clust <- cbind(veg_subset, cluster = km.res$cluster)
-    test <- aov(cluster ~ base * top, data = clust)
+    test <- aov(cluster ~ base * top * he * ht, data = clust)
     sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[3]]
   }
   if (length(which(sig < 0.01)) > 0) {
@@ -2288,14 +2296,14 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", pBase = "base", 
   strucTab$e_c <- NA
   strucTab$m_c <- NA
   if (max(StratC$Stratum) > 2) {
-    strucTab$ns_e <- sum(ns_e)>0
+    strucTab$ns_e <- sum(ns_e)>=as.numeric(pnts/2)
     if (max(StratC$Stratum) == 4) {
-      strucTab$ns_m <- sum(ns_m)>0
-      strucTab$e_m <- sum(e_m)>0
-      strucTab$e_c <- sum(e_c)>0
-      strucTab$m_c <- sum(m_c)>0
+      strucTab$ns_m <- sum(ns_m)>=as.numeric(pnts/2)
+      strucTab$e_m <- sum(e_m)>=as.numeric(pnts/2)
+      strucTab$e_c <- sum(e_c)>=as.numeric(pnts/2)
+      strucTab$m_c <- sum(m_c)>=as.numeric(pnts/2)
     } else {
-      strucTab$e_c <- sum(e_c)>0
+      strucTab$e_c <- sum(e_c)>=as.numeric(pnts/2)
     }
   } 
   ## Richness
