@@ -585,8 +585,8 @@ buildParams <- function(Structure, Flora, default.species.params, a,
                         fLine = 100, slope = 0, temp = 30, dfmc = 0.1, wind = 10)
 {
   # Construct component tables
-  site.meta <- buildSiteMeta(Structure, Flora, a, fLine = 100, slope = 0,
-                             temp = 30, dfmc = 0.1, wind = 10)
+  site.meta <- buildSiteMeta(Structure, Flora, a, fLine = fLine, slope = slope,
+                             temp = temp, dfmc = dfmc, wind = wind)
   strata.meta <- buildStrataMeta(Structure, a)
   species.values <- buildSpeciesValues(Flora, default.species.params, a)
   species.values$deadLeafMoisture <- dfmc
