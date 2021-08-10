@@ -1938,15 +1938,12 @@ stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop
 #' @param dat The dataframe containing the input data,
 #' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
-#' @param p The maximum allowable p value for a model
-#' @param bTest Multiples of mean + mRSE for which Burr & quadratic models can predict 
-#' beyond the observed mean + standard deviation
-#' @param maxiter The maximum number of iterations for model fitting
 #' @return dataframe
 #' @export
 
-rich <- function(dat, thres = 5, pnts = 10, p = 0.05) {
+rich <- function(dat, thres = 5, pnts = 10) {
   
+  # Group minor species
   spCov <- frame::specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
@@ -1971,6 +1968,8 @@ rich <- function(dat, thres = 5, pnts = 10, p = 0.05) {
   
   return(fitr)
 }
+
+
 
 #' Finds the distribution of species richness per stratum
 #'
