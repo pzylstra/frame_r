@@ -5,7 +5,17 @@
 \title{Divides site data into consecutively numbered strata with
 base and top heights}
 \usage{
-stratSite(dat, thres = 0, pnts = 10, base = "base", top = "top")
+stratSite(
+  dat,
+  thres = 0,
+  pnts = 10,
+  pN = "Point",
+  spName = "Species",
+  pBase = "base",
+  pTop = "top",
+  hE = "he",
+  hT = "ht"
+)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data}
@@ -14,9 +24,17 @@ stratSite(dat, thres = 0, pnts = 10, base = "base", top = "top")
 
 \item{pnts}{The number of points measured in a transect}
 
-\item{base}{Name of the field with the base height}
+\item{pN}{The number of the point in the transect}
 
-\item{top}{Name of the field with the top height}
+\item{spName}{Name of the field with the species name}
+
+\item{pBase}{Name of the field with the base height}
+
+\item{pTop}{Name of the field with the top height}
+
+\item{hE}{Name of the field with dimension he}
+
+\item{hT}{Name of the field with dimension ht}
 }
 \value{
 dataframe

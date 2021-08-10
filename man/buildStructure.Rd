@@ -10,6 +10,8 @@ buildStructure(
   spName = "Species",
   pBase = "base",
   pTop = "top",
+  hE = "he",
+  hT = "ht",
   rec = "Site",
   sN = "SiteName"
 )
@@ -24,6 +26,10 @@ buildStructure(
 \item{pBase}{Name of the field with the base height}
 
 \item{pTop}{Name of the field with the top height}
+
+\item{hE}{Name of the field with dimension he}
+
+\item{hT}{Name of the field with dimension ht}
 
 \item{rec}{Name of the field with the record number}
 

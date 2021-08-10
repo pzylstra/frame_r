@@ -5,12 +5,20 @@
 \title{Calculates the range, mean and sd of 
 species richness in each plant stratum}
 \usage{
-stratRich(dat, cols, thres = 5, pnts = 10, nstrat = 4)
+stratRich(
+  dat,
+  thres = 5,
+  pnts = 10,
+  pN = "Point",
+  spName = "Species",
+  pBase = "base",
+  pTop = "top",
+  hE = "he",
+  hT = "ht"
+)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data}
-
-\item{cols}{A list of column numbers used for stratifying}
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 

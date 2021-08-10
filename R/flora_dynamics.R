@@ -1860,6 +1860,28 @@ pWidth <- function(mods, sp, Age = 10){
 
 stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop = "top", hE = "he", hT = "ht")
 {
+  # Find missing data
+  entries <- which(is.na(veg[pTop]))
+  if (length(entries)>0) {
+    cat(" Stratify removed these rows as they were missing top heights", "\n", entries, "\n", "\n")
+    veg <- veg[-entries,] 
+  }
+  
+  # Fill empty dimensions
+  entries <- which(is.na(veg[hT])|is.na(veg[hE]))
+  if (length(entries)>0) {
+    cat(" Stratify filled empty values of ht & he with top and base heights for these rows", "\n", entries, "\n", "\n")
+    veg[hT][is.na(veg[hT])]<-veg[pTop][is.na(veg[hT])]
+    veg[hE][is.na(veg[hE])]<-veg[pBase][is.na(veg[hE])]
+  }
+  
+  # Remove faulty data
+  entries <- which(veg[hT]<veg[hE]|veg[pTop]<veg[pBase])
+  if (length(entries)>0) {
+    cat(" Stratify removed these rows as upper and lower heights conflicted", "\n", entries)
+    veg <- veg[-entries,]
+  }
+  
   veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, pBase, pTop, hE, hT)))
   veg_subset <- veg_subset[complete.cases(veg_subset), ] # Omit NAs in relevant columns
   veg_subset <- veg_subset %>%
@@ -1962,13 +1984,18 @@ rich <- function(dat, thres = 5, pnts = 10, p = 0.05) {
 #'
 #' @param dat The dataframe containing the input data,
 #' @param thres The minimum percent cover (0-100) of a Species that will be analysed
-#' @param cols A list of the columns to be used for stratification, including base & top
 #' @param pnts The number of points measured in a transect
-#' @param p The maximum allowable p value for a model
-#' @param nstrat The maximum number of strata
+#' @param pN The number of the point in the transect
+#' @param spName Name of the field with the species name
+#' @param pBase Name of the field with the base height
+#' @param pTop Name of the field with the top height
+#' @param hE Name of the field with dimension he
+#' @param hT Name of the field with dimension ht
 #' @return dataframe
 
-richS <- function(dat, thres = 5, cols, pnts = 10, nstrat = 4) {
+richS <- function(dat, thres = 5, pnts = 10, 
+                  pN ="Point",  spName ="Species",  pBase = "base", 
+                  pTop = "top", hE = "he", hT = "ht") {
   
   spCov <- frame::specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
@@ -1976,7 +2003,8 @@ richS <- function(dat, thres = 5, cols, pnts = 10, nstrat = 4) {
   dat <- suppressMessages(left_join(dat, spCov))%>%
     mutate(Species = replace(Species, which(Cover < thres), "Minor Species"))
   
-  datS <- stratify(veg = dat, cols = cols, nstrat = nstrat)
+  datS <- frame::stratify(veg = dat, pN = pN, spName = spName, pBase = pBase,
+                          pTop = pTop, hE = hE, hT = hT)
   
   out <- suppressMessages(datS %>%
                             group_by(Stratum) %>%
@@ -2001,17 +2029,24 @@ richS <- function(dat, thres = 5, cols, pnts = 10, nstrat = 4) {
 #' @param dat The dataframe containing the input data
 #' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
-#' @param base Name of the field with the base height
-#' @param top Name of the field with the top height
+#' @param pN The number of the point in the transect
+#' @param spName Name of the field with the species name
+#' @param pBase Name of the field with the base height
+#' @param pTop Name of the field with the top height
+#' @param hE Name of the field with dimension he
+#' @param hT Name of the field with dimension ht
 #' @return dataframe
 #' @export
 #' 
-stratSite <- function(dat, thres = 0, pnts = 10, base = "base", top = "top")  {
+stratSite <- function(dat, thres = 0, pnts = 10,  
+                      pN ="Point",  spName ="Species",  pBase = "base", 
+                      pTop = "top", hE = "he", hT = "ht")  {
   strataDet <- data.frame(Stratum = numeric(0), Cover = numeric(0), 
                           Base = numeric(0), Top = numeric(0), stringsAsFactors = F)
   r <- rich(dat, thres = thres, pnts = pnts)
   nstrat <- round(min(4, as.numeric(r$Mean)),0)
-  strat <- stratify(dat, cols = c(3:6), nstrat = nstrat)
+  strat <- frame::stratify(veg = dat, pN = pN, spName = spName, pBase = pBase,
+                           pTop = pTop, hE = hE, hT = hT)
   for (st in 1:nstrat) {
     stratSub <- strat %>% filter(Stratum == st)
     spnts <- unique(stratSub$Point, incomparables = FALSE)
@@ -2036,14 +2071,15 @@ stratSite <- function(dat, thres = 0, pnts = 10, base = "base", top = "top")  {
 #' Species that are less common than the set threshold are combined as "Minor Species"
 #'
 #' @param dat The dataframe containing the input data
-#' @param cols A list of column numbers used for stratifying
 #' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
 #' @param nstrat Maximum number of strata
 #' @return dataframe
 #' @export
 #' 
-stratRich <- function(dat, cols, thres = 5, pnts = 10, nstrat = 4) {
+stratRich <- function(dat, thres = 5, pnts = 10, 
+                      pN ="Point",  spName ="Species",  pBase = "base", 
+                      pTop = "top", hE = "he", hT = "ht") {
   
   richList <- data.frame('S1' = numeric(0), 'S2' = numeric(0),
                          'S3' = numeric(0), 'S4' = numeric(0))
@@ -2051,8 +2087,9 @@ stratRich <- function(dat, cols, thres = 5, pnts = 10, nstrat = 4) {
   
   for (s in slist) {
     datSite <- filter(dat, Site == s)
-    sRich <- richS(dat = datSite, cols = cols, thres = thres, 
-                   pnts = pnts, nstrat = 4)
+    sRich <- richS(dat = datSite, thres = thres, pnts = pnts, 
+                   pN = pN,  spName = spName,  pBase = pBase, 
+                   pTop = pTop, hE = hE, hT = hT)
     nstrat <- as.numeric(max(sRich$Stratum))
     # Record values
     richList[which(slist == s), 1] <- sRich$Richness[1]
@@ -2116,7 +2153,8 @@ stratRich <- function(dat, cols, thres = 5, pnts = 10, nstrat = 4) {
 buildFlora <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
                        wid = "width", rec = "Site", sN = "SiteName", surf = 20) {
   
-  vegA <- frame::stratify(veg = veg, pN = pN, spName = spName,  pBase = pBase, pTop = pTop)
+  vegA <- frame::stratify(veg = veg, pN = pN, spName = spName,
+                          pBase = pBase, pTop = pTop, hE = hE, hT = hT)
   
   # Summarise species
   spCount <- vegA %>%
@@ -2200,18 +2238,20 @@ buildFlora <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTo
 #' @param spName Name of the field with the species name
 #' @param pBase Name of the field with the base height
 #' @param pTop Name of the field with the top height
+#' @param hE Name of the field with dimension he
+#' @param hT Name of the field with dimension ht
 #' @param rec Name of the field with the record number
 #' @param sN Optional field with a site name
 #' @return dataframe
 #' @export
 #'
 
-buildStructure <- function(veg, pN ="Point", spName ="Species", pBase = "base", pTop = "top",  
-                           rec = "Site", sN = "SiteName") {
+buildStructure <- function(veg, pN ="Point", spName ="Species", pBase = "base", pTop = "top", 
+                           hE = "he", hT = "ht", rec = "Site", sN = "SiteName") {
   
   # 1. Horizontal relationships  
   vegA <- frame::stratify(veg = veg, pN = pN, spName = spName, pBase = pBase,
-                          pTop = pTop)
+                          pTop = pTop, hE = hE, hT = hT)
   suppressMessages(StratC <- vegA %>%
                      select(Point, Stratum)%>%
                      group_by(Stratum, Point) %>%
@@ -2499,6 +2539,7 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
   
   return(list(Flora, Structure))
 }
+
 
 
 #' Finds percent cover of surveyed Species and groups minor Species
