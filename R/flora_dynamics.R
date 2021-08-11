@@ -2606,7 +2606,7 @@ pseudoTransect <- function(Dynamics, pointRich, default.species.params,
   
   out <- data.frame('Point' = numeric(0), 'Species' = character(0), 'base' = numeric(0),
                     'top' = numeric(0), 'he' = numeric(0), 'ht' = numeric(0), 'width' = numeric(0),
-                    'Age' = numeric(0), 'Site' = numeric(0), stringsAsFactors = FALSE)
+                    'Age' = numeric(0), 'Site' = numeric(0), 'SiteName' = character(0), stringsAsFactors = FALSE)
   
   # Build pseudo-transect 
   for (r in 1:pnts) {
@@ -2640,6 +2640,7 @@ pseudoTransect <- function(Dynamics, pointRich, default.species.params,
         out[count, 7] <- round(out[count, 4] * as.numeric(entry$w[1]),2)
         out[count, 8] <- Age
         out[count, 9] <- Age
+        out[count, 10] <- Age
       }
     }
   }
