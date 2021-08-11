@@ -299,6 +299,7 @@ topDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 10
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$top)
     
+    if (length(unique(x, incomparables = FALSE))>2) {
     #Linear
     if (!berryFunctions::is.error(lm(y ~ x))) {
       LM<-lm(y ~ x)
@@ -457,7 +458,7 @@ topDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 10
       qp <- 1
       q_sig <- ""
     }
-    
+    }
     #Summary stats
     meanTop <- round(mean(y, na.rm = TRUE),1)
     m_sig <- round(mRSE(dat = y),3)
@@ -540,6 +541,7 @@ baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$bRat)
     
+    if (length(unique(x, incomparables = FALSE))>2) {
     #Linear
     if (!berryFunctions::is.error(lm(y ~ x))) {
       LM<-lm(y ~ x)
@@ -701,7 +703,7 @@ baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1
       qp <- 1
       q_sig <- ""
     }
-    
+    }
     #Summary stats
     meanBase <- round(mean(y, na.rm = TRUE),1)
     m_sig <- round(mRSE(dat = y),3)
@@ -778,6 +780,7 @@ heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$bRat)
     
+    if (length(unique(x, incomparables = FALSE))>2) {
     #Linear
     if (!berryFunctions::is.error(lm(y ~ x)) && length(unique(x, incomparables = FALSE))>1) {
       LM<-lm(y ~ x)
@@ -810,7 +813,7 @@ heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
       LMp <- 1
       LM_sig <- ""
     }
-    
+    }
     #Summary stats
     meanhe <- round(mean(y, na.rm = TRUE),1)
     m_sig <- round(mRSE(dat = y),3)
@@ -867,6 +870,7 @@ htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$bRat)
     
+    if (length(unique(x, incomparables = FALSE))>2) {
     #Linear
     if (!berryFunctions::is.error(lm(y ~ x)) && length(unique(x, incomparables = FALSE))>1) {
       LM<-lm(y ~ x)
@@ -899,7 +903,7 @@ htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
       LMp <- 1
       LM_sig <- ""
     }
-    
+    }
     #Summary stats
     meanht <- round(mean(y, na.rm = TRUE),1)
     m_sig <- round(mRSE(dat = y),3)
@@ -966,6 +970,7 @@ wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$Rat)
     
+    if (length(unique(x, incomparables = FALSE))>2) {
     #Linear
     if (!berryFunctions::is.error(lm(y ~ x))) {
       LM<-lm(y ~ x)
@@ -1126,7 +1131,7 @@ wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000
       qp <- 1
       q_sig <- ""
     }
-    
+    }
     #Summary stats
     meanw <- round(mean(y, na.rm = TRUE),1)
     m_sig <- round(mRSE(dat = y),3)
