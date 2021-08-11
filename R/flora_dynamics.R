@@ -2539,6 +2539,112 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
   return(list(Flora, Structure))
 }
 
+#' Grows a table of species to a given age, listing cover and variability
+#'
+#' @param Dynamics Table of growth models as output by floraDynamics
+#' @param Age Age of the site in years
+#' @return dataframe
+#' @export
+
+growPlants <- function(Dynamics, Age = 10) {
+  Contenders <- data.frame('Species' = character(0), 'Cover' = numeric(0), 'cRSE' = numeric(0),
+                           'base' = numeric(0), 'he' = numeric(0), 'ht' = numeric(0), 
+                           'top' = numeric(0), 'tRSE' = numeric(0), 'w' = numeric(0))
+  
+  for (sp in 1:(nrow(Dynamics)-2)) {
+    Contenders[sp,1] <- Dynamics$Species[sp]
+    Contenders[sp,2] <- pCover(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
+    Contenders[sp,3] <- as.numeric(Dynamics$C_RSE[sp])/100
+    Contenders[sp,4] <- pBase(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
+    Contenders[sp,5] <- pHe(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
+    Contenders[sp,6] <- pHt(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
+    Contenders[sp,7] <- pTop(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
+    Contenders[sp,8] <- as.numeric(Dynamics$T_RSE[sp])/100
+    Contenders[sp,9] <- pWidth(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
+  }
+  
+  return(Contenders)
+}
+
+#' Creates a dataset of plants with expected size and cover
+#' randomly varied within natural ranges
+#'
+#' @param Dynamics Table of growth models as output by floraDynamics
+#' @param pointRich table of species richness likelihood for a point
+#' as output by function rich
+#' @param default.species.params Plant traits database
+#' @param pnts number of points in the transect
+#' @param Age Age of the site in years
+#' @return dataframe
+#' @export
+
+pseudoTransect <- function(Dynamics, pointRich, default.species.params,
+                           pnts = 10, Age = 10) 
+{
+  # Build species choice function
+  chooseSp <- function(L, spList, nSpecies) {
+    temp <- L
+    xRow <- data.frame()
+    Lentry <- as.numeric(nrow(xRow))
+    tot <- sum(temp)
+    while (Lentry == 0 & tot >= nSpecies) {
+      entry <-
+        spList[which(temp == Rfast::nth(temp, nSpecies, descending = TRUE)),]
+      if (Rfast::nth(temp, nSpecies, descending = TRUE) > 100 * runif(1)) {
+        xRow <- rbind(xRow, entry)
+      } else {
+        temp[which(temp == Rfast::nth(temp, nSpecies, descending = TRUE))] <-
+          0
+      }
+      Lentry <- as.numeric(nrow(xRow))
+      tot <- sum(temp > 0)
+    }
+    return(xRow)
+  }
+  # Potential species
+  spList <- growPlants(Dynamics, Age = Age)
+  
+  out <- data.frame('Point' = numeric(0), 'Species' = character(0), 'base' = numeric(0),
+                    'top' = numeric(0), 'he' = numeric(0), 'ht' = numeric(0), 'width' = numeric(0),
+                    'Age' = numeric(0), 'Site' = numeric(0), stringsAsFactors = FALSE)
+  
+  # Build pseudo-transect 
+  for (r in 1:pnts) {
+    # Find the number of species at this point
+    spN  <-  round(rtnorm(n = 1, mean = as.numeric(pointRich$Mean[1]),
+                          sd = as.numeric(pointRich$SD[1]),
+                          a = as.numeric(pointRich$Min[1]),
+                          b = as.numeric(pointRich$Max[1])),0)
+    
+    # Calculate likelihood for each species
+    L <- vector()
+    for (sp in 1:length(spList$Species)) {
+      L[sp] <- rtnorm(n = 1, mean = as.numeric(spList$Cover[sp]),
+                      sd = as.numeric(spList$cRSE[sp]), a = 0, b = 100)
+    }
+    
+    # Choose species and record dimensions
+    for (nSpecies in 1:spN) {
+      count <- nrow(out)+1
+      entry <- chooseSp(L, spList, nSpecies)
+      if (nrow(entry) > 0) {
+        # Remove chosen species from next option
+        L[which(spList$Species == entry$Species)] <- 0
+        out[count, 1] <- r
+        out[count, 2] <- entry$Species[1]
+        out[count, 4] <- round(rtnorm(n = 1, mean = as.numeric(entry$top[1]),
+                                      sd = as.numeric(entry$tRSE[1]), a = 0, b = 150),2)
+        out[count, 3] <- round(out[count, 4] * as.numeric(entry$base[1]),2)
+        out[count, 5] <- round(out[count, 4] * as.numeric(entry$he[1]),2)
+        out[count, 6] <- round(out[count, 4] * as.numeric(entry$ht[1]),2)
+        out[count, 7] <- round(out[count, 4] * as.numeric(entry$w[1]),2)
+        out[count, 8] <- Age
+        out[count, 9] <- Age
+      }
+    }
+  }
+  return(out)
+}
 
 
 #' Finds percent cover of surveyed Species and groups minor Species
