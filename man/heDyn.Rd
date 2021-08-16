@@ -4,7 +4,16 @@
 \alias{heDyn}
 \title{Builds models for top-he height allometry dynamics of surveyed Species}
 \usage{
-heDyn(dat, thres = 5, pnts = 10, p = 0.05)
+heDyn(
+  dat,
+  thres = 5,
+  pnts = 10,
+  p = 0.05,
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht"
+)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}

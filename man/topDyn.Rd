@@ -4,7 +4,18 @@
 \alias{topDyn}
 \title{Builds models for top height dynamics of surveyed Species}
 \usage{
-topDyn(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000)
+topDyn(
+  dat,
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht",
+  thres = 5,
+  pnts = 10,
+  p = 0.05,
+  bTest = 10,
+  maxiter = 1000
+)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}

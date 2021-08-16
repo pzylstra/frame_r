@@ -11,10 +11,10 @@ stratRich(
   pnts = 10,
   pN = "Point",
   spName = "Species",
-  pBase = "base",
-  pTop = "top",
-  hE = "he",
-  hT = "ht"
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht"
 )
 }
 \arguments{

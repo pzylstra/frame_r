@@ -9,10 +9,10 @@ frameSurvey(
   default.species.params,
   pN = "Point",
   spName = "Species",
-  pBase = "base",
-  pTop = "top",
-  hE = "he",
-  hT = "ht",
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht",
   wid = "width",
   rec = "Site",
   sN = "SiteName",
@@ -21,7 +21,7 @@ frameSurvey(
   age = NA,
   surf = 10,
   density = 300,
-  top = 0.5,
+  nsH = 0.5,
   cover = 0.8,
   aQ = NA,
   bQ = NA,
@@ -39,13 +39,13 @@ frameSurvey(
 
 \item{spName}{Name of the field with the species name}
 
-\item{pBase}{Name of the field with the base height}
+\item{base}{Name of the field with the base height}
 
-\item{pTop}{Name of the field with the top height}
+\item{top}{Name of the field with the top height}
 
-\item{hE}{Name of the field with dimension he}
+\item{he}{Name of the field with dimension he}
 
-\item{hT}{Name of the field with dimension ht}
+\item{ht}{Name of the field with dimension ht}
 
 \item{wid}{Name of the field with dimension width}
 
@@ -63,7 +63,7 @@ frameSurvey(
 
 \item{density}{Wood density (kg.m-3)}
 
-\item{top}{Top height of suspended layer}
+\item{nsH}{Top height of suspended layer}
 
 \item{cover}{Percent cover of suspended layer}
 

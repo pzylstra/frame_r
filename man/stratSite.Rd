@@ -11,10 +11,10 @@ stratSite(
   pnts = 10,
   pN = "Point",
   spName = "Species",
-  pBase = "base",
-  pTop = "top",
-  hE = "he",
-  hT = "ht"
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht"
 )
 }
 \arguments{
@@ -28,13 +28,13 @@ stratSite(
 
 \item{spName}{Name of the field with the species name}
 
-\item{pBase}{Name of the field with the base height}
+\item{base}{Name of the field with the base height}
 
-\item{pTop}{Name of the field with the top height}
+\item{top}{Name of the field with the top height}
 
-\item{hE}{Name of the field with dimension he}
+\item{he}{Name of the field with dimension he}
 
-\item{hT}{Name of the field with dimension ht}
+\item{ht}{Name of the field with dimension ht}
 }
 \value{
 dataframe
