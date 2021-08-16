@@ -38,17 +38,17 @@ mRSE <- function(dat){
 
 coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000) {
   
-spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
+  dat <- datClean(veg = dat,  base = "base", top = "top", he = "he", ht = "ht")
+  spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
   priorList <- unique(spCov$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
-  fitCov <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
-                       'k' = numeric(0), 'r' = numeric(0), 'NE_sigma' = numeric(0), 'NE_p' = numeric(0),
-                       'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_p' = numeric(0),
-                       'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_p' = numeric(0),
-                       'Qa' = numeric(0), 'Qb' = numeric(0), 'Qc' = numeric(0), 'Q_sigma' = numeric(0), 'Q_p' = numeric(0),
-                       'linear' = character(0), 'NegExp' = character(0), 'Burr' = character(0), 'Binomial' = character(0), 'Quadratic' = character(0), 'Mean' = character(0),
-                       'Mean_sigma' = character(0), 'Model' = character(0), stringsAsFactors=F)
+  fitCov <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_Rsq' = numeric(0), 'lin_p' = numeric(0),
+                       'k' = numeric(0), 'r' = numeric(0), 'NE_sigma' = numeric(0), 'NE_Rsq' = numeric(0), 'NE_p' = numeric(0),
+                       'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_Rsq' = numeric(0), 'B_p' = numeric(0),
+                       'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_Rsq' = numeric(0), 'Bin_p' = numeric(0),
+                       'Qa' = numeric(0), 'Qb' = numeric(0), 'Qc' = numeric(0), 'Q_sigma' = numeric(0), 'q_Rsq' = numeric(0), 'Q_p' = numeric(0), 
+                       'Mean' = character(0), 'Mean_sigma' = character(0), 'Model' = character(0), stringsAsFactors=F)
   
   for (sp in 1:length(priorList)) {
     
@@ -65,27 +65,19 @@ spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
       LMa <- LMSum$coefficients[2]
       LMb <- LMSum$coefficients[1]
       LMRSE <- LMSum$sigma
+      LMRsq <- LMSum$r.squared
       LMp <- if (LMRSE == 0) {
         0
       } else {
         round(max(LMSum$coefficients[7],LMSum$coefficients[8]),5)
       }
-      LM_sig <- if (LMp < 0.001) {
-        "***"    
-      } else if (LMp < 0.01) {
-        "**"    
-      } else if (LMp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
       rm(LM)
     } else {
       LMa <- NA
       LMb <- NA
-      LRSE <- NA
+      LMRSE <- 100
+      LMRsq <- 0
       LMp <- 1
-      LM_sig <- ""
     }
     
     #Negative exponential
@@ -96,23 +88,15 @@ spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
       k <- NESum$coefficients[1]
       r <- NESum$coefficients[2]
       NERSE <- NESum$sigma
+      NERsq <- cor(predict(NE, newdata=x), y)**2
       NEp <- round(max(NESum$coefficients[7],NESum$coefficients[8]),5)
-      NE_sig <- if (NEp < 0.001) {
-        "***"    
-      } else if (NEp < 0.01) {
-        "**"    
-      } else if (NEp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
       rm(NE)
     } else {
       k <- NA
       r <- NA
-      NERSE <- NA
+      NERSE <- 100
+      NERsq <- 0
       NEp <- 1
-      NE_sig <- ""
     }
     
     #Burr
@@ -122,30 +106,29 @@ spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
       BSum <- base::summary(Burr)
       Ba <- BSum$coefficients[1]
       Bb <- BSum$coefficients[2]
-      BRSE <- BSum$sigma
+      
       #Added control for Burr
       f <- function(x){Ba*Bb*((0.1*x^(Ba-1))/((1+(0.1*x)^Ba)^Bb+1))}
-      Bp <- if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
-        1
+      if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
+        BRSE <- 100
+        BRsq <- 0
+        Bp <- 1
       } else if (bTest * (mean(y, na.rm = TRUE) - sd(y, na.rm = TRUE)) > (optimize(f = f, interval=c(0, 150), maximum=FALSE))$objective) {
-        1
-      } else {round(max(BSum$coefficients[7],BSum$coefficients[8]),5)}
-      B_sig <- if (Bp < 0.001) {
-        "***"    
-      } else if (Bp < 0.01) {
-        "**"    
-      } else if (Bp < 0.05) {
-        "*" 
+        BRSE <- 100
+        BRsq <- 0
+        Bp <- 1
       } else {
-        ""
+        BRSE <- BSum$sigma
+        BRsq <- cor(predict(Burr, newdata=x), y)**2
+        Bp <- round(max(BSum$coefficients[7],BSum$coefficients[8]),5)
       }
       rm(Burr)
     } else {
       Ba <- NA
       Bb <- NA
-      BRSE <- NA
+      BRSE <- 100
+      BRsq <- 0
       Bp <- 1
-      B_sig <- ""
     }
     
     #Binomial
@@ -157,24 +140,16 @@ spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
       Bsd <- BinSum$coefficients[2]
       Bm <- BinSum$coefficients[3]
       BinRSE <- BinSum$sigma
+      BinRsq <- cor(predict(Bin, newdata=x), y)**2
       Binp <- round(max(BinSum$coefficients[10],BinSum$coefficients[11],BinSum$coefficients[12]),5)
-      Bin_sig <- if (Binp < 0.001) {
-        "***"    
-      } else if (Binp < 0.01) {
-        "**"    
-      } else if (Binp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
       rm(Bin)
     } else {
       Bs <- NA
       Bsd <- NA
       Bm <- NA
-      BinRSE <- NA
+      BinRSE <- 100
+      BinRsq <- 0
       Binp <- 1
-      Bin_sig <- ""
     }
     
     #Quadratic
@@ -187,65 +162,48 @@ spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
       qa <- qSum$coefficients[1]
       qb <- qSum$coefficients[2]
       qc <- qSum$coefficients[3]
-      qRSE <- qSum$sigma
+      
       #Added control for Quadratic
       f <- function(x){qa*x^2 + qb*x + qc}
-      qp <- if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
-        1
-      } else {round(max(qSum$coefficients[10], qSum$coefficients[11], 
-                        qSum$coefficients[12]), 5)}
-      q_sig <- if (qp < 0.001) {
-        "***"
-      }
-      else if (qp < 0.01) {
-        "**"
-      }
-      else if (qp < 0.05) {
-        "*"
-      }
-      else {
-        ""
+      if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
+        qRSE <- 100
+        qRsq <- 0
+        qp <- 1
+      } else {
+        qRSE <- qSum$sigma
+        qRsq <- cor(predict(q, newdata=x), y)**2
+        qp <- round(max(qSum$coefficients[10], qSum$coefficients[11], 
+                        qSum$coefficients[12]), 5)
       }
       rm(q)
-    }
-    else {
+    } else {
       qa <- NA
       qb <- NA
       qc <- NA
-      qRSE <- NA
+      qRSE <- 100
+      qRsq <- 0
       qp <- 1
-      q_sig <- ""
     }
     
     #Summary stats
     meanCov <- round(mean(y, na.rm = TRUE),1)
     m_sig <- round(mRSE(dat = y),3)
-    model <- if (min(Binp,Bp,NEp,LMp, qp, na.rm = TRUE)<p) {
-      if (Bp<=min(LMp,NEp,Binp, qp, na.rm = TRUE)) {
-        "Burr"
-      } else {
-        if (LMp<=min(Bp,NEp,Binp, qp, na.rm = TRUE)) {
-          "Linear"
-        } else {
-          if (NEp<=min(LMp,Bp,Binp, qp, na.rm = TRUE)) {
-            "NegExp"
-          } else {
-            if (Binp<=min(LMp,Bp,NEp, qp, na.rm = TRUE)) {
-              "Binomial"
-            } else {
-              if (qp<=min(LMp,Bp,NEp, Binp, na.rm = TRUE)) {
-                "Quadratic"
-              }
-            }
-          }
-        }
-      }
-    } else {"Mean"}
+    
+    #Choose the best model
+    listRsq <- c(LMRsq, NERsq, BRsq, BinRsq, qRsq)
+    listRSE <- c(LMRSE, NERSE, BRSE, BinRSE, qRSE)
+    listMod <- c("Linear", "NegExp", "Burr", "Binomial", "Quadratic")
+    
+    if (listRSE[which(listRsq == max(listRsq))]<=m_sig) {
+      model <- listMod[which(listRsq == max(listRsq))]
+    } else {
+      model <= "Mean"
+    }
     
     #Record values
-    fitCov[nrow(fitCov)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
-                                 Ba, Bb, BRSE, Bp, Bs, Bsd, Bm, BinRSE, Binp, qa, qb, qc, qRSE, qp, 
-                                 LM_sig, NE_sig, B_sig, Bin_sig, q_sig, meanCov, m_sig, model)
+    fitCov[nrow(fitCov)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMRsq, LMp, k, r, NERSE, NERsq, NEp,
+                                 Ba, Bb, BRSE, BRsq, Bp, Bs, Bsd, Bm, BinRSE, BinRsq, Binp, qa, qb, qc, qRSE, qRsq, qp, 
+                                 meanCov, m_sig, model)
   }
   
   return(fitCov)
@@ -272,8 +230,10 @@ spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
 #' @return dataframe
 #' @export
 
-topDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000) {
+topDyn <- function(dat, base = "base", top = "top", he = "he", ht = "ht", 
+                   thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000) {
   
+  dat <- datClean(veg = dat,  base = "base", top = "top", he = "he", ht = "ht")
   spCov <- specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
@@ -283,13 +243,12 @@ topDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 10
   priorList <- unique(dat$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
-  fitTop <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
-                       'k' = numeric(0), 'r' = numeric(0), 'NE_sigma' = numeric(0), 'NE_p' = numeric(0),
-                       'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_p' = numeric(0),
-                       'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_p' = numeric(0),
-                       'Qa' = numeric(0), 'Qb' = numeric(0), 'Qc' = numeric(0), 'Q_sigma' = numeric(0), 'Q_p' = numeric(0),
-                       'linear' = character(0), 'NegExp' = character(0), 'Burr' = character(0), 'Binomial' = character(0), 'Quadratic' = character(0), 'Mean' = character(0),
-                       'Mean_sigma' = character(0), 'Model' = character(0), stringsAsFactors=F)
+  fitTop <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_Rsq' = numeric(0), 'lin_p' = numeric(0),
+                       'k' = numeric(0), 'r' = numeric(0), 'NE_sigma' = numeric(0), 'NE_Rsq' = numeric(0), 'NE_p' = numeric(0),
+                       'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_Rsq' = numeric(0), 'B_p' = numeric(0),
+                       'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_Rsq' = numeric(0), 'Bin_p' = numeric(0),
+                       'Qa' = numeric(0), 'Qb' = numeric(0), 'Qc' = numeric(0), 'Q_sigma' = numeric(0), 'q_Rsq' = numeric(0), 'Q_p' = numeric(0), 
+                       'Mean' = character(0), 'Mean_sigma' = character(0), 'Model' = character(0), stringsAsFactors=F)
   
   for (sp in 1:length(priorList)) {
     
@@ -299,196 +258,189 @@ topDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 10
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$top)
     
-    if (length(unique(x, incomparables = FALSE))>2) {
-    #Linear
-    if (!berryFunctions::is.error(lm(y ~ x))) {
-      LM<-lm(y ~ x)
-      LMSum <- base::summary(LM)
-      LMa <- LMSum$coefficients[2]
-      LMb <- LMSum$coefficients[1]
-      LMRSE <- LMSum$sigma
-      LMp <- if (LMRSE == 0) {
-        0
+    if (length(unique(x, incomparables = FALSE))>2 & length(unique(y, incomparables = FALSE))>1) {
+    
+      #Linear
+      if (!berryFunctions::is.error(lm(y ~ x))) {
+        LM<-lm(y ~ x)
+        LMSum <- base::summary(LM)
+        LMa <- LMSum$coefficients[2]
+        LMb <- LMSum$coefficients[1]
+        LMRSE <- LMSum$sigma
+        LMRsq <- LMSum$r.squared
+        LMp <- if (LMRSE == 0) {
+          0
+        } else {
+          round(max(LMSum$coefficients[7],LMSum$coefficients[8]),5)
+        }
+        rm(LM)
       } else {
-        round(max(LMSum$coefficients[7],LMSum$coefficients[8]),5)
+        LMa <- NA
+        LMb <- NA
+        LMRSE <- 100
+        LMRsq <- 0
+        LMp <- 1
       }
-      LM_sig <- if (LMp < 0.001) {
-        "***"    
-      } else if (LMp < 0.01) {
-        "**"    
-      } else if (LMp < 0.05) {
-        "*" 
+      
+      #Negative exponential
+      init1<-c(k=50,r=0.5)
+      if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
+        NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
+        NESum <- base::summary(NE)
+        k <- NESum$coefficients[1]
+        r <- NESum$coefficients[2]
+        NERSE <- NESum$sigma
+        NERsq <- cor(predict(NE, newdata=x), y)**2
+        NEp <- round(max(NESum$coefficients[7],NESum$coefficients[8]),5)
+        rm(NE)
       } else {
-        ""
+        k <- NA
+        r <- NA
+        NERSE <- 100
+        NERsq <- 0
+        NEp <- 1
       }
-      rm(LM)
+      
+      #Burr
+      init2<-c(a=3,b=2)
+      if (!berryFunctions::is.error(nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control))) {
+        Burr<-nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control)
+        BSum <- base::summary(Burr)
+        Ba <- BSum$coefficients[1]
+        Bb <- BSum$coefficients[2]
+        
+        #Added control for Burr
+        f <- function(x){Ba*Bb*((0.1*x^(Ba-1))/((1+(0.1*x)^Ba)^Bb+1))}
+        if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
+          BRSE <- 100
+          BRsq <- 0
+          Bp <- 1
+        } else if (bTest * (mean(y, na.rm = TRUE) - sd(y, na.rm = TRUE)) > (optimize(f = f, interval=c(0, 150), maximum=FALSE))$objective) {
+          BRSE <- 100
+          BRsq <- 0
+          Bp <- 1
+        } else {
+          BRSE <- BSum$sigma
+          BRsq <- cor(predict(Burr, newdata=x), y)**2
+          Bp <- round(max(BSum$coefficients[7],BSum$coefficients[8]),5)
+        }
+        rm(Burr)
+      } else {
+        Ba <- NA
+        Bb <- NA
+        BRSE <- 100
+        BRsq <- 0
+        Bp <- 1
+      }
+      
+      #Binomial
+      init3<-c(s=1,sd=3, m=20)
+      if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control))) {
+        Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control)
+        BinSum <- base::summary(Bin)
+        Bs <- BinSum$coefficients[1]
+        Bsd <- BinSum$coefficients[2]
+        Bm <- BinSum$coefficients[3]
+        BinRSE <- BinSum$sigma
+        BinRsq <- cor(predict(Bin, newdata=x), y)**2
+        Binp <- round(max(BinSum$coefficients[10],BinSum$coefficients[11],BinSum$coefficients[12]),5)
+        rm(Bin)
+      } else {
+        Bs <- NA
+        Bsd <- NA
+        Bm <- NA
+        BinRSE <- 100
+        BinRsq <- 0
+        Binp <- 1
+      }
+      
+      #Quadratic
+      init4 <- c(a = 1, b = 2, c = 0)
+      if (!berryFunctions::is.error(nls(y ~ a*x^2 + b*x + c, data = studySpecies, 
+                                        start = init4, trace = T, control = control))) {
+        q <- nls(y ~ a*x^2 + b*x + c, data = studySpecies, start = init4, 
+                 trace = T, control = control)
+        qSum <- base::summary(q)
+        qa <- qSum$coefficients[1]
+        qb <- qSum$coefficients[2]
+        qc <- qSum$coefficients[3]
+        
+        #Added control for Quadratic
+        f <- function(x){qa*x^2 + qb*x + qc}
+        if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
+          qRSE <- 100
+          qRsq <- 0
+          qp <- 1
+        } else {
+          qRSE <- qSum$sigma
+          qRsq <- cor(predict(q, newdata=x), y)**2
+          qp <- round(max(qSum$coefficients[10], qSum$coefficients[11], 
+                          qSum$coefficients[12]), 5)
+        }
+        rm(q)
+      } else {
+        qa <- NA
+        qb <- NA
+        qc <- NA
+        qRSE <- 100
+        qRsq <- 0
+        qp <- 1
+      }
+      
+      #Summary stats
+      meanTop <- round(mean(y, na.rm = TRUE),1)
+      m_sig <- round(mRSE(dat = y),3)
+      
+      #Choose the best model
+      listRsq <- c(LMRsq, NERsq, BRsq, BinRsq, qRsq)
+      listRSE <- c(LMRSE, NERSE, BRSE, BinRSE, qRSE)
+      listMod <- c("Linear", "NegExp", "Burr", "Binomial", "Quadratic")
+      
+      if (listRSE[which(listRsq == max(listRsq))]<=m_sig) {
+        model <- listMod[which(listRsq == max(listRsq))]
+      } else {
+        model <- "Mean"
+      }
+      
     } else {
       LMa <- NA
       LMb <- NA
-      LRSE <- NA
+      LMRSE <- 100
+      LMRsq <- 0
       LMp <- 1
-      LM_sig <- ""
-    }
-    
-    #Negative exponential
-    init1<-c(k=50,r=0.5)
-    if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
-      NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
-      NESum <- base::summary(NE)
-      k <- NESum$coefficients[1]
-      r <- NESum$coefficients[2]
-      NERSE <- NESum$sigma
-      NEp <- round(max(NESum$coefficients[7],NESum$coefficients[8]),5)
-      NE_sig <- if (NEp < 0.001) {
-        "***"    
-      } else if (NEp < 0.01) {
-        "**"    
-      } else if (NEp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
-      rm(NE)
-    } else {
       k <- NA
       r <- NA
-      NERSE <- NA
+      NERSE <- 100
+      NERsq <- 0
       NEp <- 1
-      NE_sig <- ""
-    }
-    
-    #Burr
-    init2<-c(a=3,b=2)
-    if (!berryFunctions::is.error(nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control))) {
-      Burr<-nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control)
-      BSum <- base::summary(Burr)
-      Ba <- BSum$coefficients[1]
-      Bb <- BSum$coefficients[2]
-      BRSE <- BSum$sigma
-      #Added control for Burr
-      f <- function(x){Ba*Bb*((0.1*x^(Ba-1))/((1+(0.1*x)^Ba)^Bb+1))}
-      Bp <- if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
-        1
-      } else if (bTest * (mean(y, na.rm = TRUE) - sd(y, na.rm = TRUE)) > (optimize(f = f, interval=c(0, 150), maximum=FALSE))$objective) {
-        1
-      } else {round(max(BSum$coefficients[7],BSum$coefficients[8]),5)}
-      B_sig <- if (Bp < 0.001) {
-        "***"    
-      } else if (Bp < 0.01) {
-        "**"    
-      } else if (Bp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
-      rm(Burr)
-    } else {
       Ba <- NA
       Bb <- NA
-      BRSE <- NA
+      BRSE <- 100
+      BRsq <- 0
       Bp <- 1
-      B_sig <- ""
-    }
-    
-    #Binomial
-    init3<-c(s=1,sd=3, m=20)
-    if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control))) {
-      Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control)
-      BinSum <- base::summary(Bin)
-      Bs <- BinSum$coefficients[1]
-      Bsd <- BinSum$coefficients[2]
-      Bm <- BinSum$coefficients[3]
-      BinRSE <- BinSum$sigma
-      Binp <- round(max(BinSum$coefficients[10],BinSum$coefficients[11],BinSum$coefficients[12]),5)
-      Bin_sig <- if (Binp < 0.001) {
-        "***"    
-      } else if (Binp < 0.01) {
-        "**"    
-      } else if (Binp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
-      rm(Bin)
-    } else {
       Bs <- NA
       Bsd <- NA
       Bm <- NA
-      BinRSE <- NA
+      BinRSE <- 100
+      BinRsq <- 0
       Binp <- 1
-      Bin_sig <- ""
-    }
-    
-    #Quadratic
-    init4 <- c(a = 1, b = 2, c = 0)
-    if (!berryFunctions::is.error(nls(y ~ a*x^2 + b*x + c, data = studySpecies, 
-                                      start = init4, trace = T, control = control))) {
-      q <- nls(y ~ a*x^2 + b*x + c, data = studySpecies, start = init4, 
-               trace = T, control = control)
-      qSum <- base::summary(q)
-      qa <- qSum$coefficients[1]
-      qb <- qSum$coefficients[2]
-      qc <- qSum$coefficients[3]
-      qRSE <- qSum$sigma
-      #Added control for Quadratic
-      f <- function(x){qa*x^2 + qb*x + qc}
-      qp <- if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
-        1
-      } else {round(max(qSum$coefficients[10], qSum$coefficients[11], 
-                        qSum$coefficients[12]), 5)}
-      q_sig <- if (qp < 0.001) {
-        "***"
-      }
-      else if (qp < 0.01) {
-        "**"
-      }
-      else if (qp < 0.05) {
-        "*"
-      }
-      else {
-        ""
-      }
-      rm(q)
-    }
-    else {
       qa <- NA
       qb <- NA
       qc <- NA
-      qRSE <- NA
+      qRSE <- 100
+      qRsq <- 0
       qp <- 1
-      q_sig <- ""
+      model <- "Mean"      
+      #Summary stats
+      meanTop <- round(mean(y, na.rm = TRUE),1)
+      m_sig <- round(mRSE(dat = y),3)
     }
-    }
-    #Summary stats
-    meanTop <- round(mean(y, na.rm = TRUE),1)
-    m_sig <- round(mRSE(dat = y),3)
-    model <- if (min(Binp,Bp,NEp,LMp, qp, na.rm = TRUE)<p) {
-      if (Bp<=min(LMp,NEp,Binp, qp, na.rm = TRUE)) {
-        "Burr"
-      } else {
-        if (LMp<=min(Bp,NEp,Binp, qp, na.rm = TRUE)) {
-          "Linear"
-        } else {
-          if (NEp<=min(LMp,Bp,Binp, qp, na.rm = TRUE)) {
-            "NegExp"
-          } else {
-            if (Binp<=min(LMp,Bp,NEp, qp, na.rm = TRUE)) {
-              "Binomial"
-            } else {
-              if (qp<=min(LMp,Bp,NEp, Binp, na.rm = TRUE)) {
-                "Quadratic"
-              }
-            }
-          }
-        }
-      }
-    } else {"Mean"}
     
     #Record values
-    fitTop[nrow(fitTop)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
-                                 Ba, Bb, BRSE, Bp, Bs, Bsd, Bm, BinRSE, Binp, qa, qb, qc, qRSE, qp, 
-                                 LM_sig, NE_sig, B_sig, Bin_sig, q_sig, meanTop, m_sig, model)
-  }
+    fitTop[nrow(fitTop)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMRsq, LMp, k, r, NERSE, NERsq, NEp,
+                                 Ba, Bb, BRSE, BRsq, Bp, Bs, Bsd, Bm, BinRSE, BinRsq, Binp, qa, qb, qc, qRSE, qRsq, qp, 
+                                 meanTop, m_sig, model)
+    }
   
   return(fitTop)
 }
@@ -513,8 +465,10 @@ topDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 10
 #' @return dataframe
 #' @export
 
-baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000) {
+baseDyn <- function(dat, base = "base", top = "top", he = "he", ht = "ht", 
+                    thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000) {
   
+  dat <- datClean(veg = dat,  base = "base", top = "top", he = "he", ht = "ht")
   spCov <- specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
@@ -525,13 +479,12 @@ baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1
   priorList <- unique(dat$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
-  fitBase <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
-                        'k' = numeric(0), 'r' = numeric(0), 'NE_sigma' = numeric(0), 'NE_p' = numeric(0),
-                        'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_p' = numeric(0),
-                        'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_p' = numeric(0),
-                        'Qa' = numeric(0), 'Qb' = numeric(0), 'Qc' = numeric(0), 'Q_sigma' = numeric(0), 'Q_p' = numeric(0),
-                        'linear' = character(0), 'NegExp' = character(0), 'Burr' = character(0), 'Binomial' = character(0), 'Quadratic' = character(0), 'Mean' = character(0),
-                        'Mean_sigma' = character(0), 'Model' = character(0), stringsAsFactors=F)
+  fitBase <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_Rsq' = numeric(0), 'lin_p' = numeric(0),
+                        'k' = numeric(0), 'r' = numeric(0), 'NE_sigma' = numeric(0), 'NE_Rsq' = numeric(0), 'NE_p' = numeric(0),
+                        'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_Rsq' = numeric(0), 'B_p' = numeric(0),
+                        'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_Rsq' = numeric(0), 'Bin_p' = numeric(0),
+                        'Qa' = numeric(0), 'Qb' = numeric(0), 'Qc' = numeric(0), 'Q_sigma' = numeric(0), 'q_Rsq' = numeric(0), 'Q_p' = numeric(0), 
+                        'Mean' = character(0), 'Mean_sigma' = character(0), 'Model' = character(0), stringsAsFactors=F)
   
   for (sp in 1:length(priorList)) {
     
@@ -541,201 +494,188 @@ baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$bRat)
     
-    if (length(unique(x, incomparables = FALSE))>2) {
-    #Linear
-    if (!berryFunctions::is.error(lm(y ~ x))) {
-      LM<-lm(y ~ x)
-      LMSum <- base::summary(LM)
-      LMa <- LMSum$coefficients[2]
-      LMb <- LMSum$coefficients[1]
-      LMRSE <- LMSum$sigma
-      LMp <- if (LMRSE == 0) {
-        0
+    if (length(unique(x, incomparables = FALSE))>2 & length(unique(y, incomparables = FALSE))>1) {
+      
+      #Linear
+      if (!berryFunctions::is.error(lm(y ~ x))) {
+        LM<-lm(y ~ x)
+        LMSum <- base::summary(LM)
+        LMa <- LMSum$coefficients[2]
+        LMb <- LMSum$coefficients[1]
+        LMRSE <- LMSum$sigma
+        LMRsq <- LMSum$r.squared
+        LMp <- if (LMRSE == 0) {
+          0
+        } else {
+          round(max(LMSum$coefficients[7],LMSum$coefficients[8]),5)
+        }
+        rm(LM)
       } else {
-        round(max(LMSum$coefficients[7],LMSum$coefficients[8]),5)
+        LMa <- NA
+        LMb <- NA
+        LMRSE <- 100
+        LMRsq <- 0
+        LMp <- 1
       }
-      LM_sig <- if (berryFunctions::is.error(LMp)) {
-        ""
-      }
-      else if (LMp < 0.001) {
-        "***"    
-      } else if (LMp < 0.01) {
-        "**"    
-      } else if (LMp < 0.05) {
-        "*" 
+      
+      #Negative exponential
+      init1<-c(k=50,r=0.5)
+      if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
+        NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
+        NESum <- base::summary(NE)
+        k <- NESum$coefficients[1]
+        r <- NESum$coefficients[2]
+        NERSE <- NESum$sigma
+        NERsq <- cor(predict(NE, newdata=x), y)**2
+        NEp <- round(max(NESum$coefficients[7],NESum$coefficients[8]),5)
+        rm(NE)
       } else {
-        ""
+        k <- NA
+        r <- NA
+        NERSE <- 100
+        NERsq <- 0
+        NEp <- 1
       }
-      rm(LM)
+      
+      #Burr
+      init2<-c(a=3,b=2)
+      if (!berryFunctions::is.error(nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control))) {
+        Burr<-nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control)
+        BSum <- base::summary(Burr)
+        Ba <- BSum$coefficients[1]
+        Bb <- BSum$coefficients[2]
+        
+        #Added control for Burr
+        f <- function(x){Ba*Bb*((0.1*x^(Ba-1))/((1+(0.1*x)^Ba)^Bb+1))}
+        if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
+          BRSE <- 100
+          BRsq <- 0
+          Bp <- 1
+        } else if (bTest * (mean(y, na.rm = TRUE) - sd(y, na.rm = TRUE)) > (optimize(f = f, interval=c(0, 150), maximum=FALSE))$objective) {
+          BRSE <- 100
+          BRsq <- 0
+          Bp <- 1
+        } else {
+          BRSE <- BSum$sigma
+          BRsq <- cor(predict(Burr, newdata=x), y)**2
+          Bp <- round(max(BSum$coefficients[7],BSum$coefficients[8]),5)
+        }
+        rm(Burr)
+      } else {
+        Ba <- NA
+        Bb <- NA
+        BRSE <- 100
+        BRsq <- 0
+        Bp <- 1
+      }
+      
+      #Binomial
+      init3<-c(s=1,sd=3, m=20)
+      if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control))) {
+        Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control)
+        BinSum <- base::summary(Bin)
+        Bs <- BinSum$coefficients[1]
+        Bsd <- BinSum$coefficients[2]
+        Bm <- BinSum$coefficients[3]
+        BinRSE <- BinSum$sigma
+        BinRsq <- cor(predict(Bin, newdata=x), y)**2
+        Binp <- round(max(BinSum$coefficients[10],BinSum$coefficients[11],BinSum$coefficients[12]),5)
+        rm(Bin)
+      } else {
+        Bs <- NA
+        Bsd <- NA
+        Bm <- NA
+        BinRSE <- 100
+        BinRsq <- 0
+        Binp <- 1
+      }
+      
+      #Quadratic
+      init4 <- c(a = 1, b = 2, c = 0)
+      if (!berryFunctions::is.error(nls(y ~ a*x^2 + b*x + c, data = studySpecies, 
+                                        start = init4, trace = T, control = control))) {
+        q <- nls(y ~ a*x^2 + b*x + c, data = studySpecies, start = init4, 
+                 trace = T, control = control)
+        qSum <- base::summary(q)
+        qa <- qSum$coefficients[1]
+        qb <- qSum$coefficients[2]
+        qc <- qSum$coefficients[3]
+        
+        #Added control for Quadratic
+        f <- function(x){qa*x^2 + qb*x + qc}
+        if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
+          qRSE <- 100
+          qRsq <- 0
+          qp <- 1
+        } else {
+          qRSE <- qSum$sigma
+          qRsq <- cor(predict(q, newdata=x), y)**2
+          qp <- round(max(qSum$coefficients[10], qSum$coefficients[11], 
+                          qSum$coefficients[12]), 5)
+        }
+        rm(q)
+      } else {
+        qa <- NA
+        qb <- NA
+        qc <- NA
+        qRSE <- 100
+        qRsq <- 0
+        qp <- 1
+      }
+      
+      #Summary stats
+      meanBase <- round(mean(y, na.rm = TRUE),1)
+      m_sig <- round(mRSE(dat = y),3)
+      
+      #Choose the best model
+      listRsq <- c(LMRsq, NERsq, BRsq, BinRsq, qRsq)
+      listRSE <- c(LMRSE, NERSE, BRSE, BinRSE, qRSE)
+      listMod <- c("Linear", "NegExp", "Burr", "Binomial", "Quadratic")
+      
+      if (listRSE[which(listRsq == max(listRsq))]<=m_sig) {
+        model <- listMod[which(listRsq == max(listRsq))]
+      } else {
+        model <- "Mean"
+      }
+      
     } else {
       LMa <- NA
       LMb <- NA
-      LRSE <- NA
+      LMRSE <- 100
+      LMRsq <- 0
       LMp <- 1
-      LM_sig <- ""
-    }
-    
-    #Negative exponential
-    init1<-c(k=50,r=0.5)
-    if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
-      NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
-      NESum <- base::summary(NE)
-      k <- NESum$coefficients[1]
-      r <- NESum$coefficients[2]
-      NERSE <- NESum$sigma
-      NEp <- round(max(NESum$coefficients[7],NESum$coefficients[8]),5)
-      NE_sig <- if (NEp < 0.001) {
-        "***"    
-      } else if (NEp < 0.01) {
-        "**"    
-      } else if (NEp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
-      rm(NE)
-    } else {
       k <- NA
       r <- NA
-      NERSE <- NA
+      NERSE <- 100
+      NERsq <- 0
       NEp <- 1
-      NE_sig <- ""
-    }
-    
-    #Burr
-    init2<-c(a=3,b=2)
-    if (!berryFunctions::is.error(nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control))) {
-      Burr<-nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control)
-      BSum <- base::summary(Burr)
-      Ba <- BSum$coefficients[1]
-      Bb <- BSum$coefficients[2]
-      BRSE <- BSum$sigma
-      #Added control for Burr
-      f <- function(x){Ba*Bb*((0.1*x^(Ba-1))/((1+(0.1*x)^Ba)^Bb+1))}
-      Bp <- if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
-        1
-      } else if (bTest * (mean(y, na.rm = TRUE) - sd(y, na.rm = TRUE)) > (optimize(f = f, interval=c(0, 150), maximum=FALSE))$objective) {
-        1
-      } else {round(max(BSum$coefficients[7],BSum$coefficients[8]),5)}
-      B_sig <- if (Bp < 0.001) {
-        "***"    
-      } else if (Bp < 0.01) {
-        "**"    
-      } else if (Bp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
-      rm(Burr)
-    } else {
       Ba <- NA
       Bb <- NA
-      BRSE <- NA
+      BRSE <- 100
+      BRsq <- 0
       Bp <- 1
-      B_sig <- ""
-    }
-    
-    #Binomial
-    init3<-c(s=1,sd=3, m=20)
-    if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control))) {
-      Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control)
-      BinSum <- base::summary(Bin)
-      Bs <- BinSum$coefficients[1]
-      Bsd <- BinSum$coefficients[2]
-      Bm <- BinSum$coefficients[3]
-      BinRSE <- BinSum$sigma
-      Binp <- round(max(BinSum$coefficients[10],BinSum$coefficients[11],BinSum$coefficients[12]),5)
-      Bin_sig <- if (Binp < 0.001) {
-        "***"    
-      } else if (Binp < 0.01) {
-        "**"    
-      } else if (Binp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
-      rm(Bin)
-    } else {
       Bs <- NA
       Bsd <- NA
       Bm <- NA
-      BinRSE <- NA
+      BinRSE <- 100
+      BinRsq <- 0
       Binp <- 1
-      Bin_sig <- ""
-    }
-    
-    #Quadratic
-    init4 <- c(a = 1, b = 2, c = 0)
-    if (!berryFunctions::is.error(nls(y ~ a*x^2 + b*x + c, data = studySpecies, 
-                                      start = init4, trace = T, control = control))) {
-      q <- nls(y ~ a*x^2 + b*x + c, data = studySpecies, start = init4, 
-               trace = T, control = control)
-      qSum <- base::summary(q)
-      qa <- qSum$coefficients[1]
-      qb <- qSum$coefficients[2]
-      qc <- qSum$coefficients[3]
-      qRSE <- qSum$sigma
-      #Added control for Quadratic
-      f <- function(x){qa*x^2 + qb*x + qc}
-      qp <- if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
-        1
-      } else {round(max(qSum$coefficients[10], qSum$coefficients[11], 
-                        qSum$coefficients[12]), 5)}
-      q_sig <- if (qp < 0.001) {
-        "***"
-      }
-      else if (qp < 0.01) {
-        "**"
-      }
-      else if (qp < 0.05) {
-        "*"
-      }
-      else {
-        ""
-      }
-      rm(q)
-    }
-    else {
       qa <- NA
       qb <- NA
       qc <- NA
-      qRSE <- NA
+      qRSE <- 100
+      qRsq <- 0
       qp <- 1
-      q_sig <- ""
+      model <- "Mean"      
+      #Summary stats
+      meanBase <- round(mean(y, na.rm = TRUE),1)
+      m_sig <- round(mRSE(dat = y),3)
     }
-    }
-    #Summary stats
-    meanBase <- round(mean(y, na.rm = TRUE),1)
-    m_sig <- round(mRSE(dat = y),3)
-    model <- if (min(Binp,Bp,NEp,LMp, qp, na.rm = TRUE)<p) {
-      if (Bp<=min(LMp,NEp,Binp, qp, na.rm = TRUE)) {
-        "Burr"
-      } else {
-        if (LMp<=min(Bp,NEp,Binp, qp, na.rm = TRUE)) {
-          "Linear"
-        } else {
-          if (NEp<=min(LMp,Bp,Binp, qp, na.rm = TRUE)) {
-            "NegExp"
-          } else {
-            if (Binp<=min(LMp,Bp,NEp, qp, na.rm = TRUE)) {
-              "Binomial"
-            } else {
-              if (qp<=min(LMp,Bp,NEp, Binp, na.rm = TRUE)) {
-                "Quadratic"
-              }
-            }
-          }
-        }
-      }
-    } else {"Mean"}
-    model <- if (min(LMRSE, NERSE, BRSE, BinRSE, qRSE, na.rm = TRUE) < m_sig){
-      model
-    } else {"Mean"}
     
     #Record values
-    fitBase[nrow(fitBase)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
-                                   Ba, Bb, BRSE, Bp, Bs, Bsd, Bm, BinRSE, Binp, qa, qb, qc, qRSE, qp, 
-                                   LM_sig, NE_sig, B_sig, Bin_sig, q_sig, meanBase, m_sig, model)
+    fitBase[nrow(fitBase)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMRsq, LMp, k, r, NERSE, NERsq, NEp,
+                                   Ba, Bb, BRSE, BRsq, Bp, Bs, Bsd, Bm, BinRSE, BinRsq, Binp, qa, qb, qc, qRSE, qRsq, qp, 
+                                   meanBase, m_sig, model)
   }
   
   return(fitBase)
@@ -758,8 +698,10 @@ baseDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1
 #' @return dataframe
 #' @export
 
-heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
+heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, 
+                  base = "base", top = "top", he = "he", ht = "ht") {
   
+  dat <- datClean(veg = dat,  base = "base", top = "top", he = "he", ht = "ht")
   spCov <- specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
@@ -780,7 +722,7 @@ heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$bRat)
     
-    if (length(unique(x, incomparables = FALSE))>2) {
+    if (length(unique(x, incomparables = FALSE))>2 & length(unique(y, incomparables = FALSE))>1) {
     #Linear
     if (!berryFunctions::is.error(lm(y ~ x)) && length(unique(x, incomparables = FALSE))>1) {
       LM<-lm(y ~ x)
@@ -850,6 +792,7 @@ heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
 
 htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
   
+  dat <- datClean(veg = dat,  base = "base", top = "top", he = "he", ht = "ht")
   spCov <- specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
@@ -870,7 +813,7 @@ htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$bRat)
     
-    if (length(unique(x, incomparables = FALSE))>2) {
+    if (length(unique(x, incomparables = FALSE))>2 & length(unique(y, incomparables = FALSE))>1) {
     #Linear
     if (!berryFunctions::is.error(lm(y ~ x)) && length(unique(x, incomparables = FALSE))>1) {
       LM<-lm(y ~ x)
@@ -942,24 +885,31 @@ htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
 #' @return dataframe
 #' @export
 
-wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000) {
-  
+wDyn <- function(dat, width = "width", top = "top", 
+                 thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000) {
+
   spCov <- specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
   dat <- left_join(dat, spCov)%>%
     mutate(Species = replace(Species, which(Cover < thres), "Minor Species"),
-           Rat = as.numeric(width)/top)
+           Rat = as.numeric(width)/top)  
+  
+  # Find missing data
+  entries <- which(is.na(dat[width]))
+  if (length(entries)>0) {
+    cat(" datClean removed these rows as they were missing crown widths", "\n", entries, "\n", "\n")
+    dat <- dat[-entries,] 
+  }
   
   priorList <- unique(dat$Species, incomparables = FALSE)
   
   #DATA ANALYSIS
-  fitw <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_p' = numeric(0),
-                     'k' = numeric(0), 'r' = numeric(0), 'NE_sigma' = numeric(0), 'NE_p' = numeric(0),
-                     'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_p' = numeric(0),
-                     'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_p' = numeric(0),
-                     'Qa' = numeric(0), 'Qb' = numeric(0), 'Qc' = numeric(0), 'Q_sigma' = numeric(0), 'Q_p' = numeric(0),
-                     'linear' = character(0), 'NegExp' = character(0), 'Burr' = character(0), 'Binomial' = character(0), 'Quadratic' = character(0), 
+  fitw <- data.frame('Species' = character(0), 'lin_a' = numeric(0), 'lin_b' = numeric(0),'lin_Sigma' = numeric(0), 'lin_Rsq' = numeric(0), 'lin_p' = numeric(0),
+                     'k' = numeric(0), 'r' = numeric(0), 'NE_sigma' = numeric(0), 'NE_Rsq' = numeric(0), 'NE_p' = numeric(0),
+                     'Ba' = numeric(0), 'Bb' = numeric(0), 'B_sigma' = numeric(0), 'B_Rsq' = numeric(0), 'B_p' = numeric(0),
+                     'scale' = numeric(0), 'sd' = numeric(0), 'Binm' = numeric(0), 'Bin_sigma' = numeric(0), 'Bin_Rsq' = numeric(0), 'Bin_p' = numeric(0),
+                     'Qa' = numeric(0), 'Qb' = numeric(0), 'Qc' = numeric(0), 'Q_sigma' = numeric(0), 'q_Rsq' = numeric(0), 'Q_p' = numeric(0), 
                      'Mean' = character(0), 'Mean_sigma' = character(0), 'Model' = character(0), stringsAsFactors=F)
   
   for (sp in 1:length(priorList)) {
@@ -970,200 +920,187 @@ wDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000
     x <- as.numeric(studySpecies$Age)
     y <- as.numeric(studySpecies$Rat)
     
-    if (length(unique(x, incomparables = FALSE))>2) {
-    #Linear
-    if (!berryFunctions::is.error(lm(y ~ x))) {
-      LM<-lm(y ~ x)
-      LMSum <- base::summary(LM)
-      LMa <- LMSum$coefficients[2]
-      LMb <- LMSum$coefficients[1]
-      LMRSE <- LMSum$sigma
-      LMp <- if (LMRSE == 0) {
-        0
+    if (length(unique(x, incomparables = FALSE))>2 & length(unique(y, incomparables = FALSE))>1) {
+      
+      #Linear
+      if (!berryFunctions::is.error(lm(y ~ x))) {
+        LM<-lm(y ~ x)
+        LMSum <- base::summary(LM)
+        LMa <- LMSum$coefficients[2]
+        LMb <- LMSum$coefficients[1]
+        LMRSE <- LMSum$sigma
+        LMRsq <- LMSum$r.squared
+        LMp <- if (LMRSE == 0) {
+          0
+        } else {
+          round(max(LMSum$coefficients[7],LMSum$coefficients[8]),5)
+        }
+        rm(LM)
       } else {
-        round(max(LMSum$coefficients[7],LMSum$coefficients[8]),5)
+        LMa <- NA
+        LMb <- NA
+        LMRSE <- 100
+        LMRsq <- 0
+        LMp <- 1
       }
-      LM_sig <- if (berryFunctions::is.error(LMp)) {
-        ""
-      }
-      else if (LMp < 0.001) {
-        "***"    
-      } else if (LMp < 0.01) {
-        "**"    
-      } else if (LMp < 0.05) {
-        "*" 
+      
+      #Negative exponential
+      init1<-c(k=50,r=0.5)
+      if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
+        NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
+        NESum <- base::summary(NE)
+        k <- NESum$coefficients[1]
+        r <- NESum$coefficients[2]
+        NERSE <- NESum$sigma
+        NERsq <- cor(predict(NE, newdata=x), y)**2
+        NEp <- round(max(NESum$coefficients[7],NESum$coefficients[8]),5)
+        rm(NE)
       } else {
-        ""
+        k <- NA
+        r <- NA
+        NERSE <- 100
+        NERsq <- 0
+        NEp <- 1
       }
-      rm(LM)
+      
+      #Burr
+      init2<-c(a=3,b=2)
+      if (!berryFunctions::is.error(nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control))) {
+        Burr<-nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control)
+        BSum <- base::summary(Burr)
+        Ba <- BSum$coefficients[1]
+        Bb <- BSum$coefficients[2]
+        
+        #Added control for Burr
+        f <- function(x){Ba*Bb*((0.1*x^(Ba-1))/((1+(0.1*x)^Ba)^Bb+1))}
+        if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
+          BRSE <- 100
+          BRsq <- 0
+          Bp <- 1
+        } else if (bTest * (mean(y, na.rm = TRUE) - sd(y, na.rm = TRUE)) > (optimize(f = f, interval=c(0, 150), maximum=FALSE))$objective) {
+          BRSE <- 100
+          BRsq <- 0
+          Bp <- 1
+        } else {
+          BRSE <- BSum$sigma
+          BRsq <- cor(predict(Burr, newdata=x), y)**2
+          Bp <- round(max(BSum$coefficients[7],BSum$coefficients[8]),5)
+        }
+        rm(Burr)
+      } else {
+        Ba <- NA
+        Bb <- NA
+        BRSE <- 100
+        BRsq <- 0
+        Bp <- 1
+      }
+      
+      #Binomial
+      init3<-c(s=1,sd=3, m=20)
+      if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control))) {
+        Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control)
+        BinSum <- base::summary(Bin)
+        Bs <- BinSum$coefficients[1]
+        Bsd <- BinSum$coefficients[2]
+        Bm <- BinSum$coefficients[3]
+        BinRSE <- BinSum$sigma
+        BinRsq <- cor(predict(Bin, newdata=x), y)**2
+        Binp <- round(max(BinSum$coefficients[10],BinSum$coefficients[11],BinSum$coefficients[12]),5)
+        rm(Bin)
+      } else {
+        Bs <- NA
+        Bsd <- NA
+        Bm <- NA
+        BinRSE <- 100
+        BinRsq <- 0
+        Binp <- 1
+      }
+      
+      #Quadratic
+      init4 <- c(a = 1, b = 2, c = 0)
+      if (!berryFunctions::is.error(nls(y ~ a*x^2 + b*x + c, data = studySpecies, 
+                                        start = init4, trace = T, control = control))) {
+        q <- nls(y ~ a*x^2 + b*x + c, data = studySpecies, start = init4, 
+                 trace = T, control = control)
+        qSum <- base::summary(q)
+        qa <- qSum$coefficients[1]
+        qb <- qSum$coefficients[2]
+        qc <- qSum$coefficients[3]
+        
+        #Added control for Quadratic
+        f <- function(x){qa*x^2 + qb*x + qc}
+        if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
+          qRSE <- 100
+          qRsq <- 0
+          qp <- 1
+        } else {
+          qRSE <- qSum$sigma
+          qRsq <- cor(predict(q, newdata=x), y)**2
+          qp <- round(max(qSum$coefficients[10], qSum$coefficients[11], 
+                          qSum$coefficients[12]), 5)
+        }
+        rm(q)
+      } else {
+        qa <- NA
+        qb <- NA
+        qc <- NA
+        qRSE <- 100
+        qRsq <- 0
+        qp <- 1
+      }
+      
+      #Summary stats
+      meanw <- round(mean(y, na.rm = TRUE),1)
+      m_sig <- round(mRSE(dat = y),3)
+      
+      #Choose the best model
+      listRsq <- c(LMRsq, NERsq, BRsq, BinRsq, qRsq)
+      listRSE <- c(LMRSE, NERSE, BRSE, BinRSE, qRSE)
+      listMod <- c("Linear", "NegExp", "Burr", "Binomial", "Quadratic")
+      
+      if (listRSE[which(listRsq == max(listRsq))]<=m_sig) {
+        model <- listMod[which(listRsq == max(listRsq))]
+      } else {
+        model <- "Mean"
+      }
+      
     } else {
       LMa <- NA
       LMb <- NA
-      LRSE <- NA
+      LMRSE <- 100
+      LMRsq <- 0
       LMp <- 1
-      LM_sig <- ""
-    }
-    
-    #Negative exponential
-    init1<-c(k=50,r=0.5)
-    if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
-      NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
-      NESum <- base::summary(NE)
-      k <- NESum$coefficients[1]
-      r <- NESum$coefficients[2]
-      NERSE <- NESum$sigma
-      NEp <- round(max(NESum$coefficients[7],NESum$coefficients[8]),5)
-      NE_sig <- if (NEp < 0.001) {
-        "***"    
-      } else if (NEp < 0.01) {
-        "**"    
-      } else if (NEp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
-      rm(NE)
-    } else {
       k <- NA
       r <- NA
-      NERSE <- NA
+      NERSE <- 100
+      NERsq <- 0
       NEp <- 1
-      NE_sig <- ""
-    }
-    
-    #Burr
-    init2<-c(a=3,b=2)
-    if (!berryFunctions::is.error(nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control))) {
-      Burr<-nls(y~a*b*((0.1*x^(a-1))/((1+(0.1*x)^a)^b+1)),data=studySpecies,start=init2,trace=T, control = control)
-      BSum <- base::summary(Burr)
-      Ba <- BSum$coefficients[1]
-      Bb <- BSum$coefficients[2]
-      BRSE <- BSum$sigma
-      #Added control for Burr
-      f <- function(x){Ba*Bb*((0.1*x^(Ba-1))/((1+(0.1*x)^Ba)^Bb+1))}
-      Bp <- if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
-        1
-      } else if (bTest * (mean(y, na.rm = TRUE) - sd(y, na.rm = TRUE)) > (optimize(f = f, interval=c(0, 150), maximum=FALSE))$objective) {
-        1
-      } else {round(max(BSum$coefficients[7],BSum$coefficients[8]),5)}
-      B_sig <- if (Bp < 0.001) {
-        "***"    
-      } else if (Bp < 0.01) {
-        "**"    
-      } else if (Bp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
-      rm(Burr)
-    } else {
       Ba <- NA
       Bb <- NA
-      BRSE <- NA
+      BRSE <- 100
+      BRsq <- 0
       Bp <- 1
-      B_sig <- ""
-    }
-    
-    #Binomial
-    init3<-c(s=1,sd=3, m=20)
-    if (!berryFunctions::is.error(nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control))) {
-      Bin<-nls(y~s*(1/(sd*sqrt(2*pi)))*exp(-((x-m)^2)/(2*sd^2)),data=studySpecies,start=init3,trace=T, control = control)
-      BinSum <- base::summary(Bin)
-      Bs <- BinSum$coefficients[1]
-      Bsd <- BinSum$coefficients[2]
-      Bm <- BinSum$coefficients[3]
-      BinRSE <- BinSum$sigma
-      Binp <- round(max(BinSum$coefficients[10],BinSum$coefficients[11],BinSum$coefficients[12]),5)
-      Bin_sig <- if (Binp < 0.001) {
-        "***"    
-      } else if (Binp < 0.01) {
-        "**"    
-      } else if (Binp < 0.05) {
-        "*" 
-      } else {
-        ""
-      }
-      rm(Bin)
-    } else {
       Bs <- NA
       Bsd <- NA
       Bm <- NA
-      BinRSE <- NA
+      BinRSE <- 100
+      BinRsq <- 0
       Binp <- 1
-      Bin_sig <- ""
-    }
-    
-    #Quadratic
-    init4 <- c(a = 1, b = 2, c = 0)
-    if (!berryFunctions::is.error(nls(y ~ a*x^2 + b*x + c, data = studySpecies, 
-                                      start = init4, trace = T, control = control))) {
-      q <- nls(y ~ a*x^2 + b*x + c, data = studySpecies, start = init4, 
-               trace = T, control = control)
-      qSum <- base::summary(q)
-      qa <- qSum$coefficients[1]
-      qb <- qSum$coefficients[2]
-      qc <- qSum$coefficients[3]
-      qRSE <- qSum$sigma
-      #Added control for Quadratic
-      f <- function(x){qa*x^2 + qb*x + qc}
-      qp <- if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
-        1
-      } else {round(max(qSum$coefficients[10], qSum$coefficients[11], 
-                        qSum$coefficients[12]), 5)}
-      q_sig <- if (qp < 0.001) {
-        "***"
-      }
-      else if (qp < 0.01) {
-        "**"
-      }
-      else if (qp < 0.05) {
-        "*"
-      }
-      else {
-        ""
-      }
-      rm(q)
-    } else {
       qa <- NA
       qb <- NA
       qc <- NA
-      qRSE <- NA
+      qRSE <- 100
+      qRsq <- 0
       qp <- 1
-      q_sig <- ""
+      model <- "Mean"      
+      #Summary stats
+      meanw <- round(mean(y, na.rm = TRUE),1)
+      m_sig <- round(mRSE(dat = y),3)
     }
-    }
-    #Summary stats
-    meanw <- round(mean(y, na.rm = TRUE),1)
-    m_sig <- round(mRSE(dat = y),3)
-    model <- if (min(Binp,Bp,NEp,LMp, qp, na.rm = TRUE)<p) {
-      if (Bp<=min(LMp,NEp,Binp, qp, na.rm = TRUE)) {
-        "Burr"
-      } else {
-        if (LMp<=min(Bp,NEp,Binp, qp, na.rm = TRUE)) {
-          "Linear"
-        } else {
-          if (NEp<=min(LMp,Bp,Binp, qp, na.rm = TRUE)) {
-            "NegExp"
-          } else {
-            if (Binp<=min(LMp,Bp,NEp, qp, na.rm = TRUE)) {
-              "Binomial"
-            } else {
-              if (qp<=min(LMp,Bp,NEp, Binp, na.rm = TRUE)) {
-                "Quadratic"
-              }
-            }
-          }
-        }
-      }
-    } else {"Mean"}
-    model <- if (min(LMRSE, NERSE, BRSE, BinRSE, qRSE, na.rm = TRUE) < m_sig){
-      model
-    } else {"Mean"}
     
     #Record values
-    fitw[nrow(fitw)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMp, k, r, NERSE, NEp,
-                             Ba, Bb, BRSE, Bp, Bs, Bsd, Bm, BinRSE, Binp, qa, qb, qc, qRSE, qp, 
-                             LM_sig, NE_sig, B_sig, Bin_sig, q_sig,
+    fitw[nrow(fitw)+1,] <- c(as.character(priorList[SpeciesNumber]), LMa, LMb, LMRSE, LMRsq, LMp, k, r, NERSE, NERsq, NEp,
+                             Ba, Bb, BRSE, BRsq, Bp, Bs, Bsd, Bm, BinRSE, BinRsq, Binp, qa, qb, qc, qRSE, qRsq, qp, 
                              meanw, m_sig, model)
   }
   
@@ -1706,6 +1643,7 @@ pCover <- function(mods, sp, Age = 10){
   } else if (mods$Cover[n] == "Mean") {
     c <- as.numeric(mods$C_b[n])
   }
+  c <- min(max(0,c),100)
   return(c)
 }
 
@@ -1733,6 +1671,7 @@ pTop <- function(mods, sp, Age = 10){
   } else if (mods$Top[n] == "Mean") {
     c <- as.numeric(mods$T_b[n])
   }
+  c <- max(0,c)
   return(c)
 }
 
@@ -1760,6 +1699,7 @@ pBase <- function(mods, sp, Age = 10){
   } else if (mods$Base[n] == "Mean") {
     c <- as.numeric(mods$B_b[n])
   }
+  c <- min(max(0,c),1)
   return(c)
 }
 
@@ -1787,6 +1727,7 @@ pHe <- function(mods, sp, Age = 10){
   } else if (mods$He[n] == "Mean") {
     c <- as.numeric(mods$He_b[n])
   }
+  c <- max(0,c)
   return(c)
 }
 
@@ -1814,6 +1755,7 @@ pHt <- function(mods, sp, Age = 10){
   } else if (mods$Ht[n] == "Mean") {
     c <- as.numeric(mods$Ht_b[n])
   }
+  c <- max(0,c)
   return(c)
 }
 
@@ -1841,6 +1783,7 @@ pWidth <- function(mods, sp, Age = 10){
   } else if (mods$Width[n] == "Mean") {
     c <- as.numeric(mods$w_b[n])
   }
+  c <- max(0,c)
   return(c)
 }
 
@@ -1856,38 +1799,18 @@ pWidth <- function(mods, sp, Age = 10){
 #' @param veg A dataframe listing plant species with columns describing crown dimensions
 #' @param pN The number of the point in the transect
 #' @param spName Name of the field with the species name
-#' @param pBase Name of the field with the base height
-#' @param pTop Name of the field with the top height
-#' @param hE Name of the field with dimension he
-#' @param hT Name of the field with dimension ht
+#' @param base Name of the field with the base height
+#' @param top Name of the field with the top height
+#' @param he Name of the field with dimension he
+#' @param ht Name of the field with dimension ht
 #' @return Dataframe
 #' @export
 
-stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop = "top", hE = "he", hT = "ht")
+stratify <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht")
 {
-  # Find missing data
-  entries <- which(is.na(veg[pTop]))
-  if (length(entries)>0) {
-    cat(" Stratify removed these rows as they were missing top heights", "\n", entries, "\n", "\n")
-    veg <- veg[-entries,] 
-  }
   
-  # Fill empty dimensions
-  entries <- which(is.na(veg[hT])|is.na(veg[hE]))
-  if (length(entries)>0) {
-    cat(" Stratify filled empty values of ht & he with top and base heights for these rows", "\n", entries, "\n", "\n")
-    veg[hT][is.na(veg[hT])]<-veg[pTop][is.na(veg[hT])]
-    veg[hE][is.na(veg[hE])]<-veg[pBase][is.na(veg[hE])]
-  }
-  
-  # Remove faulty data
-  entries <- which(veg[hT]<veg[hE]|veg[pTop]<veg[pBase])
-  if (length(entries)>0) {
-    cat(" Stratify removed these rows as upper and lower heights conflicted", "\n", entries)
-    veg <- veg[-entries,]
-  }
-  
-  veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, pBase, pTop, hE, hT)))
+  veg <- datClean(veg = veg,  base = "base", top = "top", he = "he", ht = "ht")
+  veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, base, top, he, ht)))
   veg_subset <- veg_subset[complete.cases(veg_subset), ] # Omit NAs in relevant columns
   veg_subset <- veg_subset %>%
     mutate(base = case_when(veg_subset[,3] == 0 ~ 0.001, TRUE ~ veg_subset[,3]),
@@ -1926,8 +1849,8 @@ stratify <- function(veg, pN ="Point",  spName ="Species",  pBase = "base", pTop
     mutate(Stratum = 1:nstrat) %>% 
     select(cluster, Stratum)
   strat <- left_join(clust, h, by = "cluster") %>% 
-    dplyr::select(all_of(c(pN, spName, pTop, "Stratum")))
-  veg <- left_join(veg, strat, by = c(pN, spName, pTop))
+    dplyr::select(all_of(c(pN, spName, top, "Stratum")))
+  veg <- left_join(veg, strat, by = c(pN, spName, top))
   return(veg)
 }
 
@@ -1991,15 +1914,15 @@ rich <- function(dat, thres = 5, pnts = 10) {
 #' @param pnts The number of points measured in a transect
 #' @param pN The number of the point in the transect
 #' @param spName Name of the field with the species name
-#' @param pBase Name of the field with the base height
-#' @param pTop Name of the field with the top height
-#' @param hE Name of the field with dimension he
-#' @param hT Name of the field with dimension ht
+#' @param base Name of the field with the base height
+#' @param top Name of the field with the top height
+#' @param he Name of the field with dimension he
+#' @param ht Name of the field with dimension ht
 #' @return dataframe
 
 richS <- function(dat, thres = 5, pnts = 10, 
-                  pN ="Point",  spName ="Species",  pBase = "base", 
-                  pTop = "top", hE = "he", hT = "ht") {
+                  pN ="Point",  spName ="Species",  base = "base", 
+                  top = "top", he = "he", ht = "ht") {
   
   spCov <- frame::specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
@@ -2007,8 +1930,8 @@ richS <- function(dat, thres = 5, pnts = 10,
   dat <- suppressMessages(left_join(dat, spCov))%>%
     mutate(Species = replace(Species, which(Cover < thres), "Minor Species"))
   
-  datS <- frame::stratify(veg = dat, pN = pN, spName = spName, pBase = pBase,
-                          pTop = pTop, hE = hE, hT = hT)
+  datS <- frame::stratify(veg = dat, pN = pN, spName = spName, base = base,
+                          top = top, he = he, ht = ht)
   
   out <- suppressMessages(datS %>%
                             group_by(Stratum) %>%
@@ -2035,22 +1958,22 @@ richS <- function(dat, thres = 5, pnts = 10,
 #' @param pnts The number of points measured in a transect
 #' @param pN The number of the point in the transect
 #' @param spName Name of the field with the species name
-#' @param pBase Name of the field with the base height
-#' @param pTop Name of the field with the top height
-#' @param hE Name of the field with dimension he
-#' @param hT Name of the field with dimension ht
+#' @param base Name of the field with the base height
+#' @param top Name of the field with the top height
+#' @param he Name of the field with dimension he
+#' @param ht Name of the field with dimension ht
 #' @return dataframe
 #' @export
 #' 
 stratSite <- function(dat, thres = 0, pnts = 10,  
-                      pN ="Point",  spName ="Species",  pBase = "base", 
-                      pTop = "top", hE = "he", hT = "ht")  {
+                      pN ="Point",  spName ="Species",  base = "base", 
+                      top = "top", he = "he", ht = "ht")  {
   strataDet <- data.frame(Stratum = numeric(0), Cover = numeric(0), 
                           Base = numeric(0), Top = numeric(0), stringsAsFactors = F)
   r <- rich(dat, thres = thres, pnts = pnts)
   nstrat <- round(min(4, as.numeric(r$Mean)),0)
-  strat <- frame::stratify(veg = dat, pN = pN, spName = spName, pBase = pBase,
-                           pTop = pTop, hE = hE, hT = hT)
+  strat <- frame::stratify(veg = dat, pN = pN, spName = spName, base = base,
+                           top = top, he = he, ht = ht)
   for (st in 1:nstrat) {
     stratSub <- strat %>% filter(Stratum == st)
     spnts <- unique(stratSub$Point, incomparables = FALSE)
@@ -2082,8 +2005,8 @@ stratSite <- function(dat, thres = 0, pnts = 10,
 #' @export
 #' 
 stratRich <- function(dat, thres = 5, pnts = 10, 
-                      pN ="Point",  spName ="Species",  pBase = "base", 
-                      pTop = "top", hE = "he", hT = "ht") {
+                      pN ="Point",  spName ="Species",  base = "base", 
+                      top = "top", he = "he", ht = "ht") {
   
   richList <- data.frame('S1' = numeric(0), 'S2' = numeric(0),
                          'S3' = numeric(0), 'S4' = numeric(0))
@@ -2092,8 +2015,8 @@ stratRich <- function(dat, thres = 5, pnts = 10,
   for (s in slist) {
     datSite <- filter(dat, Site == s)
     sRich <- richS(dat = datSite, thres = thres, pnts = pnts, 
-                   pN = pN,  spName = spName,  pBase = pBase, 
-                   pTop = pTop, hE = hE, hT = hT)
+                   pN = pN,  spName = spName,  base = base, 
+                   top = top, he = he, ht = ht)
     nstrat <- as.numeric(max(sRich$Stratum))
     # Record values
     richList[which(slist == s), 1] <- sRich$Richness[1]
@@ -2141,10 +2064,10 @@ stratRich <- function(dat, thres = 5, pnts = 10,
 #' @param veg The dataframe containing the input data
 #' @param pN The number of the point in the transect
 #' @param spName Name of the field with the species name
-#' @param pBase Name of the field with the base height
-#' @param pTop Name of the field with the top height
-#' @param hE Name of the field with dimension he
-#' @param hT Name of the field with dimension ht
+#' @param base Name of the field with the base height
+#' @param top Name of the field with the top height
+#' @param he Name of the field with dimension he
+#' @param ht Name of the field with dimension ht
 #' @param wid Name of the field with dimension width
 #' @param rec Name of the field with the record number
 #' @param sN Optional field with a site name
@@ -2154,11 +2077,11 @@ stratRich <- function(dat, thres = 5, pnts = 10,
 #'
 #'
 
-buildFlora <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
+buildFlora <- function(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                        wid = "width", rec = "Site", sN = "SiteName", surf = 20) {
   
   vegA <- frame::stratify(veg = veg, pN = pN, spName = spName,
-                          pBase = pBase, pTop = pTop, hE = hE, hT = hT)
+                          base = base, top = top, he = he, ht = ht)
   
   # Summarise species
   spCount <- vegA %>%
@@ -2181,9 +2104,9 @@ buildFlora <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTo
   }
   
   # Correct empty entries
-  singles <- which(is.na(spSD[pTop]))
+  singles <- which(is.na(spSD[top]))
   if (length(singles)>0) {
-    spSD[pTop][is.na(spSD[pTop])]<-0.01
+    spSD[top][is.na(spSD[top])]<-0.01
   }
   
   suppressMessages(spMax <- vegA %>%
@@ -2240,22 +2163,22 @@ buildFlora <- function(veg, pN ="Point",  spName ="Species", pBase = "base", pTo
 #' @param veg The dataframe containing the input data
 #' @param pN The number of the point in the transect
 #' @param spName Name of the field with the species name
-#' @param pBase Name of the field with the base height
-#' @param pTop Name of the field with the top height
-#' @param hE Name of the field with dimension he
-#' @param hT Name of the field with dimension ht
+#' @param base Name of the field with the base height
+#' @param top Name of the field with the top height
+#' @param he Name of the field with dimension he
+#' @param ht Name of the field with dimension ht
 #' @param rec Name of the field with the record number
 #' @param sN Optional field with a site name
 #' @return dataframe
 #' @export
 #'
 
-buildStructure <- function(veg, pN ="Point", spName ="Species", pBase = "base", pTop = "top", 
-                           hE = "he", hT = "ht", rec = "Site", sN = "SiteName") {
+buildStructure <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
+                           he = "he", ht = "ht", rec = "Site", sN = "SiteName") {
   
   # 1. Horizontal relationships  
-  vegA <- frame::stratify(veg = veg, pN = pN, spName = spName, pBase = pBase,
-                          pTop = pTop, hE = hE, hT = hT)
+  vegA <- frame::stratify(veg = veg, pN = pN, spName = spName, base = base,
+                          top = top, he = he, ht = ht)
   suppressMessages(StratC <- vegA %>%
                      select(Point, Stratum)%>%
                      group_by(Stratum, Point) %>%
@@ -2464,10 +2387,10 @@ olson <- function(max = 54.22, rate = 0.026, age = 10)
 #' @param default.species.params Plant traits database
 #' @param pN The number of the point in the transect
 #' @param spName Name of the field with the species name
-#' @param pBase Name of the field with the base height
-#' @param pTop Name of the field with the top height
-#' @param hE Name of the field with dimension he
-#' @param hT Name of the field with dimension ht
+#' @param base Name of the field with the base height
+#' @param top Name of the field with the top height
+#' @param he Name of the field with dimension he
+#' @param ht Name of the field with dimension ht
 #' @param wid Name of the field with dimension width
 #' @param rec Name of the field with the record number
 #' @param sN Optional field with a site name
@@ -2476,7 +2399,7 @@ olson <- function(max = 54.22, rate = 0.026, age = 10)
 #' @param age Optional field with site age 
 #' @param surf Weight of surface litter in t/ha
 #' @param density Wood density (kg.m-3)
-#' @param top Top height of suspended layer
+#' @param nsH Top height of suspended layer
 #' @param cover Percent cover of suspended layer
 #' @param aQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
 #' @param bQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
@@ -2487,28 +2410,28 @@ olson <- function(max = 54.22, rate = 0.026, age = 10)
 #' @export
 #' 
 
-frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
+frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                         wid = "width", rec = "Site", sN = "SiteName", max = 54, rate = 0.026, age = NA, surf = 10, density = 300, 
-                        top = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA) {
+                        nsH = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA) {
   
   
   # Find missing data
-  entries <- which(is.na(dat[pTop]))
+  entries <- which(is.na(dat[top]))
   if (length(entries)>0) {
     cat(" These rows were removed as they were missing top heights", "\n", entries, "\n", "\n")
     dat <- dat[-entries,] 
   }
   
   # Fill empty dimensions
-  entries <- which(is.na(dat[hT])|is.na(dat[hE]))
+  entries <- which(is.na(dat[ht])|is.na(dat[he]))
   if (length(entries)>0) {
     cat(" Empty values of ht & he were filled with top and base heights for these rows", "\n", entries, "\n", "\n")
-    dat[hT][is.na(dat[hT])]<-dat[pTop][is.na(dat[hT])]
-    dat[hE][is.na(dat[hE])]<-dat[pBase][is.na(dat[hE])]
+    dat[ht][is.na(dat[ht])]<-dat[top][is.na(dat[ht])]
+    dat[he][is.na(dat[he])]<-dat[base][is.na(dat[he])]
   }
   
   # Remove faulty data
-  entries <- which(dat[hT]<dat[hE]|dat[pTop]<dat[pBase])
+  entries <- which(dat[ht]<dat[he]|dat[top]<dat[base])
   if (length(entries)>0) {
     cat(" These rows were removed as upper and lower heights conflicted", "\n", entries)
     dat <- dat[-entries,]
@@ -2528,14 +2451,14 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
       surf <- round(olson(max, rate, veg[1,age]),0)
     }
     
-    Struct <- buildStructure(veg, pN ="Point", spName ="Species", pBase = "base", pTop = "top", 
+    Struct <- buildStructure(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
                              rec = "Site", sN = "SiteName")
-    Flor <- buildFlora(veg, pN ="Point",  spName ="Species", pBase = "base", pTop = "top", hE = "he", hT = "ht",
+    Flor <- buildFlora(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                        wid = "width", rec = "Site", sN = "SiteName", surf = surf)
     
     # Add suspended litter
     pnts <- as.numeric(n_distinct(dat[pN]))
-    tabs <- susp(Flora = Flor, Structure = Struct, default.species.params, density = density, top = top, cover = cover, pnts = pnts,
+    tabs <- susp(Flora = Flor, Structure = Struct, default.species.params, density = density, top = nsH, cover = cover, pnts = pnts,
                  age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, max = maxNS, rate = rateNS)
     Structure <- rbind(Structure, tabs[[2]])
     Flora <- rbind(Flora, tabs[[1]])
@@ -2557,15 +2480,30 @@ growPlants <- function(Dynamics, Age = 10) {
                            'top' = numeric(0), 'tRSE' = numeric(0), 'w' = numeric(0))
   
   for (sp in 1:(nrow(Dynamics)-2)) {
-    Contenders[sp,1] <- Dynamics$Species[sp]
-    Contenders[sp,2] <- pCover(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
+    Contenders[sp,1] <- max(Dynamics$Species[sp],0)
     Contenders[sp,3] <- as.numeric(Dynamics$C_RSE[sp])/100
-    Contenders[sp,4] <- pBase(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
-    Contenders[sp,5] <- pHe(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
-    Contenders[sp,6] <- pHt(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
-    Contenders[sp,7] <- pTop(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
+    Contenders[sp,6] <- max(pHt(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
+    Contenders[sp,5] <- max(min(pHe(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age), Contenders[sp,6]),0)
+    Contenders[sp,7] <- max(pTop(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
+    Contenders[sp,4] <- max(min(pBase(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age), Contenders[sp,7]),0)
     Contenders[sp,8] <- as.numeric(Dynamics$T_RSE[sp])/100
-    Contenders[sp,9] <- pWidth(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
+    Contenders[sp,9] <- max(pWidth(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
+    
+    # Assign no cover to plants with 0 height or foliage
+    covTest <- if ((Contenders[sp,7] < 0.05) 
+                   || (Contenders[sp,4] == Contenders[sp,7] & Contenders[sp,6] == Contenders[sp,5]) 
+                   || (Contenders[sp,9] <= 0.05)) {
+      0
+    } else {
+      1
+    }
+    
+    Contenders[sp,2] <- pCover(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age) * covTest
+  }
+  # Remove species with no cover
+  entries <- which(Contenders$Cover == 0)
+  if (length(entries)>0) {
+    Contenders <- Contenders[-entries,] 
   }
   
   return(Contenders)
@@ -2650,6 +2588,43 @@ pseudoTransect <- function(Dynamics, pointRich, default.species.params,
     }
   }
   return(out)
+}
+
+#' Performs basic data checks on survey data, 
+#' fixes or removes data and lists changes
+#'
+#' @param dat The dataframe to be cleaned
+#' @param base Name of the field with the base height
+#' @param top Name of the field with the top height
+#' @param he Name of the field with dimension he
+#' @param ht Name of the field with dimension ht
+#' @return dataframe
+#' @export
+
+datClean <- function(veg,  base = "base", top = "top", he = "he", ht = "ht") {
+  
+  # Find missing data
+  entries <- which(is.na(veg[top]))
+  if (length(entries)>0) {
+    cat(" datClean removed these rows as they were missing top heights", "\n", entries, "\n", "\n")
+    veg <- veg[-entries,] 
+  }
+  
+  # Fill empty dimensions
+  entries <- which(is.na(veg[ht])|is.na(veg[he]))
+  if (length(entries)>0) {
+    cat(" datClean filled empty values of ht & he with top and base heights for these rows", "\n", entries, "\n", "\n")
+    veg[ht][is.na(veg[ht])]<-veg[top][is.na(veg[ht])]
+    veg[he][is.na(veg[he])]<-veg[base][is.na(veg[he])]
+  }
+  
+  # Remove faulty data
+  entries <- which(veg[ht]<veg[he]|veg[top]<veg[base])
+  if (length(entries)>0) {
+    cat(" datClean removed these rows as upper and lower heights conflicted", "\n", entries)
+    veg <- veg[-entries,]
+  }
+  return(veg)
 }
 
 
