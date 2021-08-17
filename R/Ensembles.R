@@ -228,7 +228,7 @@ fireSet <- function(site, Structure, Flora, traits = default.species.params)
     mutate(fireNo = 1)
   x <- stratum(res$FlameSummaries, res$Sites, res$ROS, surf)%>%
     mutate(fireNo = 1)
-  runs <- summary(x, surf)%>%
+  runs <- frameSummary(x, surf)%>%
     mutate(cat = round(wind_kph,0),
            fireNo = 1)
   IP <- repFlame(res$IgnitionPaths)%>%
@@ -256,7 +256,7 @@ fireSet <- function(site, Structure, Flora, traits = default.species.params)
         mutate(fireNo = a)
       xa <- stratum(res$FlameSummaries, res$Sites, res$ROS, surf)%>%
         mutate(fireNo = a)
-      runsa <- summary(xa, surfa)%>%
+      runsa <- frameSummary(xa, surfa)%>%
         mutate(cat = round(wind_kph,0),
                fireNo = a)
       IPa <- repFlame(res$IgnitionPaths)%>%

@@ -88,7 +88,7 @@ stratum <- function(flames, sites, ros, surface)
 #' @export
 
 
-summary <- function(flames, sites, ros, surface)
+frameSummary <- function(flames, sites, ros, surface)
 {
   Stratum <- stratum(flames, sites, ros, surface)
   Surf <- surf(surface)
@@ -102,6 +102,25 @@ summary <- function(flames, sites, ros, surface)
                   fl = pmax(lengthSurface, lengthPlant) * extinct,
                   zeta = 2.5*ros_kph,
                   epsilon = 1-exp(-0.72*zeta)))
+}
+
+#####################################################################
+#' Discontinued version of summary table of fire behaviour
+#'
+#' Summarises FRaME generated fire behaviour by RepId
+#' @param flames The dataframe $FlameSummaries
+#' @param sites The dataframe $Sites
+#' @param ros The dataframe $ROS
+#' @param surface The dataframe $SurfaceResults
+#' @return dataframe
+#' @export
+
+
+summary <- function(flames, sites, ros, surface)
+{
+  print("Function 'summary' has been superceded by function 'frameSummary'")
+  summary <- frameSummary(flames, sites, ros, surface)
+  return(summary)
 }
 
 #####################################################################
