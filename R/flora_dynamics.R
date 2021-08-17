@@ -1213,6 +1213,28 @@ floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxi
               RSE[sp] <- coverChange$Q_sigma[sp]
             } else {RSE[sp] <- coverChange$Mean_sigma[sp]}
   }
+  Rsq <- rep(NA, length(coverChange$Species))
+  for (sp in 1:length(coverChange$Species)) {
+    if (coverChange$Model[sp] == 'Linear') {
+      Rsq[sp] <- coverChange$lin_Rsq[sp]
+    } else
+      if (coverChange$Model[sp] == 'NegExp') {
+        Rsq[sp] <- coverChange$NE_Rsq[sp]
+      } else
+        if (coverChange$Model[sp] == 'Burr') {
+          Rsq[sp] <- coverChange$B_Rsq[sp]
+        } else
+          if (coverChange$Model[sp] == 'Binomial') {
+            Rsq[sp] <- coverChange$Bin_Rsq[sp]
+          } else
+            if (coverChange$Model[sp] == 'Quadratic') {
+              Rsq[sp] <- coverChange$q_Rsq[sp]
+            } else {Rsq[sp] <- NA}
+  }
+  CovMean <- rep(NA, length(coverChange$Species))
+  for (sp in 1:length(coverChange$Species)) {
+    CovMean[sp] <- coverChange$Mean[sp]
+  }
   
   # Height
   aa <- rep(NA, length(topChange$Species))
@@ -1286,6 +1308,28 @@ floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxi
             if (topChange$Model[sp] == 'Quadratic') {
               RSE1[sp] <- topChange$Q_sigma[sp]
             } else {RSE1[sp] <- topChange$Mean_sigma[sp]}
+  }
+  Rsq1 <- rep(NA, length(topChange$Species))
+  for (sp in 1:length(topChange$Species)) {
+    if (topChange$Model[sp] == 'Linear') {
+      Rsq1[sp] <- topChange$lin_Rsq[sp]
+    } else
+      if (topChange$Model[sp] == 'NegExp') {
+        Rsq1[sp] <- topChange$NE_Rsq[sp]
+      } else
+        if (topChange$Model[sp] == 'Burr') {
+          Rsq1[sp] <- topChange$B_Rsq[sp]
+        } else
+          if (topChange$Model[sp] == 'Binomial') {
+            Rsq1[sp] <- topChange$Bin_Rsq[sp]
+          } else
+            if (topChange$Model[sp] == 'Quadratic') {
+              Rsq1[sp] <- topChange$q_Rsq[sp]
+            } else {Rsq1[sp] <- NA}
+  }
+  hMean <- rep(NA, length(topChange$Species))
+  for (sp in 1:length(topChange$Species)) {
+    hMean[sp] <- topChange$Mean[sp]
   }
   
   # Base
@@ -1361,6 +1405,28 @@ floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxi
               RSE2[sp] <- baseChange$Q_sigma[sp]
             } else {RSE2[sp] <- baseChange$Mean_sigma[sp]}
   }
+  Rsq2 <- rep(NA, length(baseChange$Species))
+  for (sp in 1:length(baseChange$Species)) {
+    if (baseChange$Model[sp] == 'Linear') {
+      Rsq2[sp] <- baseChange$lin_Rsq[sp]
+    } else
+      if (baseChange$Model[sp] == 'NegExp') {
+        Rsq2[sp] <- baseChange$NE_Rsq[sp]
+      } else
+        if (baseChange$Model[sp] == 'Burr') {
+          Rsq2[sp] <- baseChange$B_Rsq[sp]
+        } else
+          if (baseChange$Model[sp] == 'Binomial') {
+            Rsq2[sp] <- baseChange$Bin_Rsq[sp]
+          } else
+            if (baseChange$Model[sp] == 'Quadratic') {
+              Rsq2[sp] <- baseChange$q_Rsq[sp]
+            } else {Rsq2[sp] <- NA}
+  }
+  bMean <- rep(NA, length(baseChange$Species))
+  for (sp in 1:length(baseChange$Species)) {
+    bMean[sp] <- baseChange$Mean[sp]
+  }
   
   # He
   aA <- rep(NA, length(he_Change$Species))
@@ -1434,6 +1500,10 @@ floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxi
             if (he_Change$Model[sp] == 'Quadratic') {
               RSE3[sp] <- he_Change$Q_sigma[sp]
             } else {RSE3[sp] <- he_Change$Mean_sigma[sp]}
+  }
+  heMean <- rep(NA, length(he_Change$Species))
+  for (sp in 1:length(he_Change$Species)) {
+    heMean[sp] <- he_Change$Mean[sp]
   }
   
   # Ht
@@ -1509,6 +1579,10 @@ floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxi
               RSEt[sp] <- ht_Change$Q_sigma[sp]
             } else {RSEt[sp] <- ht_Change$Mean_sigma[sp]}
   }
+  htMean <- rep(NA, length(ht_Change$Species))
+  for (sp in 1:length(ht_Change$Species)) {
+    htMean[sp] <- ht_Change$Mean[sp]
+  }
   
   # Width
   aw <- rep(NA, length(w_Change$Species))
@@ -1583,14 +1657,36 @@ floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxi
               RSEw[sp] <- w_Change$Q_sigma[sp]
             } else {RSEw[sp] <- w_Change$Mean_sigma[sp]}
   }
+  Rsqw <- rep(NA, length(w_Change$Species))
+  for (sp in 1:length(w_Change$Species)) {
+    if (w_Change$Model[sp] == 'Linear') {
+      Rsqw[sp] <- w_Change$lin_Rsq[sp]
+    } else
+      if (w_Change$Model[sp] == 'NegExp') {
+        Rsqw[sp] <- w_Change$NE_Rsq[sp]
+      } else
+        if (w_Change$Model[sp] == 'Burr') {
+          Rsqw[sp] <- w_Change$B_Rsq[sp]
+        } else
+          if (w_Change$Model[sp] == 'Binomial') {
+            Rsqw[sp] <- w_Change$Bin_Rsq[sp]
+          } else
+            if (w_Change$Model[sp] == 'Quadratic') {
+              Rsqw[sp] <- w_Change$q_Rsq[sp]
+            } else {Rsqw[sp] <- NA}
+  }
+  wMean <- rep(NA, length(w_Change$Species))
+  for (sp in 1:length(w_Change$Species)) {
+    wMean[sp] <- w_Change$Mean[sp]
+  }
   
   models <- data.frame('Species'=coverChange$Species, 
-                       'Cover' = coverChange$Model, 'C_a' = a, 'C_b' = b, 'C_c' = c, 'C_RSE' = RSE,
-                       'Top' = topChange$Model, 'T_a' = aa, 'T_b' = bb, 'T_c' = cc, 'T_RSE' = RSE1,
-                       'Base' = baseChange$Model, 'B_a' = aaa, 'B_b' = bbb, 'B_c' = ccc, 'B_RSE' = RSE2, 
-                       'He' = he_Change$Model, 'He_a' = aA, 'He_b' = bB, 'He_c' = cC, 'He_RSE' = RSE3, 
-                       'Ht' = ht_Change$Model, 'Ht_a' = aT, 'Ht_b' = bT, 'Ht_c' = cT, 'Ht_RSE' = RSEt,  
-                       'Width' = w_Change$Model, 'w_a' = aw, 'w_b' = bw, 'w_c' = cw, 'w_RSE' = RSEw)
+                       'Cover' = coverChange$Model, 'C_a' = a, 'C_b' = b, 'C_c' = c, 'C_RSE' = RSE, 'C_Rsq' = Rsq, 'meanCover' = CovMean,
+                       'Top' = topChange$Model, 'T_a' = aa, 'T_b' = bb, 'T_c' = cc, 'T_RSE' = RSE1, 'T_Rsq' = Rsq1, 'meanTop' = hMean,
+                       'Base' = baseChange$Model, 'B_a' = aaa, 'B_b' = bbb, 'B_c' = ccc, 'B_RSE' = RSE2, 'B_Rsq' = Rsq2, 'meanBase' = bMean,
+                       'He' = he_Change$Model, 'He_a' = aA, 'He_b' = bB, 'He_c' = cC, 'He_RSE' = RSE3, 'meanHe' = heMean,
+                       'Ht' = ht_Change$Model, 'Ht_a' = aT, 'Ht_b' = bT, 'Ht_c' = cT, 'Ht_RSE' = RSEt, 'meanHt' = htMean,
+                       'Width' = w_Change$Model, 'w_a' = aw, 'w_b' = bw, 'w_c' = cw, 'w_RSE' = RSEw, 'w_Rsq' = Rsqw, 'meanW' = wMean)
   # Dead biomass
   litter <- case_when(
     Sr != 0  ~ "NegExp",
@@ -1618,6 +1714,7 @@ floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxi
   models$d_c[length(models$Species)] <- NSc
   return(models)
 }
+
 
 #' Predicts proportion cover at a given age
 #' 
@@ -1806,7 +1903,7 @@ pWidth <- function(mods, sp, Age = 10){
 #' @return Dataframe
 #' @export
 
-stratify <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht")
+frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht")
 {
   
   veg <- datClean(veg = veg,  base = "base", top = "top", he = "he", ht = "ht")
@@ -1930,7 +2027,7 @@ richS <- function(dat, thres = 5, pnts = 10,
   dat <- suppressMessages(left_join(dat, spCov))%>%
     mutate(Species = replace(Species, which(Cover < thres), "Minor Species"))
   
-  datS <- frame::stratify(veg = dat, pN = pN, spName = spName, base = base,
+  datS <- frame::frameStratify(veg = dat, pN = pN, spName = spName, base = base,
                           top = top, he = he, ht = ht)
   
   out <- suppressMessages(datS %>%
@@ -1972,7 +2069,7 @@ stratSite <- function(dat, thres = 0, pnts = 10,
                           Base = numeric(0), Top = numeric(0), stringsAsFactors = F)
   r <- rich(dat, thres = thres, pnts = pnts)
   nstrat <- round(min(4, as.numeric(r$Mean)),0)
-  strat <- frame::stratify(veg = dat, pN = pN, spName = spName, base = base,
+  strat <- frame::frameStratify(veg = dat, pN = pN, spName = spName, base = base,
                            top = top, he = he, ht = ht)
   for (st in 1:nstrat) {
     stratSub <- strat %>% filter(Stratum == st)
@@ -2080,7 +2177,7 @@ stratRich <- function(dat, thres = 5, pnts = 10,
 buildFlora <- function(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                        wid = "width", rec = "Site", sN = "SiteName", surf = 20) {
   
-  vegA <- frame::stratify(veg = veg, pN = pN, spName = spName,
+  vegA <- frame::frameStratify(veg = veg, pN = pN, spName = spName,
                           base = base, top = top, he = he, ht = ht)
   
   # Summarise species
@@ -2177,7 +2274,7 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", base = "base", t
                            he = "he", ht = "ht", rec = "Site", sN = "SiteName") {
   
   # 1. Horizontal relationships  
-  vegA <- frame::stratify(veg = veg, pN = pN, spName = spName, base = base,
+  vegA <- frame::frameStratify(veg = veg, pN = pN, spName = spName, base = base,
                           top = top, he = he, ht = ht)
   suppressMessages(StratC <- vegA %>%
                      select(Point, Stratum)%>%
@@ -2366,17 +2463,25 @@ susp <- function(Flora, Structure, default.species.params, density = 300, top = 
 }
 
 #' Models the weight of surface litter from time since fire 
-#' using an Olson negative exponential function
+#' using either an Olson negative exponential function or a Burr curve
 #'
+#' @param negEx Value determining the model used. 
+#' 1 = olson, 2 = Burr
 #' @param max Maximum weight (t/ha)
 #' @param rate	Rate of growth for a negative exponential function
+#' @param a Parameter in the Burr equation
+#' @param b Parameter in the Burr equation
 #' @param age The number of years since last fire
 #' @return dataframe
 #' @export
 
-olson <- function(max = 54.22, rate = 0.026, age = 10)
+litter <- function(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = 10)
 {
-  surf <- max(4, max*(1-exp(-rate*age)))
+  if (negEx == 1) {
+    surf <- max(4, max*(1-exp(-rate*age)))
+  } else {
+    surf <- max(4, a*b*((0.1*age^(a-1))/((1+(0.1*age)^a)^b+1)))
+  }
   
   return(surf)
 }
@@ -2411,8 +2516,8 @@ olson <- function(max = 54.22, rate = 0.026, age = 10)
 #' 
 
 frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
-                        wid = "width", rec = "Site", sN = "SiteName", max = 54, rate = 0.026, age = NA, surf = 10, density = 300, 
-                        nsH = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA) {
+                        wid = "width", rec = "Site", sN = "SiteName", negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = NA, 
+                        surf = 10, density = 300, nsH = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA) {
   
   
   # Find missing data
@@ -2448,7 +2553,7 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
     # Find surface fuels
     if (!is.na(age)) {
       AGE <- veg[1,age]
-      surf <- round(olson(max, rate, veg[1,age]),0)
+      surf <- round(litter(negEx, max, rate, a, b, veg[1,age]),0)
     }
     
     Struct <- buildStructure(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
