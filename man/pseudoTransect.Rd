@@ -10,7 +10,10 @@ pseudoTransect(
   pointRich,
   default.species.params,
   pnts = 10,
-  Age = 10
+  Age = 10,
+  growth = TRUE,
+  thin = TRUE,
+  prune = TRUE
 )
 }
 \arguments{
@@ -24,6 +27,15 @@ as output by function rich}
 \item{pnts}{number of points in the transect}
 
 \item{Age}{Age of the site in years}
+
+\item{growth}{Logical - TRUE uses plant growth models in Dynamics,
+otherwise mean values are used and plants are not grown}
+
+\item{thin}{Logical - TRUE uses plant self-thinning models in Dynamics,
+otherwise mean values are used and plant cover remains constant}
+
+\item{prune}{Logical - TRUE uses plant self-pruning models in Dynamics,
+otherwise mean values are used and plants are not self-pruned}
 }
 \value{
 dataframe

@@ -2573,13 +2573,21 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
 }
 
 #' Grows a table of species to a given age, listing cover and variability
+#' 
+#' Provides options to control for growth, self-thinning and self-pruning
 #'
 #' @param Dynamics Table of growth models as output by floraDynamics
 #' @param Age Age of the site in years
+#' @param growth Logical - TRUE uses plant growth models in Dynamics,
+#' otherwise mean values are used and plants are not grown
+#' @param thin Logical - TRUE uses plant self-thinning models in Dynamics,
+#' otherwise plant cover remains at the highest point it has reached by that age
+#' @param prune Logical - TRUE uses plant self-pruning models in Dynamics,
+#' otherwise mean values are used and plants are not self-pruned
 #' @return dataframe
 #' @export
 
-growPlants <- function(Dynamics, Age = 10) {
+growPlants <- function(Dynamics, Age = 10, growth = TRUE, thin = TRUE, prune = TRUE) {
   Contenders <- data.frame('Species' = character(0), 'Cover' = numeric(0), 'cRSE' = numeric(0),
                            'base' = numeric(0), 'he' = numeric(0), 'ht' = numeric(0), 
                            'top' = numeric(0), 'tRSE' = numeric(0), 'w' = numeric(0))
@@ -2587,12 +2595,28 @@ growPlants <- function(Dynamics, Age = 10) {
   for (sp in 1:(nrow(Dynamics)-2)) {
     Contenders[sp,1] <- max(Dynamics$Species[sp],0)
     Contenders[sp,3] <- as.numeric(Dynamics$C_RSE[sp])/100
-    Contenders[sp,6] <- max(pHt(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
-    Contenders[sp,5] <- max(min(pHe(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age), Contenders[sp,6]),0)
-    Contenders[sp,7] <- max(pTop(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
-    Contenders[sp,4] <- max(min(pBase(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age), Contenders[sp,7]),0)
-    Contenders[sp,8] <- as.numeric(Dynamics$T_RSE[sp])/100
-    Contenders[sp,9] <- max(pWidth(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
+    
+    # Control growth
+    if (growth == TRUE) {
+      Contenders[sp,7] <- max(pTop(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
+      Contenders[sp,8] <- as.numeric(Dynamics$T_RSE[sp])/100 
+      Contenders[sp,9] <- max(pWidth(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
+    } else {
+      Contenders[sp,7] <- max(as.numeric(Dynamics$meanTop[sp]),0)
+      Contenders[sp,8] <- 0.01 
+      Contenders[sp,9] <- max(as.numeric(Dynamics$meanW[sp]),0) 
+    }
+    
+    # Control self-pruning
+    if (prune == TRUE) {
+      Contenders[sp,6] <- max(pHt(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
+      Contenders[sp,5] <- max(min(pHe(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age), Contenders[sp,6]),0)
+      Contenders[sp,4] <- max(min(pBase(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age), Contenders[sp,7]),0)
+    } else {
+      Contenders[sp,6] <- max(as.numeric(Dynamics$meanHt[sp]),0)
+      Contenders[sp,5] <- max(min(as.numeric(Dynamics$meanHe[sp]), Contenders[sp,6]),0)
+      Contenders[sp,4] <- max(min(as.numeric(Dynamics$meanBase[sp]), Contenders[sp,7]),0) 
+    }
     
     # Assign no cover to plants with 0 height or foliage
     covTest <- if ((Contenders[sp,7] < 0.05) 
@@ -2603,7 +2627,16 @@ growPlants <- function(Dynamics, Age = 10) {
       1
     }
     
-    Contenders[sp,2] <- pCover(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age) * covTest
+    # Control self-thinning
+    (if (thin == TRUE) {
+      Contenders[sp,2] <- covTest * pCover(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age)
+    } else {
+      preCov <- vector()
+      for (x in 1:Age) {
+        preCov[x] <- pCover(mods = Dynamics, sp=Dynamics$Species[sp], Age = x)
+      }
+      Contenders[sp,2] <- covTest * max(preCov)
+    })
   }
   # Remove species with no cover
   entries <- which(Contenders$Cover == 0)
@@ -2623,11 +2656,17 @@ growPlants <- function(Dynamics, Age = 10) {
 #' @param default.species.params Plant traits database
 #' @param pnts number of points in the transect
 #' @param Age Age of the site in years
+#' @param growth Logical - TRUE uses plant growth models in Dynamics,
+#' otherwise mean values are used and plants are not grown
+#' @param thin Logical - TRUE uses plant self-thinning models in Dynamics,
+#' otherwise mean values are used and plant cover remains constant
+#' @param prune Logical - TRUE uses plant self-pruning models in Dynamics,
+#' otherwise mean values are used and plants are not self-pruned
 #' @return dataframe
 #' @export
 
 pseudoTransect <- function(Dynamics, pointRich, default.species.params,
-                           pnts = 10, Age = 10) 
+                           pnts = 10, Age = 10, growth = TRUE, thin = TRUE, prune = TRUE) 
 {
   # Build species choice function
   chooseSp <- function(L, spList, nSpecies) {
@@ -2650,7 +2689,7 @@ pseudoTransect <- function(Dynamics, pointRich, default.species.params,
     return(xRow)
   }
   # Potential species
-  spList <- growPlants(Dynamics, Age = Age)
+  spList <- growPlants(Dynamics, Age = Age, growth = growth, thin = thin, prune = prune)
   
   out <- data.frame('Point' = numeric(0), 'Species' = character(0), 'base' = numeric(0),
                     'top' = numeric(0), 'he' = numeric(0), 'ht' = numeric(0), 'width' = numeric(0),

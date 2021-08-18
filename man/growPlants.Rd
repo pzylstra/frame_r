@@ -4,16 +4,25 @@
 \alias{growPlants}
 \title{Grows a table of species to a given age, listing cover and variability}
 \usage{
-growPlants(Dynamics, Age = 10)
+growPlants(Dynamics, Age = 10, growth = TRUE, thin = TRUE, prune = TRUE)
 }
 \arguments{
 \item{Dynamics}{Table of growth models as output by floraDynamics}
 
 \item{Age}{Age of the site in years}
+
+\item{growth}{Logical - TRUE uses plant growth models in Dynamics,
+otherwise mean values are used and plants are not grown}
+
+\item{thin}{Logical - TRUE uses plant self-thinning models in Dynamics,
+otherwise plant cover remains at the highest point it has reached by that age}
+
+\item{prune}{Logical - TRUE uses plant self-pruning models in Dynamics,
+otherwise mean values are used and plants are not self-pruned}
 }
 \value{
 dataframe
 }
 \description{
-Grows a table of species to a given age, listing cover and variability
+Provides options to control for growth, self-thinning and self-pruning
 }
