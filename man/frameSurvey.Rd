@@ -30,7 +30,8 @@ frameSurvey(
   bQ = NA,
   cQ = NA,
   maxNS = NA,
-  rateNS = NA
+  rateNS = NA,
+  thin = TRUE
 )
 }
 \arguments{

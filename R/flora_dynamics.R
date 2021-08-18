@@ -2432,22 +2432,39 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", base = "base", t
 #' @param cQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
 #' @param max Parameter for a negative exponential trend; leave as NA if trend is quadratic
 #' @param rate Parameter for a negative exponential trend; leave as NA if trend is quadratic
+#' @param thin Logical - TRUE allows for Burr model to decline as vegetation thins,
+#' otherwise suspNS remains at the highest point it has reached by that age
 #' @return List
 #' @export
 
 susp <- function(Flora, Structure, default.species.params, density = 300, top = 0.5, cover = 0.8, pnts = 10,
-                 age = 10, aQ = NA, bQ = NA, cQ = NA, max = NA, rate = NA)
+                 age = 10, aQ = NA, bQ = NA, cQ = NA, max = NA, rate = NA, thin = TRUE)
 {
   T <- filter(default.species.params, name == "suspNS")
   
   # Model packing
-  suspNS <- if (!is.na(max)) {
-    max*(1-exp(-rate*age))
-  } else if (!is.na(aQ)) {
-    pmax(0.1,(aQ * age^2 + bQ * age + cQ))
+  if (thin == TRUE) {
+    suspNS <- if (!is.na(max)) {
+      max*(1-exp(-rate*age))
+    } else if (!is.na(aQ)) {
+      pmax(0.1,(aQ * age^2 + bQ * age + cQ))
+    } else {
+      0.1
+    }
   } else {
-    0.1
+    preLit <- vector()
+    for (x in 1:age) {
+      preLit[x] <- if (!is.na(max)) {
+        max*(1-exp(-rate*x))
+      } else if (!is.na(aQ)) {
+        pmax(0.1,(aQ * x^2 + bQ * x + cQ))
+      } else {
+        0.1
+      }
+    }
+    suspNS <- max(preLit)
   }
+  
   lengthS <- (0.6*((0.1 * suspNS) / (top * density))) / (pi * (T$leafThickness[1]/2)^2)
   sepS <- mean(sqrt(sqrt(top/lengthS)^2*2),sqrt(top/lengthS))
   wNS <- as.numeric(max(filter(Flora, stratum == 1)$w, na.rm = TRUE))
@@ -2517,7 +2534,7 @@ litter <- function(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, ag
 
 frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                         wid = "width", rec = "Site", sN = "SiteName", negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = NA, 
-                        surf = 10, density = 300, nsH = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA) {
+                        surf = 10, density = 300, nsH = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA, thin = TRUE) {
   
   
   # Find missing data
@@ -2553,7 +2570,18 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
     # Find surface fuels
     if (!is.na(age)) {
       AGE <- veg[1,age]
-      surf <- round(litter(negEx, max, rate, a, b, veg[1,age]),0)
+      
+      # Control self-thinning
+      (if (thin == TRUE) {
+        surf <- round(litter(negEx, max, rate, a, b, AGE),0)
+      } else {
+        preLit <- vector()
+        for (x in 1:AGE) {
+          preLit[x] <- litter(negEx, max, rate, a, b, x)
+        }
+        surf <- max(preLit)
+      })
+      
     }
     
     Struct <- buildStructure(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
