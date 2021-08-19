@@ -2799,6 +2799,28 @@ datClean <- function(veg,  base = "base", top = "top", he = "he", ht = "ht") {
   return(veg)
 }
 
+#' Removes leaf trait diversity
+#'
+#' @param default.species.params Plant traits database
+#' @return dataframe
+#' @export
+
+ctrlDiversity <- function(default.species.params){
+  
+  no.succession.params <- filter(default.species.params, name != "suspNS")
+  no.succession.params$leafForm <- "Flat"
+  means <- no.succession.params %>%
+    summarise_if(is.numeric, mean)
+  for (name in colnames(means)) {
+    no.succession.params[,name] <- means[1,name]
+  }
+  
+  sus <- filter(default.species.params, name == "suspNS")
+  no.succession.params <- rbind(no.succession.params, sus)
+  
+  return(no.succession.params)
+}
+
 
 #' Finds percent cover of surveyed Species and groups minor Species
 #'
