@@ -1922,34 +1922,46 @@ frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", to
   
   # Find the best division of strata
   sig <- vector()
-  for (nstrat in 2:4) {
+  set.seed(123)
+  if (!is.error(kmeans(df, centers = 2, nstart = 25))) {
+    for (nstrat in 2:4) {
+      set.seed(123)
+      if (!is.error(kmeans(df, centers = nstrat, nstart = 25))){
+        km.res <- kmeans(df, centers = nstrat, nstart = 25)
+        clust <- cbind(veg_subset, cluster = km.res$cluster)
+        test <- aov(cluster ~ base * top * he * ht, data = clust)
+        sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[3]]
+      }
+    }
+    if (length(which(sig < 0.01)) > 0) {
+      nstrat <- as.numeric(max(which(sig < 0.01)))
+    } else {
+      if (length(sig[!is.na(sig)])>0) {
+        nstrat <- as.numeric(which(sig == min(sig, na.rm = TRUE)))
+      } else {
+        nstrat <- 1
+      }
+    }
     set.seed(123)
     km.res <- kmeans(df, centers = nstrat, nstart = 25)
     clust <- cbind(veg_subset, cluster = km.res$cluster)
-    test <- aov(cluster ~ base * top * he * ht, data = clust)
-    sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[3]]
-  }
-  if (length(which(sig < 0.01)) > 0) {
-    nstrat <- as.numeric(max(which(sig < 0.01)))
+    
+    h <- clust %>% 
+      group_by(cluster) %>% 
+      summarise_if(is.numeric, mean)
+    
+    h <- h[wrapr::orderv(h[,4]),] %>% 
+      mutate(Stratum = 1:nstrat) %>% 
+      select(cluster, Stratum)
+    strat <- left_join(clust, h, by = "cluster") %>% 
+      dplyr::select(all_of(c(pN, spName, top, "Stratum")))
+    veg <- left_join(veg, strat, by = c(pN, spName, top))
   } else {
-    nstrat <- as.numeric(which(sig == min(sig, na.rm = TRUE)))
+    veg$Stratum <- 1
   }
-  set.seed(123)
-  km.res <- kmeans(df, centers = nstrat, nstart = 25)
-  clust <- cbind(veg_subset, cluster = km.res$cluster)
-  
-  h <- clust %>% 
-    group_by(cluster) %>% 
-    summarise_if(is.numeric, mean)
-  
-  h <- h[wrapr::orderv(h[,4]),] %>% 
-    mutate(Stratum = 1:nstrat) %>% 
-    select(cluster, Stratum)
-  strat <- left_join(clust, h, by = "cluster") %>% 
-    dplyr::select(all_of(c(pN, spName, top, "Stratum")))
-  veg <- left_join(veg, strat, by = c(pN, spName, top))
   return(veg)
 }
+
 
 #' Finds the distribution of species richness at a point
 #'
