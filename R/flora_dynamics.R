@@ -82,7 +82,7 @@ coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 
     
     #Negative exponential
     init1<-c(k=50,r=0.5)
-    if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
+    if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T))) {
       NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
       NESum <- base::summary(NE)
       k <- NESum$coefficients[1]
@@ -284,7 +284,7 @@ topDyn <- function(dat, base = "base", top = "top", he = "he", ht = "ht",
       
       #Negative exponential
       init1<-c(k=50,r=0.5)
-      if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
+      if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T))) {
         NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
         NESum <- base::summary(NE)
         k <- NESum$coefficients[1]
@@ -520,7 +520,7 @@ baseDyn <- function(dat, base = "base", top = "top", he = "he", ht = "ht",
       
       #Negative exponential
       init1<-c(k=50,r=0.5)
-      if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
+      if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T))) {
         NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
         NESum <- base::summary(NE)
         k <- NESum$coefficients[1]
@@ -946,7 +946,7 @@ wDyn <- function(dat, width = "width", top = "top",
       
       #Negative exponential
       init1<-c(k=50,r=0.5)
-      if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init2,trace=T))) {
+      if (!berryFunctions::is.error(nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T))) {
         NE<-nls(y~k * (1-exp(-r*x)),data=studySpecies,start=init1,trace=T)
         NESum <- base::summary(NE)
         k <- NESum$coefficients[1]
