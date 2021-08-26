@@ -2623,7 +2623,7 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
 #' @param thin Logical - TRUE uses plant self-thinning models in Dynamics,
 #' otherwise plant cover remains at the highest point it has reached by that age
 #' @param prune Logical - TRUE uses plant self-pruning models in Dynamics,
-#' otherwise mean values are used and plants are not self-pruned
+#' otherwise plants are not self-pruned and lower canopy heights remain at their lowest points
 #' @return dataframe
 #' @export
 
@@ -2647,15 +2647,22 @@ growPlants <- function(Dynamics, Age = 10, growth = TRUE, thin = TRUE, prune = T
       Contenders[sp,9] <- max(as.numeric(Dynamics$meanW[sp]),0) 
     }
     
-    # Control self-pruning
+    # Plant Ht follows top height in all circumstances
+    Contenders[sp,6] <- max(pHt(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
+    
+    # Control self-pruning by keeping base heights at minimum values if prune == FALSE
     if (prune == TRUE) {
-      Contenders[sp,6] <- max(pHt(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age),0)
       Contenders[sp,5] <- max(min(pHe(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age), Contenders[sp,6]),0)
       Contenders[sp,4] <- max(min(pBase(mods = Dynamics, sp=Dynamics$Species[sp], Age = Age), Contenders[sp,7]),0)
     } else {
-      Contenders[sp,6] <- max(as.numeric(Dynamics$meanHt[sp]),0)
-      Contenders[sp,5] <- max(min(as.numeric(Dynamics$meanHe[sp]), Contenders[sp,6]),0)
-      Contenders[sp,4] <- max(min(as.numeric(Dynamics$meanBase[sp]), Contenders[sp,7]),0) 
+      preHe <- vector()
+      preBase <- vector()
+      for (x in 1:Age) {
+        preHe[x] <- max(min(pHe(mods = Dynamics, sp=Dynamics$Species[sp], Age = x), Contenders[sp,6]),0)
+        preBase[x] <- max(min(pBase(mods = Dynamics, sp=Dynamics$Species[sp], Age = x), Contenders[sp,7]),0)
+      }
+      Contenders[sp,5] <- min(preHe)
+      Contenders[sp,4] <- min(preBase)
     }
     
     # Assign no cover to plants with 0 height or foliage
@@ -2701,7 +2708,7 @@ growPlants <- function(Dynamics, Age = 10, growth = TRUE, thin = TRUE, prune = T
 #' @param thin Logical - TRUE uses plant self-thinning models in Dynamics,
 #' otherwise mean values are used and plant cover remains constant
 #' @param prune Logical - TRUE uses plant self-pruning models in Dynamics,
-#' otherwise mean values are used and plants are not self-pruned
+#' otherwise plants are not self-pruned and lower canopy heights remain at their lowest points
 #' @return dataframe
 #' @export
 

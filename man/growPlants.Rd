@@ -18,7 +18,7 @@ otherwise mean values are used and plants are not grown}
 otherwise plant cover remains at the highest point it has reached by that age}
 
 \item{prune}{Logical - TRUE uses plant self-pruning models in Dynamics,
-otherwise mean values are used and plants are not self-pruned}
+otherwise plants are not self-pruned and lower canopy heights remain at their lowest points}
 }
 \value{
 dataframe

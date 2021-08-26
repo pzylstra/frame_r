@@ -35,7 +35,7 @@ otherwise mean values are used and plants are not grown}
 otherwise mean values are used and plant cover remains constant}
 
 \item{prune}{Logical - TRUE uses plant self-pruning models in Dynamics,
-otherwise mean values are used and plants are not self-pruned}
+otherwise plants are not self-pruned and lower canopy heights remain at their lowest points}
 }
 \value{
 dataframe
