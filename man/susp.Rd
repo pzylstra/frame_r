@@ -18,7 +18,7 @@ susp(
   cQ = NA,
   max = NA,
   rate = NA,
-  thin = TRUE
+  dec = TRUE
 )
 }
 \arguments{
@@ -73,7 +73,7 @@ nsR, eR, mR, cR. Species richness (number of species) in each stratum}
 
 \item{rate}{Parameter for a negative exponential trend; leave as NA if trend is quadratic}
 
-\item{thin}{Logical - TRUE allows for Burr model to decline as vegetation thins,
+\item{dec}{Logical - TRUE allows for Burr model to decline as vegetation thins,
 otherwise suspNS remains at the highest point it has reached by that age}
 }
 \value{

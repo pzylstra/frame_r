@@ -1128,11 +1128,11 @@ wDyn <- function(dat, width = "width", top = "top",
 #' @return dataframe
 #' @export
 
-floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 10, maxiter = 1000,
+floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 2, cTest  = 10, maxiter = 1000,
                           Sr = 0, Sk = 0, Sa = 0, Sb = 0, Sc = 0, 
                           NSr = 0, NSk = 0, NSa = 0, NSb = 0, NSc = 0){
   
-  coverChange <- coverDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = bTest, maxiter = maxiter)
+  coverChange <- coverDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = cTest, maxiter = maxiter)
   topChange <- topDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = bTest, maxiter = maxiter)
   baseChange <- baseDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = bTest, maxiter = maxiter)
   he_Change <- heDyn(dat, thres = thres, pnts = pnts, p = p)
@@ -2444,18 +2444,18 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", base = "base", t
 #' @param cQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
 #' @param max Parameter for a negative exponential trend; leave as NA if trend is quadratic
 #' @param rate Parameter for a negative exponential trend; leave as NA if trend is quadratic
-#' @param thin Logical - TRUE allows for Burr model to decline as vegetation thins,
+#' @param dec Logical - TRUE allows for Burr model to decline as vegetation thins,
 #' otherwise suspNS remains at the highest point it has reached by that age
 #' @return List
 #' @export
 
 susp <- function(Flora, Structure, default.species.params, density = 300, top = 0.5, cover = 0.8, pnts = 10,
-                 age = 10, aQ = NA, bQ = NA, cQ = NA, max = NA, rate = NA, thin = TRUE)
+                 age = 10, aQ = NA, bQ = NA, cQ = NA, max = NA, rate = NA, dec = TRUE)
 {
   T <- filter(default.species.params, name == "suspNS")
   
   # Model packing
-  if (thin == TRUE) {
+  if (dec == TRUE) {
     suspNS <- if (!is.na(max)) {
       max*(1-exp(-rate*age))
     } else if (!is.na(aQ)) {
@@ -2540,13 +2540,20 @@ litter <- function(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, ag
 #' @param cQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
 #' @param maxNS Parameter for a negative exponential trend; leave as NA if trend is quadratic
 #' @param rateNS Parameter for a negative exponential trend; leave as NA if trend is quadratic
+#' @param thin Logical - TRUE uses plant self-thinning models in Dynamics,
+#' otherwise plant cover remains at the highest point it has reached by that age
+#' @param sLit Logical - TRUE allows surface litter to decline if the model does so, otherwise
+#' the maximum value to that age is maintained
+#' @param dec Logical - TRUE allows near surface surface litter to decline if the model does so, otherwise
+#' the maximum value to that age is maintained
 #' @return list
 #' @export
 #' 
 
 frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                         wid = "width", rec = "Site", sN = "SiteName", negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = NA, 
-                        surf = 10, density = 300, nsH = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA, thin = TRUE) {
+                        surf = 10, density = 300, nsH = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA, 
+                        thin = TRUE, sLit  = TRUE, dec = TRUE) {
   
   
   # Find missing data
@@ -2584,7 +2591,7 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
       AGE <- veg[1,age]
       
       # Control self-thinning
-      (if (thin == TRUE) {
+      (if (thin == TRUE && sLit == TRUE) {
         surf <- round(litter(negEx, max, rate, a, b, AGE),0)
       } else {
         preLit <- vector()
@@ -2602,9 +2609,14 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
                        wid = "width", rec = "Site", sN = "SiteName", surf = surf)
     
     # Add suspended litter
+    if (thin == TRUE && dec == TRUE) {
+      decline <- TRUE
+    } else {
+      decline <- FALSE
+    }
     pnts <- as.numeric(n_distinct(dat[pN]))
     tabs <- susp(Flora = Flor, Structure = Struct, default.species.params, density = density, top = nsH, cover = cover, pnts = pnts,
-                 age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, max = maxNS, rate = rateNS)
+                 age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, max = maxNS, rate = rateNS, dec = decline)
     Structure <- rbind(Structure, tabs[[2]])
     Flora <- rbind(Flora, tabs[[1]])
   }

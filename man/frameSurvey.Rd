@@ -31,7 +31,9 @@ frameSurvey(
   cQ = NA,
   maxNS = NA,
   rateNS = NA,
-  thin = TRUE
+  thin = TRUE,
+  sLit = TRUE,
+  dec = TRUE
 )
 }
 \arguments{
@@ -80,6 +82,15 @@ frameSurvey(
 \item{maxNS}{Parameter for a negative exponential trend; leave as NA if trend is quadratic}
 
 \item{rateNS}{Parameter for a negative exponential trend; leave as NA if trend is quadratic}
+
+\item{thin}{Logical - TRUE uses plant self-thinning models in Dynamics,
+otherwise plant cover remains at the highest point it has reached by that age}
+
+\item{sLit}{Logical - TRUE allows surface litter to decline if the model does so, otherwise
+the maximum value to that age is maintained}
+
+\item{dec}{Logical - TRUE allows near surface surface litter to decline if the model does so, otherwise
+the maximum value to that age is maintained}
 }
 \value{
 list
