@@ -13,5 +13,5 @@ ctrlDiversity(default.species.params)
 dataframe
 }
 \description{
-Removes leaf trait diversity
+Initially pulls out species names "suspNS" and "Log"
 }

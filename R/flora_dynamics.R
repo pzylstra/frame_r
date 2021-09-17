@@ -2831,6 +2831,8 @@ datClean <- function(veg,  base = "base", top = "top", he = "he", ht = "ht") {
 }
 
 #' Removes leaf trait diversity
+#' 
+#' Initially pulls out species names "suspNS" and "Log"
 #'
 #' @param default.species.params Plant traits database
 #' @return dataframe
@@ -2838,7 +2840,7 @@ datClean <- function(veg,  base = "base", top = "top", he = "he", ht = "ht") {
 
 ctrlDiversity <- function(default.species.params){
   
-  no.succession.params <- filter(default.species.params, name != "suspNS")
+  no.succession.params <- filter(default.species.params, name != "suspNS" & name != "Log")
   no.succession.params$leafForm <- "Flat"
   means <- no.succession.params %>%
     summarise_if(is.numeric, mean)
@@ -2846,7 +2848,7 @@ ctrlDiversity <- function(default.species.params){
     no.succession.params[,name] <- means[1,name]
   }
   
-  sus <- filter(default.species.params, name == "suspNS")
+  sus <- filter(default.species.params, name == "suspNS" | name == "Log")
   no.succession.params <- rbind(no.succession.params, sus)
   
   return(no.succession.params)
