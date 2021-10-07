@@ -316,7 +316,7 @@ plantVar <- function (base.params, Strata, Species,
     else {
       for (f in 1:Strata$speciesN[si]) {
         tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
-                                             "liveLeafMoisture", 100)
+                                             "liveLeafMoisture", 10000)
         SpeciesN = SpeciesN + 1
       }
     }
@@ -333,11 +333,34 @@ plantVar <- function (base.params, Strata, Species,
       SpeciesP = SpeciesP + 1
     }
   }
+  # Remove unselected species
+  x <- tbl$species[tbl$value==10000]
+  x <- x[!is.na(x)]
+  tbl <- subset(tbl,species!=x | is.na(species))
+  
+  # Remove any empty strata
+  Strat <- strata(tbl)
+  s <- unique(Strat$stratum)
+  sequence <- min(s):max(s)
+  x <- sequence[!sequence %in% s]
+  tbl <- subset(tbl,stratum!=x | is.na(stratum))
+  
+  # Renumber strata
+  sList<- data.frame('stratum' = s, 'n' = 1:length(s))
+  tbl <- left_join(tbl,sList, by = "stratum") %>%
+    mutate(stratum = n) %>%
+    select(!n)
+  
+  # Renumber species
+  s <- unique(tbl$species)
+  s <- s[!is.na(s)]
+  sList<- data.frame('species' = s, 'n' = 1:length(s))
+  tbl <- left_join(tbl,sList, by = "species") %>%
+    mutate(species = n) %>%
+    select(!n)
   
   return(tbl)
 }
-
-
 
 #' Randomly modifies plant traits within defined ranges for non-deterministic predictions
 #' Differs from plantVar by modifying individual species by their own rules
@@ -798,10 +821,10 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
         ffm_set_site_param("deadFuelMoistureProp", d) %>%
         ffm_set_site_param("windSpeed", w)
       
-      base.params <- plantVar(base.params, Strata, Species, 
-                              l = leafVar, Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange, 
-                              Hs = heightSD, Hr = heightRange)
-      ffm_run(base.params, db.path, db.recreate = db.recreate)
+      tbl <- plantVar(base.params, Strata, Species, 
+                      l = leafVar, Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange, 
+                      Hs = heightSD, Hr = heightRange)
+      ffm_run(tbl, db.path, db.recreate = db.recreate)
       Sys.sleep(0.25)
       ####UpdateProgress
       if (is.function(updateProgress)) {
