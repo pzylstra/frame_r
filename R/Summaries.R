@@ -38,7 +38,7 @@ stratum <- function(flames, sites, ros, surface)
   
   a <- suppressMessages(y %>% 
                           full_join(z) %>% 
-                          full_join(res$Sites)) %>% 
+                          full_join(sites)) %>% 
     
     # Strata without ros will end up with NA values
     # after doing the join above. Convert these missing values to zero.
