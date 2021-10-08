@@ -67,10 +67,10 @@ weatherSet <- function(base.params, weather, db.path = "out_mc.db", jitters = 10
         ## Create database and delete the last part
         db.recreate <- (i * j) == 1
         
-        tbl <- plantVar(tbl, Strata, Species, l = l,
+        tblMod <- plantVar(tbl, Strata, Species, l = l,
                         Ms = Ms, Pm = Pm, Mr = Mr, Hs = Hs, Hr = Hr)
         # Run the model
-        ffm_run(tbl, db.path, db.recreate = db.recreate)
+        ffm_run(tblMod, db.path, db.recreate = db.recreate)
       }
     }
     Sys.sleep(0.25)
