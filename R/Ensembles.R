@@ -294,16 +294,21 @@ fireSet <- function(site, Structure, Flora, traits = default.species.params)
 plantVar <- function (base.params, Strata, Species,
                       l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, Hs = 0.2, Hr = 1.41)
 {
-  
   tbl <- base.params
   
+  # 1. VARY LEAF TRAITS
   tbl <- ffm_param_variance(tbl, max.prop = l, method = "uniform")
+  
+  # 2. VARY STRUCTURE
   SpeciesN <- 1
   SpeciesP <- 1
-  
   StN <- as.numeric(count(Strata))
   for (si in 1:StN) {
+    
+    # 2a. Determine which strata are present
     if (runif(1) <= Strata$cover[si]) {
+      
+      # 2b. Vary moisture in species present
       for (t in 1:Strata$speciesN[si]) {
         Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
                              sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] *
@@ -313,6 +318,8 @@ plantVar <- function (base.params, Strata, Species,
         (SpeciesN = SpeciesN + 1)
       }
     }
+    
+    # 2c. Mark species for removal if stratum is not present
     else {
       for (f in 1:Strata$speciesN[si]) {
         tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
@@ -320,6 +327,8 @@ plantVar <- function (base.params, Strata, Species,
         SpeciesN = SpeciesN + 1
       }
     }
+    
+    # 2d. Vary plant crown dimensions
     for (p in 1:Strata$speciesN[si]) {
       peak <- rtnorm(n = 1, mean = Species$hp[SpeciesP],
                      sd = Hs, a = Species$hp[SpeciesP]/Hr, b = Species$hp[SpeciesP] *
@@ -333,32 +342,45 @@ plantVar <- function (base.params, Strata, Species,
       SpeciesP = SpeciesP + 1
     }
   }
-  # Remove unselected species
+  
+  # 2e. Remove species and strata not present
   x <- tbl$species[tbl$value==10000]
   x <- x[!is.na(x)]
-  tbl <- subset(tbl,species!=x | is.na(species))
-  
-  # Remove any empty strata
-  Strat <- strata(tbl)
-  s <- unique(Strat$stratum)
-  sequence <- min(s):max(s)
-  x <- sequence[!sequence %in% s]
-  tbl <- subset(tbl,stratum!=x | is.na(stratum))
-  
-  # Renumber strata
-  sList<- data.frame('stratum' = s, 'n' = 1:length(s))
-  tbl <- left_join(tbl,sList, by = "stratum") %>%
-    mutate(stratum = n) %>%
-    select(!n)
-  
-  # Renumber species
-  s <- unique(tbl$species)
-  s <- s[!is.na(s)]
-  sList<- data.frame('species' = s, 'n' = 1:length(s))
-  tbl <- left_join(tbl,sList, by = "species") %>%
-    mutate(species = n) %>%
-    select(!n)
-  
+  if (length(x)>0) {
+    for (sp in 1:length(x)) {
+      tbl <- subset(tbl,species!=x[sp] | is.na(species))
+    }
+    
+    # Remove the empty strata
+    Strat <- strata(tbl)
+    s <- unique(Strat$stratum)
+    sequence <- unique(tbl$stratum)
+    sequence <- sequence[!is.na(sequence)]
+    x <- sequence[!sequence %in% s]
+    for (st in 1:length(x)) {
+      tbl <- subset(tbl,stratum!=x[st] | is.na(stratum))
+    }
+    
+    # Renumber strata
+    sList<- data.frame('stratum' = s, 'n' = 1:length(s))
+    tbl <- left_join(tbl,sList, by = "stratum") %>%
+      mutate(stratum = n) %>%
+      select(!n)
+    
+    # Renumber species
+    s <- unique(tbl$species)
+    s <- s[!is.na(s)]
+    sList<- data.frame('species' = s, 'n' = 1:length(s))
+    tbl <- left_join(tbl,sList, by = "species") %>%
+      mutate(species = n) %>%
+      select(!n)
+    
+    # Rename strata
+    s <- unique(tbl$stratum)
+    s <- s[!is.na(s)]
+    tbl$value[tbl$stratum==s[1]&tbl$param=="levelName"] = "near surface"
+    tbl$value[tbl$stratum==max(s)&tbl$param=="levelName"] = "canopy"
+  }
   return(tbl)
 }
 
@@ -791,7 +813,7 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
                      slope, slopeSD, slopeRange, temp, tempSD, tempRange,
                      DFMC, DFMCSD, DFMCRange, wind, windSD, windRange,
                      moistureMultiplier, moistureSD, moistureRange,
-                     heightSD, heightRange, leafVar,updateProgress = NULL) {
+                     heightSD, heightRange, leafVar,updateProgress = TRUE) {
   
   # Collect original descriptors
   Strata <- strata(base.params)
@@ -800,12 +822,10 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
   #Set input limits
   DFMCRange <- pmax(1.0001, DFMCRange)
   
-  
-  pbar <- txtProgressBar(max = jitters, style = 3)
   if (jitters > 2) {
     for (j in 1:jitters) {
       db.recreate <- j == 1
-      #Update parameters
+      # Modify environmental parameters
       s <- rtnorm(n = 1, mean = slope, sd = slopeSD,
                   a = slope-(slopeRange/2), b = slope+(slopeRange/2))
       t <- rtnorm(n = 1, mean = temp, sd = tempSD,
@@ -821,27 +841,20 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
         ffm_set_site_param("deadFuelMoistureProp", d) %>%
         ffm_set_site_param("windSpeed", w)
       
+      # Modify vegetation
       tbl <- plantVar(base.params, Strata, Species, 
                       l = leafVar, Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange, 
                       Hs = heightSD, Hr = heightRange)
       ffm_run(tbl, db.path, db.recreate = db.recreate)
       Sys.sleep(0.25)
       ####UpdateProgress
-      if (is.function(updateProgress)) {
-        text <- paste0("Number of remaining steps is ", jitters - j)
-        updateProgress(detail = text)
+      if (updateProgress == TRUE) {
+        cat("Remaining replicates:", jitters - j, '\n')
       }
     }
-    
-    setTxtProgressBar(pbar, j)
-    
-  }
-  
-  else
-  {
+  }  else  {
     print("Probabilistic analysis requires a minimum of 3 replicates")
   }
-  
 }
 
 
@@ -915,10 +928,10 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
     
     #  for (j in 1:jitters) {
     #Randomise plant parameters
-    base.params <- plantVar(base.params, Strata, Species, l = leafVar, Ms = moistureSD, 
+    tbl <- plantVar(base.params, Strata, Species, l = leafVar, Ms = moistureSD, 
                             Pm = moistureMultiplier, Mr = moistureRange, 
                             Hs = heightSD, Hr = heightRange)
-    ffm_run(base.params, db.path, db.recreate = db.recreate)
+    ffm_run(tbl, db.path, db.recreate = db.recreate)
     
     #  }
     Sys.sleep(0.25)
@@ -993,9 +1006,9 @@ driversS <- function(base.params, a, db.path = "out_mc.db", jitters, windMin, wi
     #  for (j in 1:jitters) {
     
     #Randomise plant parameters
-    base.params <- plantVarS(base.params, Strata, Species, Variation, a, l = leafVar, 
+    tbl <- plantVarS(base.params, Strata, Species, Variation, a, l = leafVar, 
                              Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
-    ffm_run(base.params, db.path, db.recreate = db.recreate)
+    ffm_run(tbl, db.path, db.recreate = db.recreate)
     
     #  }
     Sys.sleep(0.25)
@@ -1080,9 +1093,9 @@ driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windM
     }
     
     #Randomise plant parameters
-    base.params <- plantVarS(base.params, Strata, Species, Variation, a, l = leafVar, 
+    tbl <- plantVarS(base.params, Strata, Species, Variation, a, l = leafVar, 
                              Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
-    ffm_run(base.params, db.path, db.recreate = db.recreate)
+    ffm_run(tbl, db.path, db.recreate = db.recreate)
     Sys.sleep(0.25)
     
     ####UpdateProgress
