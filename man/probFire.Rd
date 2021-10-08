@@ -26,7 +26,7 @@ probFire(
   heightSD,
   heightRange,
   leafVar,
-  updateProgress = NULL
+  updateProgress = TRUE
 )
 }
 \arguments{
