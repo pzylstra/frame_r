@@ -98,7 +98,7 @@ strataBuilder <- function(Structure, Flora, a)
     strata.meta <- strata.meta[ -deleteVector, ]}
   
   # Number strata
-  rows <- as.numeric(count(strata.meta))
+  rows <- as.numeric(nrow(strata.meta))
   num <- 0.5
   for (ro in 1:rows) {
     numb <- ceiling(num)
@@ -120,7 +120,7 @@ speciesBuilder <- function(Flora, site, a)
   si <- site[site$record==a,]
   
   # CREATE species.values
-  ro <- as.numeric(count(fl))
+  ro <- as.numeric(nrow(fl))
   species.values <- data.frame(matrix(NA, nrow=ro, ncol = 13))
   
   names(species.values) <- c("stratum", "species", "name", "clumpDiameter", "clumpSeparation", "composition",
@@ -159,10 +159,10 @@ speciesBuilder <- function(Flora, site, a)
   # Ensure strata are numbered consecutively
   stratCurr <- as.data.frame(unique(species.values$stratum))
   names(stratCurr) <- c("orig")
-  stratCurr$cor <- 1:as.numeric(count(stratCurr))
+  stratCurr$cor <- 1:as.numeric(nrow(stratCurr))
   
   #Check values
-  for(b in 1:as.numeric(count(stratCurr))) {
+  for(b in 1:as.numeric(nrow(stratCurr))) {
     species.values$stratum[species.values$stratum == stratCurr$orig[b]] <- stratCurr$cor[b]
   }
   
@@ -179,7 +179,7 @@ unitBuilder <- function(Flora, a)
   fl <- Flora[Flora$record==a,]
   
   # CREATE species.units
-  ro <- as.numeric(count(fl))
+  ro <- as.numeric(nrow(fl))
   species.units <- data.frame(matrix(NA, nrow=ro, ncol = 13))
   
   names(species.units) <- c("stratum", "species", "name", "clumpDiameter", "clumpSeparation", "composition",
