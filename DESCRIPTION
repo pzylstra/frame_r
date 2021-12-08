@@ -1,19 +1,13 @@
 Package: frame
 Type: Package
 Title: Fire Research and Modelling Environment
-Version: 0.3.5
-Date: 2020-07-03
+Version: 0.4.0
+Date: 2021-12-09
 Authors@R: as.person( c(
     "Philip Zylstra <pzylstra@uow.edu.au> [cre]",
     "Michael Bedward <michael.bedward@gmail.com> [aut]",
     "Soroush Homayounpour <soroush@uow.edu.au> [aut]"))
-Description: This package provides an interface to the forest flammability 
-    model of Zylstra et al. It provides functions to prepare input parameters,
-    run model simulations, and query the output database of model results. Release three 
-    extends this to include complex simulations and ecological effects modelling for plants 
-    and soils. The package includes a distribution of the model and its dependencies in the
-    form of Java jar files. The only additional requirement is an installation
-    of Java version 1.8 (aka Java 8) or higher on the host system.
+Description: This package provides an interface to the forest flammability model of Zylstra et al (2016), updated to include the fire effects models of Zylstra (2021). Release four extends this to include functions for processing field survey data into vegetation trends and automatically formatted files for fire behaviour modelling. The package includes a distribution of the model and its dependencies in the form of Java jar files. FRaME requires an installation of Java version 1.8 (aka Java 8) or higher on the host system, with RTools and a minimum of R3.5.
 License: MIT + file LICENSE
 URL: https://github.com/pzylstra/frame_r
 BugReports: https://github.com/pzylstra/frame_r/issues
@@ -28,9 +22,15 @@ Imports:
     RSQLite(>= 2.1.1),
     stringr(>= 1.4.0),
     tidyr(>= 0.8.0),
-    extraDistr(>= 1.9.0)
+    extraDistr(>= 1.9.0),
+    Rfast(>= 2.0.3),
+    berryFunctions(>= 1.20.1),
+    wrapr(>= 2.0.8)
 Encoding: UTF-8
 LazyData: TRUE
 RoxygenNote: 7.1.1
-Suggests: knitr, rmarkdown,kableExtra
+Suggests: 
+    knitr,
+    rmarkdown,
+    kableExtra
 VignetteBuilder: knitr

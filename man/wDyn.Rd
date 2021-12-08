@@ -4,7 +4,16 @@
 \alias{wDyn}
 \title{Builds models for top-w height allometry dynamics of surveyed Species}
 \usage{
-wDyn(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000)
+wDyn(
+  dat,
+  width = "width",
+  top = "top",
+  thres = 5,
+  pnts = 10,
+  p = 0.05,
+  bTest = 10,
+  maxiter = 1000
+)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}

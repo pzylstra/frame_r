@@ -85,7 +85,6 @@ weatherSet <- function(base.params, weather, db.path = "out_mc.db", jitters = 10
   
   cat("Finished.  Output written to", db.path)
 }
-#######################################################################
 
 #' Updates parameter files with weather from a dataset,
 #' then models fire from non-deterministic plant parameters
@@ -167,7 +166,7 @@ weatherSetS <- function(base.params, weather, Variation, Structure, a, db.path =
   cat("Finished.  Output written to", db.path)
 }
 
-####################################################################
+
 #' Models fires using sites constructed from imported tables
 #' 
 #' Private function in development
@@ -229,7 +228,7 @@ fireSet <- function(site, Structure, Flora, traits = default.species.params)
     mutate(fireNo = 1)
   x <- stratum(res$FlameSummaries, res$Sites, res$ROS, surf)%>%
     mutate(fireNo = 1)
-  runs <- summary(x, surf)%>%
+  runs <- frameSummary(x, surf)%>%
     mutate(cat = round(wind_kph,0),
            fireNo = 1)
   IP <- repFlame(res$IgnitionPaths)%>%
@@ -257,7 +256,7 @@ fireSet <- function(site, Structure, Flora, traits = default.species.params)
         mutate(fireNo = a)
       xa <- stratum(res$FlameSummaries, res$Sites, res$ROS, surf)%>%
         mutate(fireNo = a)
-      runsa <- summary(xa, surfa)%>%
+      runsa <- frameSummary(xa, surfa)%>%
         mutate(cat = round(wind_kph,0),
                fireNo = a)
       IPa <- repFlame(res$IgnitionPaths)%>%
@@ -277,7 +276,7 @@ fireSet <- function(site, Structure, Flora, traits = default.species.params)
   return(runs)
 }
 
-#####################################################################
+
 
 #' Randomly modifies plant traits within defined ranges for non-deterministic predictions
 #' @param base.params Parameter input table
@@ -385,8 +384,6 @@ plantVar <- function (base.params, Strata, Species,
   return(tbl)
 }
 
-#####################################################################
-
 #' Randomly modifies plant traits within defined ranges for non-deterministic predictions
 #' Differs from plantVar by modifying individual species by their own rules
 #' @param base.params Parameter input table
@@ -465,7 +462,89 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
   return(tbl)
 }
 
-#####################################################################
+
+#' Randomly modifies plant traits within defined ranges for non-deterministic predictions
+#' Differs from plantVarS by using FRaME-updated tables
+#' 
+#' @param base.params Parameter input table
+#' @param a A unique identifier for the record being run
+#' @param Strata Strata descriptor table output by the function 'strata'
+#' @param Species Species descriptor table output by the function 'species'
+#' @param Flora Table output from the function buildFlora
+#' @param l Variation around input leaf dimensions
+#' @param Ms Standard deviation of LFMC
+#' @param Pm Multiplier of mean LFMC
+#' @param Mr Truncates LFMC variability by +/- Mr * LFMC
+#' @return dataframe
+#' @export
+#' 
+plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001)
+{
+  
+  tbl <- base.params
+  # Vary leaf traits
+  tbl <- ffm_param_variance(tbl, max.prop = l, method = "uniform")
+  SpeciesN <- 1
+  SpeciesP <- 1
+  
+  #Filter variation table to record
+  varRec <- Flora[Flora$record==a & Flora$species!="Litter",]
+  varRec$Hs[is.na(varRec$Hs)]<-0.001
+  varRec$Hr[varRec$Hr==0]<-0.001 
+  varRec$Hs[varRec$Hs==0]<-0.001 
+  varRec$Hr<-as.numeric(varRec$Hr)+1 
+  varRec <- varRec %>% 
+    mutate(name = species,
+           st = as.double(stratum)) %>%
+    select(st, name, Hs, Hr)
+  varRec <- left_join(Species, varRec, by = c("st", "name"))
+  
+  # Loop through plant strata
+  
+  StN <- as.numeric(count(Strata))
+  
+  for (str in 1:StN) {
+    
+    # Vary leaf moisture to randomly place points in the community and decide which plants will be present.
+    # Where the random number is > stratum cover, all species are made too moist to burn and excluded from modelling.
+    # Otherwise, species are varied by Ms & Mr, and multiplied by Pm
+    
+    if (runif(1) <= Strata$cover[str]) {
+      for (t in 1:Strata$speciesN[str]) {
+        Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
+                             sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] * Mr)
+        tbl <- ffm_set_species_param(tbl, str, SpeciesN,
+                                     "liveLeafMoisture", Mrand)
+        (SpeciesN = SpeciesN + 1)
+      }
+    } else {
+      for (f in 1:Strata$speciesN[str]) {
+        tbl <- tbl %>% ffm_set_species_param(str, SpeciesN,
+                                             "liveLeafMoisture", 100)
+        SpeciesN = SpeciesN + 1
+      }
+    }
+    
+    # Modify plant dimensions for each species within the stratum
+    
+    for (p in 1:Strata$speciesN[str]) {
+      Hr <- as.numeric(varRec$Hr[SpeciesP])
+      peak <- rtnorm(n = 1, mean = Species$hp[SpeciesP],
+                     sd = as.numeric(varRec$Hs[SpeciesP]), a = Species$hp[SpeciesP]/Hr, b = Species$hp[SpeciesP]*Hr)
+      tbl <- tbl %>%
+        ffm_set_species_param(str, SpeciesP, "hp", peak) %>%
+        ffm_set_species_param(str, SpeciesP, "ht", peak * Species$htR[SpeciesP]) %>%
+        ffm_set_species_param(str, SpeciesP, "he", peak * Species$heR[SpeciesP]) %>%
+        ffm_set_species_param(str, SpeciesP, "hc", peak *Species$hcR[SpeciesP]) %>%
+        ffm_set_species_param(str, SpeciesP, "w", peak * Species$wR[SpeciesP])
+      SpeciesP = SpeciesP + 1
+    }
+  }
+  
+  return(tbl)
+}
+
+
 #' Selects random species from the available list, weighted by their frequency
 #' Modifies a parameter table to the shortened list
 #'
@@ -538,7 +617,7 @@ specPoint <- function(base.params, Structure, a)
 }
 
 
-#####################################################################
+
 #' Models fire behaviour in each species of a parameter table,
 #' summarising the combustibility from the length of flame divided
 #' by the length of segment ignited
@@ -628,8 +707,7 @@ spComb <- function(Flora, Structure, default.species.params, a)
   return(combustibility)
 }
 
-## conDrivers 
-#####
+
 
 #' Models fire behaviour across defined slopes and DFMCs, 
 #' with varied plants and random winds and within a defined range
@@ -780,10 +858,6 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
 }
 
 
-######
-## drivers function
-#####
-
 #' Models fire behaviour across ranged variables
 #' @param base.params Input parameter file
 #' @param db.path Name of the exported database
@@ -854,10 +928,10 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
     
     #  for (j in 1:jitters) {
     #Randomise plant parameters
-    base.params <- plantVar(base.params, Strata, Species, l = leafVar, Ms = moistureSD, 
+    tbl <- plantVar(base.params, Strata, Species, l = leafVar, Ms = moistureSD, 
                             Pm = moistureMultiplier, Mr = moistureRange, 
                             Hs = heightSD, Hr = heightRange)
-    ffm_run(base.params, db.path, db.recreate = db.recreate)
+    ffm_run(tbl, db.path, db.recreate = db.recreate)
     
     #  }
     Sys.sleep(0.25)
@@ -870,9 +944,8 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
   }
 }
 
-######
-## drivers function with species-specific changes
-#####
+
+
 
 #' Models fire behaviour across ranged variables using species specific details
 #' @param base.params Input parameter file
@@ -933,9 +1006,9 @@ driversS <- function(base.params, a, db.path = "out_mc.db", jitters, windMin, wi
     #  for (j in 1:jitters) {
     
     #Randomise plant parameters
-    base.params <- plantVarS(base.params, Strata, Species, Variation, a, l = leafVar, 
+    tbl <- plantVarS(base.params, Strata, Species, Variation, a, l = leafVar, 
                              Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
-    ffm_run(base.params, db.path, db.recreate = db.recreate)
+    ffm_run(tbl, db.path, db.recreate = db.recreate)
     
     #  }
     Sys.sleep(0.25)
@@ -948,9 +1021,8 @@ driversS <- function(base.params, a, db.path = "out_mc.db", jitters, windMin, wi
   }
 }
 
-######
-## drivers function with species-specific changes and greater user-control
-#####
+
+
 
 #' Models fire behaviour across ranged variables using species specific details
 #' @param base.params Input parameter file
@@ -1021,9 +1093,9 @@ driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windM
     }
     
     #Randomise plant parameters
-    base.params <- plantVarS(base.params, Strata, Species, Variation, a, l = leafVar, 
+    tbl <- plantVarS(base.params, Strata, Species, Variation, a, l = leafVar, 
                              Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
-    ffm_run(base.params, db.path, db.recreate = db.recreate)
+    ffm_run(tbl, db.path, db.recreate = db.recreate)
     Sys.sleep(0.25)
     
     ####UpdateProgress
@@ -1033,4 +1105,81 @@ driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windM
     }
     setTxtProgressBar(pbar, i)
   }
+}
+
+
+#' Updates parameter files with weather from a dataset,
+#' then models fire from non-deterministic plant parameters
+#' using plantVarFrame to modify individual species with their own measured variability
+#' Differs from weatherSetS by using  FRaME formatted tables
+#'
+#' @param base.params Parameter input table
+#' @param a A unique identifier for the record being run
+#' @param weather A dataframe with the four fields:
+#' tm - Sequential numbering of the records
+#' T - Air temperature (deg C)
+#' W - Wind velocity (km/h)
+#' DFMC - Dead fuel moisture content (proportion ODW)
+#' @param db.path Name of the exported database
+#' @param jitters Number of repetitions
+#' @param l Variation around input leaf dimensions
+#' @param Ms Standard deviation of LFMC
+#' @param Pm Multiplier of mean LFMC
+#' @param Mr Truncates LFMC variability by +/- Mr * LFMC
+#' @param Structure A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. Acceptable values
+#' are t, f, or blank, where the outcome will be decided by the relative stratum heights.
+#' nsR, eR, mR, cR - maximum species richness recorded for each stratum
+#' @param updateProgress Progress bar for use in the dashboard
+#' @return dataframe
+#' @export
+
+weatherSet_Frame <- function(base.params, weather, Structure, Flora, a, db.path = "out_mc.db", jitters = 10, l = 0.1,
+                             Ms = 0.01, Pm = 1, Mr = 1.001, updateProgress = NULL)
+{
+  pbar <- txtProgressBar(max = max(weather$tm), style = 3)
+  
+  # Read weather values from the table
+  for (i in 1:max(weather$tm)) {
+    cat("\n", " Modelling time-step number", i, "\n")
+    w <- weather$W[[i]]
+    t <- weather$T[[i]]
+    d <- max(0.01,min(0.199,weather$DFMC[[i]]))
+    
+    # Select species for a random point in the forest and import the weather parameters
+    tbl <- specPoint(base.params, Structure, a) %>%
+      ffm_set_site_param("windSpeed", w, "km/h") %>%
+      ffm_set_site_param("temperature", t, "degc") %>%
+      ffm_set_site_param("deadFuelMoistureProp", d)
+    
+    Strata <- strata(tbl)
+    Species <- species(tbl)
+    
+    if (jitters > 0) {
+      for (j in 1:jitters) {
+        # Recreate database on first run, then add following runs to this
+        db.recreate <- (i * j) == 1
+        
+        # Vary plant traits for each species within their range
+        TBL <- plantVarFrame(tbl, Strata, Species, Flora, a, l = l,
+                             Ms = Ms, Pm = Pm, Mr = Mr)
+        # Run the model
+        ffm_run(TBL, db.path, db.recreate = db.recreate)
+      }
+    }
+    
+    Sys.sleep(0.25)
+    ####UpdateProgress
+    if (is.function(updateProgress)) {
+      text <- paste0("Number of remaining steps is ",max(weather$tm) - i )
+      updateProgress(detail = text)
+    }
+    setTxtProgressBar(pbar, i)
+  }
+  
+  cat("Finished.  Output written to", db.path)
 }

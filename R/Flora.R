@@ -118,8 +118,14 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
            sc1 = ifelse(nsTop == 0, 0, round(pmin(100,pmax(0,100*(Height-nsBase)/(nsTop-nsBase))),0)),
            sc2 = ifelse(eTop == 0, 0, round(pmin(100,pmax(0,100*(Height-eBase)/(eTop-eBase))),0)),
            sc3 = ifelse(mTop == 0, 0, round(pmin(100,pmax(0,100*(Height-mBase)/(mTop-mBase))),0)),
-           sc4 = ifelse(cTop == 0, 0, round(pmin(100,pmax(0,100*(Height-cBase)/(cTop-cBase))),0)))%>%
-    select(repId, wind_kph, Height, ns, e, m, c, b1, b2, b3, b4, sc1, sc2, sc3, sc4)
+           sc4 = ifelse(cTop == 0, 0, round(pmin(100,pmax(0,100*(Height-cBase)/(cTop-cBase))),0)),
+           severity = case_when(b4 > 50 ~ 5,
+                                b4 > 0 ~ 4,
+                                sc4 > 0 ~ 3,
+                                b1+b2 > 50 ~ 2,
+                                b1+b2 > 0 ~ 1,
+                                TRUE ~ 0))%>%
+    select(repId, wind_kph, Height, ns, e, m, c, b1, b2, b3, b4, sc1, sc2, sc3, sc4, severity)
   
   return(Iso)
 }

@@ -4,20 +4,36 @@
 \alias{richS}
 \title{Finds the distribution of species richness per stratum}
 \usage{
-richS(dat, thres = 5, cols, pnts = 10, nstrat = 4)
+richS(
+  dat,
+  thres = 5,
+  pnts = 10,
+  pN = "Point",
+  spName = "Species",
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht"
+)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
-\item{cols}{A list of the columns to be used for stratification, including base & top}
-
 \item{pnts}{The number of points measured in a transect}
 
-\item{nstrat}{The maximum number of strata}
+\item{pN}{The number of the point in the transect}
 
-\item{p}{The maximum allowable p value for a model}
+\item{spName}{Name of the field with the species name}
+
+\item{base}{Name of the field with the base height}
+
+\item{top}{Name of the field with the top height}
+
+\item{he}{Name of the field with dimension he}
+
+\item{ht}{Name of the field with dimension ht}
 }
 \value{
 dataframe

@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{specCover}
 \alias{specCover}
-\title{Finds % cover of surveyed Species and groups minor Species}
+\title{Finds percent cover of surveyed Species and groups minor Species}
 \usage{
 specCover(dat, thres = 5, pnts = 10)
 }

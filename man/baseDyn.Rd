@@ -4,7 +4,18 @@
 \alias{baseDyn}
 \title{Builds models for top-base height allometry dynamics of surveyed Species}
 \usage{
-baseDyn(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000)
+baseDyn(
+  dat,
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht",
+  thres = 5,
+  pnts = 10,
+  p = 0.05,
+  bTest = 10,
+  maxiter = 1000
+)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}
