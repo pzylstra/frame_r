@@ -4,6 +4,10 @@ Fire Research and Modelling Environment: an R package to connect to Scala versio
 
 The following references provide full details of the model
 
+USING FIELD DATA TO MODEL FLAMMABILITY DYNAMICS
+
+Zylstra, P. J.,  Wardell-Johnson, G. W., Falster, D. S., Howe, M., McQuoid, N., Neville, S. (2022) Disentangling ecological controls on forest fire. In Review.
+
 FIRST-ORDER FIRE EFFECTS - PLANTS AND SOILS
 
 Zylstra, P. J. (2021) Linking fire behaviour and its ecological effects to plant traits, using FRaME in R. Methods Ecol. Evol. 12. [online]. Available from: https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13615
