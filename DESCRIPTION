@@ -2,7 +2,7 @@ Package: frame
 Type: Package
 Title: Fire Research and Modelling Environment
 Version: 0.4.0
-Date: 2021-09-20
+Date: 2021-12-09
 Authors@R: as.person( c(
     "Philip Zylstra <pzylstra@uow.edu.au> [cre]",
     "Michael Bedward <michael.bedward@gmail.com> [aut]",
