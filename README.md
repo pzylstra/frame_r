@@ -2,6 +2,14 @@
 
 Fire Research and Modelling Environment: an R package to connect to Scala version of the Forest Flammability Model (Zylstra et al 2016).Provides simulation functionality and extends the FFM to model heat fluxes and ecological impacts.
 
+INSTALLATION INSTRUCTIONS
+1. Install a minimum of R 3.4.1 from https://cran.rstudio.com/
+2. Install rtools from https://cran.r-project.org/bin/windows/Rtools/rtools40.html
+3. Set the path for rtools: 
+4. Install a minimum of Java 8 from https://www.java.com/en/download/manual.jsp
+5. Install devtools: install.packages("devtools")
+6. Run devtools::install_github("pzylstra/frame_r", build_vignettes = TRUE) to install FRaME
+
 The following references provide full details of the model
 
 USING FIELD DATA TO MODEL FLAMMABILITY DYNAMICS
