@@ -72,7 +72,7 @@ firePlant(
 
 \item{mat}{Mean annual temperature (degC)}
 
-\item{density}{Leaf density (g/cm3)}
+\item{deltaL}{Leaf density (g/cm3)}
 
 \item{lma}{List of LMA values per species (kgm−2)}
 }
