@@ -1903,7 +1903,7 @@ pWidth <- function(mods, sp, Age = 10){
 #' @return Dataframe
 #' @export
 
-frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht")
+frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht", mStrat = 4)
 {
   
   veg <- datClean(veg = veg,  base = "base", top = "top", he = "he", ht = "ht")
@@ -1924,7 +1924,7 @@ frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", to
   sig <- vector()
   set.seed(123)
   if (!is.error(kmeans(df, centers = 2, nstart = 25))) {
-    for (nstrat in 2:4) {
+    for (nstrat in 2:mStrat) {
       set.seed(123)
       if (!is.error(kmeans(df, centers = nstrat, nstart = 25))){
         km.res <- kmeans(df, centers = nstrat, nstart = 25)
@@ -2080,9 +2080,9 @@ stratSite <- function(dat, thres = 0, pnts = 10,
   strataDet <- data.frame(Stratum = numeric(0), Cover = numeric(0), 
                           Base = numeric(0), Top = numeric(0), stringsAsFactors = F)
   r <- rich(dat, thres = thres, pnts = pnts)
-  nstrat <- round(min(4, as.numeric(r$Mean)),0)
+  nstrat <- max(round(min(4, as.numeric(r$Mean)),0),2)
   strat <- frame::frameStratify(veg = dat, pN = pN, spName = spName, base = base,
-                           top = top, he = he, ht = ht)
+                                top = top, he = he, ht = ht, mStrat = nstrat)
   for (st in 1:nstrat) {
     stratSub <- strat %>% filter(Stratum == st)
     spnts <- unique(stratSub$Point, incomparables = FALSE)
