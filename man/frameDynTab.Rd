@@ -7,6 +7,7 @@ built from plant modelling}
 \usage{
 frameDynTab(
   dat,
+  tr,
   upper,
   interval,
   sample = 0.5,
@@ -20,7 +21,7 @@ frameDynTab(
   moist = 1,
   G.C_rat = 3,
   C.C_rat = 0.1,
-  density = 0.46,
+  deltaL = 0.46,
   lat = -35,
   map = 1000,
   mat = 20,
@@ -29,6 +30,8 @@ frameDynTab(
 }
 \arguments{
 \item{dat}{The results of run_scm_collect}
+
+\item{tr}{An optional table of input traits}
 
 \item{interval}{Time interval for sampling}
 
@@ -50,7 +53,7 @@ frameDynTab(
 
 \item{C.C_rat}{Ratio of clump to canopy size}
 
-\item{density}{Leaf density (g/cm3)}
+\item{deltaL}{Leaf density (g/cm3)}
 
 \item{lat}{Latitude (degrees)}
 

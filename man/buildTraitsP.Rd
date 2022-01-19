@@ -5,7 +5,7 @@
 \title{Creates traits table for FRaME from plant modelling}
 \usage{
 buildTraitsP(
-  dat,
+  comm,
   propDead = 0,
   leafForm = "Flat",
   lwRat = 3,
@@ -15,12 +15,12 @@ buildTraitsP(
   moist = 1,
   G.C_rat = 3,
   C.C_rat = 0.1,
-  density = 0.46,
+  deltaL = 0.46,
   lma
 )
 }
 \arguments{
-\item{dat}{The output from stratify_community}
+\item{comm}{The output from stratify_community}
 
 \item{propDead}{Proportion of foliage dead}
 
@@ -36,7 +36,7 @@ buildTraitsP(
 
 \item{C.C_rat}{Ratio of clump to canopy size}
 
-\item{density}{Leaf density (g/cm3)}
+\item{deltaL}{Leaf density (g/cm3)}
 
 \item{lma}{List of LMA values per species (kgm−2)}
 
