@@ -281,8 +281,9 @@ ffm_assemble_table <- function(lst) {
 #' 
 #' @export
 #' 
+
 ffm_complete_params <- function(tbl, default.species.params) {
-  if (!.is_param_table(tbl))
+  if (!frame:::.is_param_table(tbl))
     stop("Input table must be a validly structured parameters data frame\n",
          "with columns: stratum, species, param, value and (optionally) units.")
   
@@ -301,8 +302,8 @@ ffm_complete_params <- function(tbl, default.species.params) {
   # Convert default to long format
   default.species.params <- default.species.params %>%
     tidyr::gather(param, value, -name)
-
-  tbl <- .as_str_data_frame(tbl)
+  
+  tbl <- frame:::.as_str_data_frame(tbl)
   
   Silica <- tolower("propSilicaFreeAsh")
   
@@ -310,7 +311,7 @@ ffm_complete_params <- function(tbl, default.species.params) {
     x <- frame::ParamInfo %>% dplyr::filter(section == "species")
     tolower(x$param)
   }
-
+  
   
   # Retrieve default parameters as required for a given species
   # and return as additional records to add to the table
@@ -328,7 +329,7 @@ ffm_complete_params <- function(tbl, default.species.params) {
       stratum.recs <- dplyr::filter(all.recs, stratum == ist)
       provided <- tolower(stratum.recs$param)
       required <- setdiff(RequiredSpeciesParams, provided)
-    
+      
       if (length(required) == 0) {
         # Don't need to add any parameters, so return NULL
         NULL
@@ -364,7 +365,7 @@ ffm_complete_params <- function(tbl, default.species.params) {
         
         spextras$stratum <- ist
         spextras$species <- species.id
-
+        
         spextras <- arrange(spextras, stratum, species, param, value)
         
         extra.recs <- rbind(extra.recs, spextras)
@@ -373,7 +374,7 @@ ffm_complete_params <- function(tbl, default.species.params) {
     extra.recs
   }
   
-  ids <- .get_species_ids(tbl)
+  ids <- frame:::.get_species_ids(tbl)
   new.recs <- do.call(rbind, lapply(ids, do_species))
   
   if (is.null(new.recs) || nrow(new.recs) == 0) {
@@ -391,7 +392,7 @@ ffm_complete_params <- function(tbl, default.species.params) {
     }
     
     tbl <- rbind( tbl, new.recs )
-    arrange(tbl, stratum, species)
+    arrange(tbl, stratum, as.integer(species))
   }
 }
 
