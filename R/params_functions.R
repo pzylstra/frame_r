@@ -242,10 +242,13 @@ ffm_assemble_table <- function(lst) {
     
     mutate_all(dplyr::funs(as.character))
   
-  spp <- left_join(vals, units, by=c("stratum", "species", "param"))
+  spp <- left_join(vals, units, by=c("stratum", "species", "param")) %>%
+    mutate(species = as.integer(species))
   
   rbind(lst$site.meta, lst$strata.meta, spp) %>%
-    arrange(stratum, species)
+    arrange(stratum, species) %>%
+    
+    mutate_all(dplyr::funs(as.character))
 }
 
 
