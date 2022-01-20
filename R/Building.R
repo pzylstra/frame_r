@@ -203,6 +203,8 @@ unitBuilder <- function(Flora, a)
 {
   # Collect subsets for site
   fl <- Flora[Flora$record==a,]
+  fl <- fl[fl$species != "Litter",] %>%
+    arrange(stratum)
   
   # CREATE species.units
   ro <- as.numeric(nrow(fl))
