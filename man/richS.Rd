@@ -6,7 +6,7 @@
 \usage{
 richS(
   dat,
-  thres = 5,
+  thres = 0,
   pnts = 10,
   pN = "Point",
   spName = "Species",
@@ -17,7 +17,7 @@ richS(
 )
 }
 \arguments{
-\item{dat}{The dataframe containing the input data,}
+\item{dat}{The dataframe containing the input data}
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 

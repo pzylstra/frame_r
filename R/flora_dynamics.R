@@ -2018,7 +2018,7 @@ rich <- function(dat, thres = 5, pnts = 10) {
 #' 
 #' Species that are less common than the set threshold are combined as "Minor Species"
 #'
-#' @param dat The dataframe containing the input data,
+#' @param dat The dataframe containing the input data
 #' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
 #' @param pN The number of the point in the transect
@@ -2029,7 +2029,7 @@ rich <- function(dat, thres = 5, pnts = 10) {
 #' @param ht Name of the field with dimension ht
 #' @return dataframe
 
-richS <- function(dat, thres = 5, pnts = 10, 
+richS <- function(dat, thres = 0, pnts = 10, 
                   pN ="Point",  spName ="Species",  base = "base", 
                   top = "top", he = "he", ht = "ht") {
   
@@ -2074,16 +2074,14 @@ richS <- function(dat, thres = 5, pnts = 10,
 #' @return dataframe
 #' @export
 #' 
-stratSite <- function(dat, thres = 0, pnts = 10,  
-                      pN ="Point",  spName ="Species",  base = "base", 
+stratSite <- function(dat, thres = 0, pN ="Point",  spName ="Species",  base = "base", 
                       top = "top", he = "he", ht = "ht")  {
+  pnts <- nrow(dat)
   strataDet <- data.frame(Stratum = numeric(0), Cover = numeric(0), 
                           Base = numeric(0), Top = numeric(0), stringsAsFactors = F)
-  r <- rich(dat, thres = thres, pnts = pnts)
-  nstrat <- max(round(min(4, as.numeric(r$Mean)),0),2)
   strat <- frame::frameStratify(veg = dat, pN = pN, spName = spName, base = base,
-                                top = top, he = he, ht = ht, mStrat = nstrat)
-  for (st in 1:nstrat) {
+                                top = top, he = he, ht = ht)
+  for (st in 1:as.numeric(max(strat$Stratum))) {
     stratSub <- strat %>% filter(Stratum == st)
     spnts <- unique(stratSub$Point, incomparables = FALSE)
     co <- length(spnts)/pnts
@@ -2109,7 +2107,12 @@ stratSite <- function(dat, thres = 0, pnts = 10,
 #' @param dat The dataframe containing the input data
 #' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
-#' @param nstrat Maximum number of strata
+#' @param pN The number of the point in the transect
+#' @param spName Name of the field with the species name
+#' @param base Name of the field with the base height
+#' @param top Name of the field with the top height
+#' @param he Name of the field with dimension he
+#' @param ht Name of the field with dimension ht
 #' @return dataframe
 #' @export
 #' 
@@ -2188,7 +2191,7 @@ stratRich <- function(dat, thres = 5, pnts = 10,
 
 buildFlora <- function(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                        wid = "width", rec = "Site", sN = "SiteName", surf = 20) {
-  
+
   vegA <- frame::frameStratify(veg = veg, pN = pN, spName = spName,
                           base = base, top = top, he = he, ht = ht)
   
@@ -2603,20 +2606,23 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
       
     }
     
-    Struct <- buildStructure(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
+    Structure <- buildStructure(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
                              rec = "Site", sN = "SiteName")
-    Flor <- buildFlora(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
+    Flora <- buildFlora(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                        wid = "width", rec = "Site", sN = "SiteName", surf = surf)
     
     # Add suspended litter
+    tabs <- if (cover != 0) {
+      
     if (thin == TRUE && dec == TRUE) {
       decline <- TRUE
     } else {
       decline <- FALSE
     }
     pnts <- as.numeric(n_distinct(dat[pN]))
-    tabs <- susp(Flora = Flor, Structure = Struct, default.species.params, density = density, top = nsH, cover = cover, pnts = pnts,
-                 age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, max = maxNS, rate = rateNS, dec = decline)
+      susp(Flora = Flora, Structure = Structure, default.species.params, density = density, top = nsH, cover = cover, pnts = pnts,
+           age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, max = maxNS, rate = rateNS, dec = decline)
+    }
     Structure <- rbind(Structure, tabs[[2]])
     Flora <- rbind(Flora, tabs[[1]])
   }

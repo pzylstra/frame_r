@@ -24,7 +24,17 @@ stratRich(
 
 \item{pnts}{The number of points measured in a transect}
 
-\item{nstrat}{Maximum number of strata}
+\item{pN}{The number of the point in the transect}
+
+\item{spName}{Name of the field with the species name}
+
+\item{base}{Name of the field with the base height}
+
+\item{top}{Name of the field with the top height}
+
+\item{he}{Name of the field with dimension he}
+
+\item{ht}{Name of the field with dimension ht}
 }
 \value{
 dataframe

@@ -8,7 +8,6 @@ base and top heights}
 stratSite(
   dat,
   thres = 0,
-  pnts = 10,
   pN = "Point",
   spName = "Species",
   base = "base",
@@ -22,8 +21,6 @@ stratSite(
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
-\item{pnts}{The number of points measured in a transect}
-
 \item{pN}{The number of the point in the transect}
 
 \item{spName}{Name of the field with the species name}
@@ -35,6 +32,8 @@ stratSite(
 \item{he}{Name of the field with dimension he}
 
 \item{ht}{Name of the field with dimension ht}
+
+\item{pnts}{The number of points measured in a transect}
 }
 \value{
 dataframe
