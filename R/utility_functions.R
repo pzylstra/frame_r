@@ -40,7 +40,7 @@
 
 # Gets species IDs in the given parameter table
 #
-.get_species_ids <- function(tbl) sort( unique( na.omit(tbl$species) ) )
+.get_species_ids <- function(tbl) sort( unique( na.omit(as.integer(tbl$species)) ) )
 
 
 # Creates a regular expression pattern for the given string.
