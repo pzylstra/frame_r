@@ -586,6 +586,9 @@ buildSpeciesValues <- function(Flora, default.species.params, a)
 buildParams <- function(Structure, Flora, default.species.params, a,
                         fLine = 100, slope = 0, temp = 30, dfmc = 0.1, wind = 10)
 {
+  # Remove empty species, leaving litter
+  Flora <- Flora[which(Flora$species == "Litter" | Flora$comp != 0), ]
+  
   # Construct component tables
   site.meta <- buildSiteMeta(Structure, Flora, a, fLine = fLine, slope = slope,
                              temp = temp, dfmc = dfmc, wind = wind)
