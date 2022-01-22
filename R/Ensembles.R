@@ -858,6 +858,105 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
 }
 
 
+#' Models probabilistic fire behaviour using species-specific variability from FRaME tables
+#' @param base.params Input parameter file
+#' @param db.path Name of the exported database
+#' @param jitters Number of repetitions for each row in the weather table
+#' @param slope Mean slope (deg)
+#' @param slopeSD Standard deviation of slope
+#' @param slopeRange Truncates variability by +/- mean * range
+#' @param temp Mean ambient temperature (deg.C)
+#' @param tempSD Standard deviation of temp
+#' @param tempRange Truncates variability by +/- mean * range
+#' @param DFMC Mean DFMC (Percent ODW)
+#' @param DFMCSD Standard deviation of DFMC
+#' @param DFMCRange Truncates variability by +/- mean * range
+#' @param wind Mean wind velocity (km/h)
+#' @param windSD Standard deviation of wind velocity
+#' @param windRange Truncates variability by +/- mean * range
+#' @param l Variation around input leaf dimensions
+#' @param Ms Standard deviation of LFMC
+#' @param Pm Multiplier of mean LFMC
+#' @param Mr Truncates LFMC variability by +/- Mr * LFMC
+#' @param Structure A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. Acceptable values
+#' are t, f, or blank, where the outcome will be decided by the relative stratum heights.
+#' nsR, eR, mR, cR - maximum species richness recorded for each stratum
+#' @param updateProgress Progress bar for use in the dashboard
+#' @return dataframe
+#' @export
+#' @examples
+#' 
+#' ADD EXAMPLE
+
+
+probFire_Frame <- function(base.params, Structure, Flora, a, db.path = "out_mc.db",
+                           slope, slopeSD, slopeRange, temp, tempSD, tempRange,
+                           DFMC, DFMCSD, DFMCRange, wind, windSD, windRange, 
+                           jitters = 50, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, 
+                           updateProgress = NULL) {
+  
+  pbar <- txtProgressBar(max = jitters, style = 3)
+  
+  #Set input limits
+  DFMCRange <- pmax(1.0001, DFMCRange)
+  
+  if (jitters > 2) {
+    for (j in 1:jitters) {
+      db.recreate <- j == 1
+      # Modify environmental parameters
+      s <- rtnorm(n = 1, mean = slope, sd = slopeSD,
+                  a = slope-(slopeRange/2), b = slope+(slopeRange/2))
+      t <- rtnorm(n = 1, mean = temp, sd = tempSD,
+                  a = temp-(tempRange/2), b = temp+(tempRange/2)) 
+      d <- rtnorm(n = 1, mean = DFMC, sd = DFMCSD,
+                  a = pmax(0.02, DFMC-(DFMCRange/2)), b = pmin(0.199,DFMC+(DFMCRange/2))) 
+      w <- rtnorm(n = 1, mean = wind, sd = windSD,
+                  a = wind-(windRange/2), b = wind+(windRange/2))   
+      
+      base.params <- base.params %>%
+        ffm_set_site_param("slope", s, "deg") %>%
+        ffm_set_site_param("temperature", t) %>%
+        ffm_set_site_param("deadFuelMoistureProp", d) %>%
+        ffm_set_site_param("windSpeed", w)
+      
+      # Select species for a random point in the forest and import the weather parameters
+      tbl <- specPoint(base.params, Structure, a) %>%
+        ffm_set_site_param("windSpeed", w, "km/h") %>%
+        ffm_set_site_param("temperature", t, "degc") %>%
+        ffm_set_site_param("deadFuelMoistureProp", d)
+      
+      Strata <- strata(tbl)
+      Species <- species(tbl)
+      
+      # Recreate database on first run, then add following runs to this
+      db.recreate <- j == 1
+      
+      # Choose random point and vary plant traits for each species within their range
+      TBL <- plantVarFrame(tbl, Strata, Species, Flora, a, l = l,
+                           Ms = Ms, Pm = Pm, Mr = Mr)
+      # Run the model
+      ffm_run(TBL, db.path, db.recreate = db.recreate)
+      
+      Sys.sleep(0.25)
+      ####UpdateProgress
+      if (is.function(updateProgress)) {
+        text <- paste0("Number of remaining steps is ",max(weather$tm) - j )
+        updateProgress(detail = text)
+      }
+      setTxtProgressBar(pbar, j)
+    }
+  }  else  {
+    print("Probabilistic analysis requires a minimum of 3 replicates")
+  }
+}
+
+
+
 #' Models fire behaviour across ranged variables
 #' @param base.params Input parameter file
 #' @param db.path Name of the exported database
