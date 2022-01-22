@@ -2558,7 +2558,6 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
                         surf = 10, density = 300, nsH = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA, 
                         thin = TRUE, sLit  = TRUE, dec = TRUE) {
   
-  
   # Find missing data
   entries <- which(is.na(dat[top]))
   if (length(entries)>0) {
@@ -2606,22 +2605,24 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
       
     }
     
-    Structure <- buildStructure(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
+    Struct <- buildStructure(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
                              rec = "Site", sN = "SiteName")
-    Flora <- buildFlora(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
+    Flor <- buildFlora(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                        wid = "width", rec = "Site", sN = "SiteName", surf = surf)
     
     # Add suspended litter
     tabs <- if (cover != 0) {
       
-    if (thin == TRUE && dec == TRUE) {
-      decline <- TRUE
-    } else {
-      decline <- FALSE
-    }
-    pnts <- as.numeric(n_distinct(dat[pN]))
-      susp(Flora = Flora, Structure = Structure, default.species.params, density = density, top = nsH, cover = cover, pnts = pnts,
+      if (thin == TRUE && dec == TRUE) {
+        decline <- TRUE
+      } else {
+        decline <- FALSE
+      }
+      pnts <- as.numeric(n_distinct(dat[pN]))
+      susp(Flora = Flor, Structure = Struct, default.species.params, density = density, top = nsH, cover = cover, pnts = pnts,
            age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, max = maxNS, rate = rateNS, dec = decline)
+    } else {
+      tabs <- list(Flor, Struct)
     }
     Structure <- rbind(Structure, tabs[[2]])
     Flora <- rbind(Flora, tabs[[1]])
