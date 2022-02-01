@@ -2,8 +2,7 @@
 % Please edit documentation in R/Ensembles.R
 \name{plantVarFrame}
 \alias{plantVarFrame}
-\title{Randomly modifies plant traits within defined ranges for non-deterministic predictions
-Differs from plantVarS by using FRaME-updated tables}
+\title{Randomly modifies plant traits within defined ranges for non-deterministic predictions}
 \usage{
 plantVarFrame(
   base.params,
@@ -40,6 +39,5 @@ plantVarFrame(
 dataframe
 }
 \description{
-Randomly modifies plant traits within defined ranges for non-deterministic predictions
 Differs from plantVarS by using FRaME-updated tables
 }

@@ -26,7 +26,7 @@ firePlant(
   moistureRange = 1.5,
   fLine = 100,
   leafVar = 0.1,
-  updateProgress = TRUE
+  updateProgress = NULL
 )
 }
 \arguments{

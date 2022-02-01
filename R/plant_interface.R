@@ -52,10 +52,26 @@ buildStructureP <- function(dat, age, rec = 1) {
 }
 
 
+#' Updates species names from an optional table
+#'
+#' @param comm The output from stratify_community
+#' @param tr An optional table of input traits
+#'  
+
+updateSpecies <- function(comm, tr){
+  
+  # Update species names if tr table used
+  if(!missing(tr)) {
+    comm <- left_join(comm,tr, by = c("species" = "Species")) %>%
+      mutate(species = name)
+  } 
+}
+
+
 
 #' Creates an 'F_flora' table for FRaME from plant modelling
 #'
-#' @param dat The output from stratify_community
+#' @param comm The output from stratify_community
 #' @param tr An optional table of input traits
 #' @param age Years since disturbance
 #' @param rec Number of the record
@@ -67,11 +83,7 @@ buildStructureP <- function(dat, age, rec = 1) {
 #'
 
 buildFloraP <- function(comm, tr, age, rec = 1, moist = 1, litter = 15, diameter = 0.005) {
-  # Update species names if tr table used
-  if(!missing(tr)) {
-    comm <- left_join(comm,tr, by = c("species" = "Species")) %>%
-      mutate(species = name)
-  } 
+  
   # Summarise strata
   strata <- comm %>%
     group_by(Stratum, species) %>%
@@ -202,23 +214,22 @@ buildTraitsP <- function(comm, propDead = 0, leafForm = "Flat", lwRat = 3, leafA
 #' @export
 #'
 
-collectTraitsP <- function(comm, tr, deltaL = 0.46) {
+collectTraitsP <- function(comm, deltaL = 0.46) {
   
   # Join to plant traits and clean empty data
-  data <- left_join(comm, tr, by = c("species" = "Species"))
-  data["leafForm"][is.na(data["leafForm"])] <- "Flat"
-  data["moisture"][is.na(data["moisture"])] <- 1
-  data["propDead"][is.na(data["propDead"])] <- 0
-  data["ignitionTemp"][is.na(data["ignitionTemp"])] <- 260
-  data["lwRat"][is.na(data["lwRat"])] <- 3
-  data["leaf_area"][is.na(data["leaf_area"])] <- 0.002547
-  data["bark_density"][is.na(data["bark_density"])] <- 200
-  data["G.C_rat"][is.na(data["G.C_rat"])] <- 3
-  data["C.C_rat"][is.na(data["C.C_rat"])] <- 0.1
-  data["stemOrder"][is.na(data["stemOrder"])] <- 5
+  comm["leafForm"][is.na(comm["leafForm"])] <- "Flat"
+  comm["moisture"][is.na(comm["moisture"])] <- 1
+  comm["propDead"][is.na(comm["propDead"])] <- 0
+  comm["ignitionTemp"][is.na(comm["ignitionTemp"])] <- 260
+  comm["lwRat"][is.na(comm["lwRat"])] <- 3
+  comm["leaf_area"][is.na(comm["leaf_area"])] <- 0.002547
+  comm["bark_density"][is.na(comm["bark_density"])] <- 200
+  comm["G.C_rat"][is.na(comm["G.C_rat"])] <- 3
+  comm["C.C_rat"][is.na(comm["C.C_rat"])] <- 0.1
+  comm["stemOrder"][is.na(comm["stemOrder"])] <- 5
   
   # Summarise strata
-  data <- data %>%
+  comm <- comm %>%
     mutate(c_vol = (pi*(w/2)^2*(height-ht)/3)+(pi*(w/2)^2*(ht-he))+(pi*(w/2)^2*(he-base)),
            leaf_thickness = case_when(is.na(leaf_thickness) ~ lma/(deltaL*1000),
                                       TRUE ~ leaf_thickness),
@@ -232,23 +243,23 @@ collectTraitsP <- function(comm, tr, deltaL = 0.46) {
            clumpD = sqrt(branchA/pi),
            lSep = (branchV*stemOrder)/((leavesClump/0.88)^(1/1.18)))
   
-  sp_names <- unique(data$name)
+  sp_names <- unique(comm$name)
   
-  form <- data %>%
+  form <- comm %>%
     select(species, leafForm)
   form <- form[!duplicated(form), ]
   
-  summ <- data %>%
+  summ <- comm %>%
     group_by(species) %>%
     summarise_if(is.numeric, mean)
-  spec <- as.numeric(unique(summ$species))
+  spec <- unique(summ$species)
   
   # Create flora table
   flo <- data.frame(matrix(ncol = 12, nrow = length(spec)))
   colnames(flo) <- c("name", "propDead", "leafForm", "leafThickness", "leafWidth", "leafLength", 
                      "leafSeparation", "stemOrder", "ignitionTemp", "moisture", "G.C_rat", "C.C_rat")
   n <- 1
-  for (sp in spec) {
+  for (sp in 1: length(spec)) {
     flo$name[sp] <- sp_names[sp]
     flo$propDead[sp]  <- summ$propDead[sp]
     flo$leafForm[sp]  <- form$leafForm[sp]
@@ -298,20 +309,22 @@ collectTraitsP <- function(comm, tr, deltaL = 0.46) {
 #' @export
 #'
 
-frameTables <- function(dat, tr, age, rec = 1, sample = 0.5, transects = 10, propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
-                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma) {
+frameTables <- function(dat, tr, age, rec = 1, sample = 0.5, transects = 10, propDead = 0, 
+                        leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
+                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, 
+                        deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma) {
   
   crowns <- shape_forest(dat, tr, age, lat, map, mat)
   comm <- stratify_community(crowns, sample, transects)
   Structure <- buildStructureP(comm, age, rec)
+  comm <- frame:::updateSpecies(comm, tr)
   Flora <- buildFloraP(comm, age, rec, moist)
   Traits <- if(!missing(tr)) {
-    collectTraitsP(comm, tr, deltaL)
+    collectTraitsP(comm, deltaL)
   } else {
     buildTraitsP(comm, propDead, leafForm, lwRat, leafA, ram,
                  ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, lma)
   }
-  
   
   return(list(Flora, Structure, Traits))
 }
@@ -410,7 +423,7 @@ firePlant <- function(dat, db.path = "out.plant.db", reps = 5,
                       DFMC = 0.1, DFMCSD = 0.01, DFMCRange = 2, 
                       wind = 5, windSD = 1, windRange = 2,
                       moistureMultiplier = 1, moistureSD = 0.01, moistureRange = 1.5,
-                      fLine = 100, leafVar = 0.1, updateProgress = TRUE) {
+                      fLine = 100, leafVar = 0.1, updateProgress = NULL) {
   
   Flora <- dat[[1]]
   Structure <- dat[[2]]
@@ -428,14 +441,23 @@ firePlant <- function(dat, db.path = "out.plant.db", reps = 5,
     heightRange <- mean(f$Hr, na.rm = TRUE)
     
     #MODEL PROBABILISTIC FIRE BEHAVIOUR
-    probFire(base.params, db.path = db.path, jitters = reps,
-             slope = slope, slopeSD = slopeSD, slopeRange = slopeRange, 
-             temp = temp, tempSD = tempSD, tempRange = tempRange,
-             DFMC = DFMC, DFMCSD = DFMCSD, DFMCRange = DFMCRange, 
-             wind = wind, windSD = windSD, windRange = windRange,
-             moistureMultiplier = moistureMultiplier, moistureSD = moistureSD, moistureRange = moistureRange,
-             heightSD = heightSD, heightRange = heightRange, 
-             leafVar = leafVar, updateProgress = TRUE)
+#    probFire(base.params, db.path = db.path, jitters = reps,
+#             slope = slope, slopeSD = slopeSD, slopeRange = slopeRange, 
+#             temp = temp, tempSD = tempSD, tempRange = tempRange,
+#             DFMC = DFMC, DFMCSD = DFMCSD, DFMCRange = DFMCRange, 
+#             wind = wind, windSD = windSD, windRange = windRange,
+#             moistureMultiplier = moistureMultiplier, moistureSD = moistureSD, moistureRange = moistureRange,
+#             heightSD = heightSD, heightRange = heightRange, 
+#             leafVar = leafVar, updateProgress = TRUE)
+    
+    probFire_Frame(base.params, Structure = s, Flora = f, a = n, db.path = db.path,
+                   slope = slope, slopeSD = slopeSD, slopeRange = slopeRange, 
+                   temp = temp, tempSD = tempSD, tempRange = tempRange,
+                   DFMC = DFMC, DFMCSD = DFMCSD, DFMCRange = DFMCRange, 
+                   wind = wind, windSD = windSD, windRange = windRange,
+                   jitters = reps, l = leafVar, 
+                   Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange, 
+                   updateProgress = updateProgress)
     
     #SUMMARISE BEHAVIOUR
     res<-ffm_db_load("out.plant.db")

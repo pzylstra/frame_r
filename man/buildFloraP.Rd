@@ -7,6 +7,8 @@
 buildFloraP(comm, tr, age, rec = 1, moist = 1, litter = 15, diameter = 0.005)
 }
 \arguments{
+\item{comm}{The output from stratify_community}
+
 \item{tr}{An optional table of input traits}
 
 \item{age}{Years since disturbance}
@@ -18,8 +20,6 @@ buildFloraP(comm, tr, age, rec = 1, moist = 1, litter = 15, diameter = 0.005)
 \item{litter}{Weight of surface litter (t/ha)}
 
 \item{diameter}{Mean diameter of surface litter pieces (m)}
-
-\item{dat}{The output from stratify_community}
 }
 \description{
 Creates an 'F_flora' table for FRaME from plant modelling

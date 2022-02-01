@@ -4,14 +4,14 @@
 \alias{collectTraitsP}
 \title{Creates traits table for FRaME from plant modelling}
 \usage{
-collectTraitsP(comm, tr, deltaL = 0.46)
+collectTraitsP(comm, deltaL = 0.46)
 }
 \arguments{
 \item{comm}{The output from stratify_community}
 
-\item{tr}{A table of input traits}
-
 \item{deltaL}{Leaf density (g/cm3)}
+
+\item{tr}{A table of input traits}
 }
 \description{
 Reads traits from an input table
