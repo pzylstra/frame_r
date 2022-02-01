@@ -199,7 +199,7 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
 #' @param Altitude Height above sea level (m)
 #' @param startTemp The starting temperature of wood and bark (deg C)
 #' @param necT Temperature of necrosis (deg C)
-#' @param surfDecl adusts the rate at which surface flame length declines after the front
+#' @param surfDecl adjusts the rate at which surface flame length declines after the front
 #' @param updateProgress Progress bar for use in the dashboard
 #' @return dataframe
 #' @export

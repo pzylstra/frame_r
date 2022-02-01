@@ -58,18 +58,15 @@
 
 threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pressure = 1013.25, Altitude = 0)
 {
+  El <- Horizontal * tan((Surf$slope_degrees[1] * pi)/180)
+  interceptAngle <- atan((Height+El)/Horizontal)
   # Calculate surface flame heating
   s <- Surf %>%
     mutate(hor = Horizontal,
+           Intercept = ifelse(((interceptAngle - tan((var * pi)/180)) > angleSurface)|((interceptAngle + tan((var * pi)/180)) < angleSurface), 0, 1),
            Alpha = 1/(2 * lengthSurface^2),
            C = 950 * lengthSurface * exp(-Alpha * lengthSurface^2),
-           pAlphas = abs(Horizontal/cos(angleSurface)),
-           El = Horizontal * tan((slope_degrees * pi)/180),
-           Yl = Horizontal * (angleSurface - tan((var * pi)/180)),
-           Yu = Horizontal * (angleSurface + tan((var * pi)/180)),
-           IntL = ifelse(Height + El < Yl, 0, 1),
-           IntU = ifelse(Height + El > Yu, 0, 1),
-           Intercept = IntL * IntU,
+           pAlphas = abs(Horizontal/cos(interceptAngle)),
            temp_pointS = ifelse(pAlphas < lengthSurface,
                                 950 + exp(-Alpha * pAlphas^2),
                                 C/pAlphas) * Intercept + temperature) %>%
@@ -77,29 +74,23 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
   
   # Calculate heating from burning plants
   p <- suppressMessages(repFlame %>%
-    left_join(s) %>%
-    mutate(Angle = atan((y1 - y0)/(x1 - x0)),
-           Alpha = 1/(2 * flameLength * (flameLength - length)),
-           C = 950 * flameLength * exp(-Alpha * (flameLength - length)^2),
-           pAlphap = abs(Horizontal/cos(Angle)),
-           El = Horizontal * tan((slope_degrees * pi)/180),
-           Yl = Horizontal * (Angle - tan((var * pi)/180)) + y0,
-           Yu = Horizontal * (Angle + tan((var * pi)/180) + y0),
-           IntL = ifelse(Height + El < Yl, 0, 1),
-           IntU = ifelse(Height + El > Yu, 0, 1),
-           Intercept = IntL * IntU,
-           temp_pointP = ifelse(pAlphap < flameLength, 950 + exp(-Alpha * (pAlphap - length)^2),
-                                C/pAlphap) * Intercept + temperature,
-           flameTemp = 1045*exp(0.155*length/flameLength)) %>%
-    group_by(repId) %>%
-    filter(temp_pointP == max(temp_pointP)) %>%
-    select(repId, repHeight, repHeight, repLength, repAngle, runIndex, segIndex, x0, y0, x1, y1,
-           length, flameLength, hor, ros_kph, wind_kph, angleSurface, lengthSurface, pAlphas,
-           temperature, slope_degrees, temp_pointS, epsilon, Angle, Alpha, C, pAlphap, El, Yl,
-           Yu, IntL, IntU, Intercept, temp_pointP, flameTemp)%>%
-    group_by(repId) %>%
-    summarize_all(max)%>%
-    right_join(s))
+                          left_join(s) %>%
+                          mutate(Angle = atan((y1 - y0)/(x1 - x0)),
+                                 Intercept = ifelse(((interceptAngle - tan((var * pi)/180)) > Angle)|((interceptAngle + tan((var * pi)/180)) < Angle), 0, 1),
+                                 Alpha = 1/(2 * flameLength * (flameLength - length)),
+                                 C = 950 * flameLength * exp(-Alpha * (flameLength - length)^2),
+                                 pAlphap = abs(Horizontal/cos(interceptAngle)),
+                                 temp_pointP = ifelse(pAlphap < flameLength, 950 + exp(-Alpha * (pAlphap - length)^2),
+                                                      C/pAlphap) * Intercept + temperature,
+                                 flameTemp = 1045*exp(0.155*length/flameLength)) %>%
+                          group_by(repId) %>%
+                          filter(temp_pointP == max(temp_pointP)) %>%
+                          select(repId, repHeight, repHeight, repLength, repAngle, runIndex, segIndex, x0, y0, x1, y1,
+                                 length, flameLength, hor, ros_kph, wind_kph, angleSurface, lengthSurface, pAlphas,
+                                 temperature, slope_degrees, temp_pointS, epsilon, Angle, Alpha, C, pAlphap, Intercept, temp_pointP, flameTemp)%>%
+                          group_by(repId) %>%
+                          summarize_all(max)%>%
+                          right_join(s))
   p[is.na(p)] <- 0
   
   # Calculate heat transfer inputs
@@ -117,7 +108,7 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
            E = pmax(0, epsilon*0.0000000567*(flameTemp^4-(tempAir+273.15)^4)),
            repAngle = ifelse(repLength>lengthSurface, repAngle, angleSurface),
            repLength = max(repLength, lengthSurface),
-           phi = phi(repLength,repAngle,slope_degrees,Horizontal,Height),
+           phi = frame:::phi(repLength,repAngle,slope_degrees,Horizontal,Height),
            qr = E * phi) %>%
     select(repId, ros_kph, wind_kph, temperature, lengthSurface, pAlpha, tempAir, cpAir,
            viscosity, presAtm, Density, Plume_velocity, flameTemp, epsilon, E, phi, qr)
@@ -126,3 +117,34 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
 
 
 #####################################################################
+
+
+cp <- function(Material = "wood", temp, moist){
+  cp <- if (Material == "bark") {
+    (1105+4.85*temp)*(1-moist)+moist*4185+1276*moist
+  } else {
+    1080+408*moist+2.53*temp+6.28*moist*temp
+  }
+  
+  return(cp)
+}
+
+k <- function(Material = "bark", temp, moist, density){
+  kAir <- 0.00028683*(temp+273.15)^0.7919
+  cp <- if (Material == "bark") {
+    rhoM <- (moist+moist^2)*density
+    (2.104*density+5.544*rhoM+3.266*temp-166.216)*10^-4
+  } else {
+    frame:::kWood(temp, density, kAir)
+  }
+  
+  return(cp)
+}
+
+hFauna <- function(Shape = "Cylinder", Re) {
+  hFlat <- ifelse(Re > 300000,0.037*Re^(4/5)*0.888, 0.66*Re^0.5*0.888)
+  hSphere <- 2 + 0.6*Re^(0.5)*0.888
+  hCylinder <- 0.35 + 0.47*Re^(1/2)*0.837
+  h <- ifelse(Shape == "Flat", hFlat, ifelse(Shape == "Sphere", hSphere, hCylinder)) 
+  return(h)
+}

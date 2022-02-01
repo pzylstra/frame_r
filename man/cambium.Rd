@@ -73,7 +73,7 @@ cambium(
 
 \item{necT}{Temperature of necrosis (deg C)}
 
-\item{surfDecl}{adusts the rate at which surface flame length declines after the front}
+\item{surfDecl}{adjusts the rate at which surface flame length declines after the front}
 
 \item{updateProgress}{Progress bar for use in the dashboard}
 }
