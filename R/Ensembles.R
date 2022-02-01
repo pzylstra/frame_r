@@ -381,6 +381,8 @@ plantVar <- function (base.params, Strata, Species,
     tbl$value[tbl$stratum==s[1]&tbl$param=="levelName"] = "near surface"
     tbl$value[tbl$stratum==max(s)&tbl$param=="levelName"] = "canopy"
   }
+  # Remove marked species and tidy params file
+  tbl <- speciesDrop(tbl)
   return(tbl)
 }
 
@@ -458,12 +460,15 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
       SpeciesP = SpeciesP + 1
     }
   }
+  # Remove marked species and tidy params file
+  tbl <- speciesDrop(tbl)
   
   return(tbl)
 }
 
 
 #' Randomly modifies plant traits within defined ranges for non-deterministic predictions
+#' 
 #' Differs from plantVarS by using FRaME-updated tables
 #' 
 #' @param base.params Parameter input table
@@ -502,26 +507,28 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
   # Loop through plant strata
   
   StN <- as.numeric(count(Strata))
+  dCount <- 0
   
   for (str in 1:StN) {
     
     # Vary leaf moisture to randomly place points in the community and decide which plants will be present.
-    # Where the random number is > stratum cover, all species are made too moist to burn and excluded from modelling.
+    # Where the random number is > stratum cover, all species are marked with liveLeafMoisture == 100.
     # Otherwise, species are varied by Ms & Mr, and multiplied by Pm
     
-    if (runif(1) <= Strata$cover[str]) {
+    if (runif(1) <= Strata$cover[str] | dCount == StN - 2) {
       for (t in 1:Strata$speciesN[str]) {
         Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
                              sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] * Mr)
         tbl <- ffm_set_species_param(tbl, str, SpeciesN,
                                      "liveLeafMoisture", Mrand)
-        (SpeciesN = SpeciesN + 1)
+        (SpeciesN <- SpeciesN + 1)
       }
     } else {
+      dCount <- dCount+1
       for (f in 1:Strata$speciesN[str]) {
         tbl <- tbl %>% ffm_set_species_param(str, SpeciesN,
                                              "liveLeafMoisture", 100)
-        SpeciesN = SpeciesN + 1
+        SpeciesN <- SpeciesN + 1
       }
     }
     
@@ -540,6 +547,9 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
       SpeciesP = SpeciesP + 1
     }
   }
+  
+  # Remove marked species and tidy params file
+  tbl <- speciesDrop(tbl)
   
   return(tbl)
 }
@@ -759,6 +769,78 @@ heightSD, heightRange, leafVar, updateProgress = NULL)
     }
   }
 }
+
+#' Removes identified species from a param file and tidies the file
+#' 
+#' Species where liveLeafMoisture == 100 are removed, then
+#' empty strata removed and species & strata renumbered consecutively
+#' 
+#' @param base.params The params file to be adjusted
+
+speciesDrop <- function(base.params) {
+  
+  # 1. List table components
+  cutList <- as.vector(base.params[base.params$param == "liveLeafMoisture" & base.params$value == 100,])$species
+  
+  if (length(cutList) > 0) {
+    
+    end <- base.params[is.na(base.params$stratum),]
+    strDesc <- base.params[is.na(base.params$species) & !is.na(base.params$stratum),]
+    
+    # 2. Remove identified species
+    for (sp in cutList) {
+      base.params <- base.params[which(base.params$species != sp),]
+    }
+    
+    # 3. Rebuild table
+    stList <- unique(base.params$stratum[!is.na(base.params$stratum)])
+    for (st in stList) {
+      Rest <- strDesc[which(strDesc$stratum == st),]
+      base.params <- rbind(base.params, Rest)
+    }
+    
+    # Renumber strata
+    stNew <- as.data.frame(stList)
+    if (nrow(stNew) > 0) {
+      stNew$new = 1:nrow(stNew)
+      base.params <- base.params %>%
+        left_join(stNew, by = c("stratum" = "stList")) %>%
+        mutate(stratum = new) %>%
+        select(!"new")
+    }
+    
+    # Renumber species
+    spList <- unique(base.params$species)
+    spList <- spList[!is.na(spList)]
+    spNew <- as.data.frame(spList)
+    if (nrow(spNew) > 0) {
+      spNew$new = 1:nrow(spNew)
+      base.params <- base.params %>%
+        left_join(spNew, by = c("species" = "spList")) %>%
+        mutate(species = new) %>%
+        select(!"new")
+    }
+    
+    # Set NS & C
+    M <- as.integer(max(base.params$stratum, na.rm = TRUE))
+    base.params[which(base.params$stratum == M & base.params$param == "levelName"),]$value <- "canopy"
+    
+    if (nrow(stNew) > 1) {
+      m <- as.integer(min(base.params$stratum, na.rm = TRUE))
+      base.params[which(base.params$stratum == m & base.params$param == "levelName"),]$value <- "near surface"
+    }
+    
+    # Restore site data and reorder
+    base.params <- rbind(base.params, end)%>%
+      arrange(as.integer(stratum), as.integer(species)) %>%
+      
+      mutate_all(dplyr::funs(as.character))
+  }
+  
+  return(base.params)
+}
+
+
 
 #' Models probabilistic fire behaviour
 #' @param base.params Input parameter file
