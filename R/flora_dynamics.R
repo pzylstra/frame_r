@@ -1959,6 +1959,7 @@ frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", to
   } else {
     veg$Stratum <- 1
   }
+  rm(list=".Random.seed", envir=globalenv())
   return(veg)
 }
 
