@@ -52,23 +52,6 @@ buildStructureP <- function(dat, age, rec = 1) {
 }
 
 
-#' Updates species names from an optional table
-#'
-#' @param comm The output from stratify_community
-#' @param tr An optional table of input traits
-#'  
-
-updateSpecies <- function(comm, tr){
-  
-  # Update species names if tr table used
-  if(!missing(tr)) {
-    comm <- left_join(comm,tr, by = c("species" = "Species")) %>%
-      mutate(species = name)
-  } 
-}
-
-
-
 #' Creates an 'F_flora' table for FRaME from plant modelling
 #'
 #' @param comm The output from stratify_community
@@ -314,8 +297,7 @@ frameTables <- function(dat, tr, age, rec = 1, sample = 0.5, transects = 10, pro
                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, 
                         deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma) {
   
-  crowns <- shape_forest(dat, tr, age, lat, map, mat)
-  comm <- stratify_community(crowns, sample, transects)
+  comm <- stratify_community(dat, tr, age, lat, map, mat, sample, transects)
   Structure <- buildStructureP(comm, age, rec)
   comm <- frame:::updateSpecies(comm, tr)
   Flora <- buildFloraP(comm, age, rec, moist)
@@ -327,6 +309,21 @@ frameTables <- function(dat, tr, age, rec = 1, sample = 0.5, transects = 10, pro
   }
   
   return(list(Flora, Structure, Traits))
+}
+
+#' Updates species names from an optional table
+#'
+#' @param comm The output from stratify_community
+#' @param tr An optional table of input traits
+#'  
+
+updateSpecies <- function(comm, tr){
+  
+  # Update species names if tr table used
+  if(!missing(tr)) {
+    comm <- left_join(comm,tr, by = c("species" = "Species")) %>%
+      mutate(species = name)
+  } 
 }
 
 
