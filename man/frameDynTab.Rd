@@ -25,7 +25,9 @@ frameDynTab(
   lat = -35,
   map = 1000,
   mat = 20,
-  lma
+  lma,
+  sLitter = 15,
+  diameter = 0.005
 )
 }
 \arguments{
@@ -63,6 +65,10 @@ frameDynTab(
 
 \item{lma}{List of LMA values per species (kgm−2)}
 
+\item{sLitter}{Weight of surface litter (t/ha)}
+
+\item{diameter}{Mean diameter of surface litter pieces (m)}
+
 \item{max}{Maximum years since disturbance}
 
 \item{rec}{Number of the record}
@@ -72,8 +78,6 @@ frameDynTab(
 \item{clump}{Ratio of clump frontal area diameter to crown frontal area diameter}
 
 \item{litter}{Weight of surface litter (t/ha)}
-
-\item{diameter}{Mean diameter of surface litter pieces (m)}
 
 \item{lwRatio}{Ratio of leaf length to width}
 }

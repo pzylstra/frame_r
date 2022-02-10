@@ -4,7 +4,7 @@
 \alias{buildFloraP}
 \title{Creates an 'F_flora' table for FRaME from plant modelling}
 \usage{
-buildFloraP(comm, tr, age, rec = 1, moist = 1, litter = 15, diameter = 0.005)
+buildFloraP(comm, tr, age, rec = 1, moist = 1, sLitter = 15, diameter = 0.005)
 }
 \arguments{
 \item{comm}{The output from stratify_community}
@@ -17,7 +17,7 @@ buildFloraP(comm, tr, age, rec = 1, moist = 1, litter = 15, diameter = 0.005)
 
 \item{moist}{Leaf moisture (ratio moisture weight to dry weight)}
 
-\item{litter}{Weight of surface litter (t/ha)}
+\item{sLitter}{Weight of surface litter (t/ha)}
 
 \item{diameter}{Mean diameter of surface litter pieces (m)}
 }

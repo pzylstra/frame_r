@@ -59,13 +59,13 @@ buildStructureP <- function(dat, age, rec = 1) {
 #' @param age Years since disturbance
 #' @param rec Number of the record
 #' @param moist Leaf moisture (ratio moisture weight to dry weight)
-#' @param litter Weight of surface litter (t/ha)
+#' @param sLitter Weight of surface litter (t/ha)
 #' @param diameter Mean diameter of surface litter pieces (m)
 #' 
 #' @export
 #'
 
-buildFloraP <- function(comm, tr, age, rec = 1, moist = 1, litter = 15, diameter = 0.005) {
+buildFloraP <- function(comm, tr, age, rec = 1, moist = 1, sLitter = 15, diameter = 0.005) {
   
   # Summarise strata
   strata <- comm %>%
@@ -117,7 +117,7 @@ buildFloraP <- function(comm, tr, age, rec = 1, moist = 1, litter = 15, diameter
     }
   }
   flo$species[n] <- "Litter"
-  flo$weight[n] <- litter
+  flo$weight[n] <- sLitter
   flo$diameter[n] <- diameter
   return(flo)
 }
@@ -288,6 +288,8 @@ collectTraitsP <- function(comm, deltaL = 0.46) {
 #' @param mat Mean annual temperature (degC)
 #' @param deltaL Leaf density (g/cm3)
 #' @param lma List of LMA values per species (kgm−2)
+#' @param sLitter Weight of surface litter (t/ha)
+#' @param diameter Mean diameter of surface litter pieces (m)
 #'
 #' @export
 #'
@@ -295,12 +297,13 @@ collectTraitsP <- function(comm, deltaL = 0.46) {
 frameTables <- function(dat, tr, age, rec = 1, sample = 0.5, transects = 10, propDead = 0, 
                         leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, 
-                        deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma) {
+                        deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma,
+                        sLitter = 15, diameter = 0.005) {
   
   comm <- stratify_community(dat, tr, age, lat, map, mat, sample, transects)
   Structure <- buildStructureP(comm, age, rec)
   comm <- frame:::updateSpecies(comm, tr)
-  Flora <- buildFloraP(comm, age, rec, moist)
+  Flora <- buildFloraP(comm, tr, age, rec, moist, sLitter, diameter)
   Traits <- if(!missing(tr)) {
     collectTraitsP(comm, deltaL)
   } else {
@@ -356,18 +359,21 @@ updateSpecies <- function(comm, tr){
 #' @param mat Mean annual temperature (degC)
 #' @param deltaL Leaf density (g/cm3)
 #' @param lma List of LMA values per species (kgm−2)
+#' @param sLitter Weight of surface litter (t/ha)
+#' @param diameter Mean diameter of surface litter pieces (m)
 #'
 #' @export
 
 frameDynTab <- function(dat, tr, upper, interval, sample = 0.5, transects = 10, propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
-                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma) {
+                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma,
+                        sLitter = 15, diameter = 0.005) {
   Flora <- data.frame()
   Structure <- data.frame()
   T <- data.frame()
   rec <- 1
   for (age in seq(interval,upper,by = interval)) {
     tabs <- frameTables(dat, tr, age, rec, sample, transects, propDead, leafForm, lwRat, leafA, ram,
-                        ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, lat, map, mat, lma)
+                        ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, lat, map, mat, lma, sLitter, diameter)
     Flora <- rbind(Flora,tabs[[1]])
     Structure <- rbind(Structure,tabs[[2]])
     T <- rbind(T,tabs[[3]])
