@@ -52,11 +52,14 @@
 #' @param Altitude Height above sea level (m)
 #' @param Horizontal The horizontal distance in metres from the flame origin to the point
 #' @param Height The vertical distance in metres from the flame origin to the point
-#' @param var The angle in degrees that the plume spreads above/below a central vector;defaults to 10
+#' @param var The angle in degrees that the plume spreads above/below a central vector
+#' @param residence Surface flame residence time
+#' @param surfDecl Exponent describing the rate of post-front flame decay in surface litter 
 #' @return dataframe
 #' @export
 
-threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pressure = 1013.25, Altitude = 0)
+threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pressure = 1013.25, Altitude = 0,
+                    residence = 30, surfDecl = 2)
 {
   El <- Horizontal * tan((Surf$slope_degrees[1] * pi)/180)
   interceptAngle <- atan((Height+El)/Horizontal)
@@ -69,12 +72,24 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
            pAlphas = abs(Horizontal/cos(interceptAngle)),
            temp_pointS = ifelse(pAlphas < lengthSurface,
                                 950 + exp(-Alpha * pAlphas^2),
-                                C/pAlphas) * Intercept + temperature) %>%
+                                C/pAlphas) * Intercept + temperature)  %>%
     select(repId, hor, ros_kph, wind_kph, angleSurface, lengthSurface, pAlphas, temperature, slope_degrees, temp_pointS, epsilon)
+  
+  # Find post-front heating
+  post <- s %>%
+    mutate(t = max(0,-hor)/(ros_kph/3.6),
+           tail = min(1,max(ceiling(t),0)),
+           surfPost = lengthSurface*exp(-(surfDecl/residence)*t),
+           Alpha = 1/(2 * surfPost^2),
+           C = 950 * surfPost * exp(-Alpha * surfPost^2),
+           pAlphaPost = pmax(0,Height),
+           temp_point_post = tail * (ifelse(pAlphaPost < surfPost,
+                                            950 + exp(-Alpha * pAlphaPost^2),
+                                            C/pAlphaPost)) + temperature) 
   
   # Calculate heating from burning plants
   p <- suppressMessages(repFlame %>%
-                          left_join(s) %>%
+                          left_join(post) %>%
                           mutate(Angle = atan((y1 - y0)/(x1 - x0)),
                                  Intercept = ifelse(((interceptAngle - tan((var * pi)/180)) > Angle)|((interceptAngle + tan((var * pi)/180)) < Angle), 0, 1),
                                  Alpha = 1/(2 * flameLength * (flameLength - length)),
@@ -86,8 +101,8 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
                           group_by(repId) %>%
                           filter(temp_pointP == max(temp_pointP)) %>%
                           select(repId, repHeight, repHeight, repLength, repAngle, runIndex, segIndex, x0, y0, x1, y1,
-                                 length, flameLength, hor, ros_kph, wind_kph, angleSurface, lengthSurface, pAlphas,
-                                 temperature, slope_degrees, temp_pointS, epsilon, Angle, Alpha, C, pAlphap, Intercept, temp_pointP, flameTemp)%>%
+                                 length, flameLength, hor, ros_kph, wind_kph, angleSurface, lengthSurface, surfPost, pAlphas, pAlphaPost,
+                                 temperature, slope_degrees, temp_pointS, temp_point_post, epsilon, Angle, Alpha, C, pAlphap, Intercept, temp_pointP, flameTemp)%>%
                           group_by(repId) %>%
                           summarize_all(max)%>%
                           right_join(s))
@@ -95,9 +110,11 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
   
   # Calculate heat transfer inputs
   Con <- p %>%
-    mutate(tempAir = pmax(temp_pointS, temp_pointP),
+    mutate(tempAir = pmax(temp_pointS, temp_pointP, temp_point_post),
            cpAir = 0.00019*(tempAir+273.13)+0.9405,
-           pAlpha=max(0.05, ifelse(tempAir == temp_pointS, pAlphas, pAlphap)),
+           pAlpha=max(0.05, case_when(tempAir == temp_pointS ~ pAlphas,
+                                      tempAir == temp_point_post ~ pAlphaPost,
+                                      TRUE ~ pAlphap)),
            viscosity = 0.000000388 * (tempAir + 273.15)^0.6818,
            presAtm = (Pressure/10)*exp(-0.00012*Altitude),
            Density = (presAtm * 1000) / (287.05 * (tempAir + 273.15)),
