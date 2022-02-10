@@ -443,16 +443,6 @@ firePlant <- function(dat, db.path = "out.plant.db", reps = 5,
     heightSD <- mean(f$Hs, na.rm = TRUE)
     heightRange <- mean(f$Hr, na.rm = TRUE)
     
-    #MODEL PROBABILISTIC FIRE BEHAVIOUR
-#    probFire(base.params, db.path = db.path, jitters = reps,
-#             slope = slope, slopeSD = slopeSD, slopeRange = slopeRange, 
-#             temp = temp, tempSD = tempSD, tempRange = tempRange,
-#             DFMC = DFMC, DFMCSD = DFMCSD, DFMCRange = DFMCRange, 
-#             wind = wind, windSD = windSD, windRange = windRange,
-#             moistureMultiplier = moistureMultiplier, moistureSD = moistureSD, moistureRange = moistureRange,
-#             heightSD = heightSD, heightRange = heightRange, 
-#             leafVar = leafVar, updateProgress = TRUE)
-    
     probFire_Frame(base.params, Structure = s, Flora = f, a = n, db.path = db.path,
                    slope = slope, slopeSD = slopeSD, slopeRange = slopeRange, 
                    temp = temp, tempSD = tempSD, tempRange = tempRange,
