@@ -197,6 +197,195 @@ arboreal <- function(Surf, Plant, percentile = 0.5, Height = 1, low = 1, high = 
   return(Ca)
 }
 
+#' Fire risk for an exposed arboreal mammal
+#'
+#' Calculates the degree of injury or likelihood of mortality 
+#' to an exposed mammal caused by an approaching fire front
+#'
+#'
+#' @param Surf The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'
+#' @param Plant The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.
+#' @param Height The height directly over ground (m) at which the species is expected to shelter from a fire.
+#' @param distance The starting horizontal distance between the flame origin and the point (m)
+#' @param trail Number of seconds to continue modelling after the fire has passed
+#' @param diameter Diameter of the surface fuels burning (mm)
+#' @param var The angle in degrees that the plume spreads above/below a central vector
+#' @param Pressure Sea level atmospheric pressure (hPa)
+#' @param Altitude Height above sea level (m)
+#' @param RH Relative humidity (0-1)
+#' @param bodyLength The "Characteristic length" of the animal (m)
+#' @param surfaceArea The surface area of the animal (m^2)
+#' @param bodyMass The mass of the animal (kg)
+#' @param protection The thickness of fur covering the animal (m)
+#' @param fibreCount The number of fibres per square mm
+#' @param fibreDiameter The mean fibre diameter of hairs (mm)
+#' @param fibreCp Specific heat of fibres (kJ/kg/C)
+#' @param Specific_heat The specific heat of the fur (kJ/kg/deg C)
+#' @param fiberSolid The proportion of the fibre (0-1)
+#' @param skinCp Specific heat of the animal skin (kJ/kg/C)
+#' @param skinDensity Density of the animal skin (kg/m3)
+#' @param skinK Thermal conductivity of the animal skin (W/m/C)
+#' @param bodyTemp The body temperature of the animal (deg C)
+#' @param Shape The approximate shape of the animal - either "Flat", "Sphere", or "Cylinder"
+#' @param updateProgress Progress bar for use in the dashboard
+#' @return dataframe
+#' @export
+
+mammal <- function(Surf, Plant, Height = 1, distance = 5, trail = 360, diameter = 6, surfDecl = 10, var = 10, Pressure = 1013.25,
+                   Altitude = 0, RH = 0.51, bodyLength = 0.1, surfaceArea = 0.2, bodyMass = 1,
+                   protection = 0.0017, fibreCount = 100, fibreDiameter = 0.01, fibreCp = 2.5, fiberSolid = 0.5, skinCp = 3.5, skinDensity = 1020,
+                   skinK = 0.187, bodyTemp = 37, Shape = "Cylinder",updateProgress = NULL)
+{
+  # Collect testing stats
+  ROS <- mean(Surf$ros_kph)/3.6
+  residence <- 0.871*diameter^1.875
+  Ta <- round(distance/ROS+residence)
+  Tb <- round(distance/ROS)
+  TIME <- Ta + trail
+  Horiz <- distance
+  dens <- fiberSolid * fibreCount*pi*(fibreDiameter/2)^2
+  Volume <- surfaceArea * protection
+  R <- sqrt(surfaceArea/pi)
+  tPelage <- bodyTemp
+  tEpiderm <- bodyTemp
+  tDermP <- bodyTemp
+  tDermR <- bodyTemp
+  skinK <- skinK / 1000 # Convert to kW.m.K
+  epidermisT <- (10.01*bodyMass^0.143 + 47.7*bodyMass^0.202) / 1000000
+  epiMass <- surfaceArea * epidermisT * skinDensity
+  dermisT <- 756*bodyMass^0.187 / 1000000
+  dermMass <- surfaceArea * dermisT * skinDensity
+  
+  
+  #Starting values
+  Ca <- threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude, residence, surfDecl)%>%
+    summarise_all(mean)%>%
+    mutate(t = 1,
+           compression = ((1/(0.1705*Plume_velocity+1.0332))+0.00012*fibreCount-0.1593),
+           furDensity = (1000*dens)+(1-dens)*Density,
+           furCp = (fibreCp*dens)+(1-dens)*cpAir,
+           pelMass = Volume * furDensity,
+           Re = (Plume_velocity*Density*bodyLength)/viscosity,
+           h = frame:::hFauna(Shape = Shape, Re = Re),
+           #Incoming
+           qc = h * surfaceArea *(tempAir - tPelage),
+           att = frame:::tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+           qr = 0.86*qr*att,
+           Qi = pmax(0, qc)+qr,
+           
+           # PELAGE ________________________________________________________
+           kAir = 0.00028683*(tempAir+273.15)^0.7919,
+           kWind = 0.4349*Plume_velocity-0.016*Plume_velocity^2-0.4703*log(fibreCount)+3.63,
+           kFur = kWind*(kAir+0.004853*protection)/1000, # Convert to kW/m.K
+           fAD = ((kFur * (tempAir - tPelage)) / (protection*compression)),
+           fAU = ((kFur * (tEpiderm - tPelage)) / (protection*compression)),
+           fourierA = fAD + fAU,
+           tPelage = 0.001 * fourierA / (pelMass * furCp) + tPelage,
+           
+           # EPIDERMIS ________________________________________________________
+           fBD = ((skinK * (tPelage - tEpiderm)) / epidermisT),
+           fBU = ((skinK * (tDermP - tEpiderm)) / epidermisT),
+           fourierB = fBD + fBU,
+           tEpiderm = max(bodyTemp, 0.001 * fourierB / (epiMass * skinCp) + tEpiderm),
+           B1 = ifelse(tEpiderm >= 60, 1, 0),
+           
+           # PAPILLARY DERMIS ________________________________________________________
+           fCD = ((skinK * (tEpiderm - tDermP)) / (0.2*dermisT)),
+           fCU = ((skinK * (tDermR - tDermP)) / (0.2*dermisT)),
+           fourierC = fCD + fCU,
+           tDermP = max(bodyTemp, 0.001 * fourierC / ((0.2*dermMass) * skinCp) + tDermP),
+           B2 = ifelse(tDermP >= 60, 1, 0),
+           
+           # RETICULAR DERMIS ________________________________________________________
+           fDD = ((skinK * (tDermP - tDermR)) / (0.8*dermisT)),
+           fDU = ((skinK * (bodyTemp - tDermR)) / (0.8*dermisT)),
+           fourierD = fDD + fDU,
+           tDermR = max(bodyTemp, 0.001 * fourierD / ((0.8*dermMass) * skinCp) + tDermR),
+           B3 = ifelse(tDermR >= 60, 1, 0))
+  
+  #Collect values for the next step
+  tPelage <- Ca$tPelage
+  tEpiderm <- Ca$tEpiderm
+  tDermP <- Ca$tDermP
+  tDermR <- Ca$tDermR
+  
+  # Advance one second's travel
+  Horiz = Horiz - ROS
+  pbar <-  txtProgressBar(max = TIME,style = 3)
+  # Loop through each time step and collect outputs
+  for(t in 2:TIME){
+    Cb <-threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude, residence, surfDecl) %>%
+      summarise_all(mean)%>%
+      mutate(t = t,
+             compression = ((1/(0.1705*Plume_velocity+1.0332))+0.00012*fibreCount-0.1593),
+             furDensity = (1300*dens)+(1-dens)*Density,
+             furCp = (fibreCp*dens)+(1-dens)*cpAir,
+             pelMass = Volume * furDensity,
+             Re = (Plume_velocity*Density*bodyLength)/viscosity,
+             h = frame:::hFauna(Shape = Shape, Re = Re),
+             #Incoming
+             qc = h * surfaceArea *(tempAir - tPelage),
+             att = frame:::tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+             qr = 0.86*qr*att,
+             Qi = pmax(0, qc)+qr,
+             
+             # PELAGE ________________________________________________________
+             kAir = 0.00028683*(tempAir+273.15)^0.7919,
+             kWind = 0.4349*Plume_velocity-0.016*Plume_velocity^2-0.4703*log(fibreCount)+3.63,
+             kFur = kWind*(kAir+0.004853*protection)/1000, # Convert to kW/m.K
+             fAD = ((kFur * (tempAir - tPelage)) / (protection*compression)),
+             fAU = ((kFur * (tEpiderm - tPelage)) / (protection*compression)),
+             fourierA = fAD + fAU,
+             tPelage = 0.001 * fourierA / (pelMass * furCp) + tPelage,
+             
+             # EPIDERMIS ________________________________________________________
+             fBD = ((skinK * (tPelage - tEpiderm)) / epidermisT),
+             fBU = ((skinK * (tDermP - tEpiderm)) / epidermisT),
+             fourierB = fBD + fBU,
+             tEpiderm = max(bodyTemp, 0.001 * fourierB / (epiMass * skinCp) + tEpiderm),
+             B1 = ifelse(tEpiderm >= 60, 1, 0),
+             
+             # PAPILLARY DERMIS ________________________________________________________
+             fCD = ((skinK * (tEpiderm - tDermP)) / (0.2*dermisT)),
+             fCU = ((skinK * (tDermR - tDermP)) / (0.2*dermisT)),
+             fourierC = fCD + fCU,
+             tDermP = max(bodyTemp, 0.001 * fourierC / ((0.2*dermMass) * skinCp) + tDermP),
+             B2 = ifelse(tDermP >= 60, 1, 0),
+             
+             # RETICULAR DERMIS ________________________________________________________
+             fDD = ((skinK * (tDermP - tDermR)) / (0.8*dermisT)),
+             fDU = ((skinK * (bodyTemp - tDermR)) / (0.8*dermisT)),
+             fourierD = fDD + fDU,
+             tDermR = max(bodyTemp, 0.001 * fourierD / ((0.8*dermMass) * skinCp) + tDermR),
+             B3 = ifelse(tDermR >= 60, 1, 0))
+    
+    Ca <- rbind(Ca, Cb)
+    
+    #Collect values for the next step
+    tPelage <- Cb$tPelage
+    tEpiderm <- Cb$tEpiderm
+    tDermP <- Cb$tDermP
+    tDermR <- Cb$tDermR
+    
+    setTxtProgressBar(pbar,t)
+    ## progress bar
+    Sys.sleep(0.25)
+    ####UpdateProgress
+    if (is.function(updateProgress)) {
+      text <- paste0("Number of remaining steps is ", TIME - t)
+      updateProgress(detail = text)
+    }
+    t = t + 1
+    Horiz = Horiz - ROS
+  }
+  
+  # Create and export table
+  Ca <- Ca %>%
+    mutate(VPmortality = ifelse(tempAir < 67.5-0.3017*30.17*RH, 0, 1)) 
+  
+  return(Ca)
+}
+
 #####################################################################
 
 #' Fire risk for an animal sheltering in a wooden hollow
@@ -265,10 +454,10 @@ arboreal <- function(Surf, Plant, percentile = 0.5, Height = 1, low = 1, high = 
 #' @return dataframe
 #' @export
 
-hollow <- function(Surf, Plant, percentile = 0.5, Height = 1, woodDensity = 700, barkDensity = 500,
-                   wood = 0.1, bark = 0.02, comBark = 700, resBark = 45, RH = 0.2, moisture = 0.2, bMoisture = 0.5, distance = 5, trail = 360, var = 10, Pressure = 1013.25,
-                   Altitude = 0, Dimension = 0.3, Area = 0.03, diameter = 0.005, surfDecl = 10,
-                   startTemp = 25, Shape = "Flat",updateProgress = NULL)
+hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500, wood = 0.1, bark = 0.02, 
+                   comBark = 700, resBark = 45, RH = 0.5, moisture = 0.2, bMoisture = 0.5, distance = 5, trail = 360, var = 10, Pressure = 1013.25,
+                   Altitude = 0, Dimension = 0.3, Area = 0.03, diameter = 6, surfDecl = 2,
+                   startTemp = 21, Shape = "Cylinder",updateProgress = NULL)
 {
   
   # Post-front surface flame heating
@@ -277,10 +466,10 @@ hollow <- function(Surf, Plant, percentile = 0.5, Height = 1, woodDensity = 700,
   depth <- diameter/1000
   
   # Collect step distance, time, and total distance
-  ROS <- mean(Surf$ros_kph)/3.6
-  Ta <- round(distance/ROS+residence)
-  Tb <- round(distance/ROS)
-  TIME <- Ta + trail
+  ROS <- mean(Surf$ros_kph)/3.6 # ROS in m/s
+  Ta <- round(distance/ROS+residence) #Total heating time
+  Tb <- round(distance/ROS) #Time until flame base reaches the point
+  TIME <- Ta + trail #Total test time
   Horiz <- distance
   
   # Description of the protection
@@ -288,6 +477,8 @@ hollow <- function(Surf, Plant, percentile = 0.5, Height = 1, woodDensity = 700,
     Material <- "bark"
     step <- bark/4
   } else {
+    Material <- "wood"
+    comBark <- 0
     bMoisture <- moisture
     barkDensity <- woodDensity
     step <- 0.8* wood
@@ -299,7 +490,7 @@ hollow <- function(Surf, Plant, percentile = 0.5, Height = 1, woodDensity = 700,
   startM <- moisture
   
   #Starting values
-  Ca <- threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude) %>%
+  Ca <- threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude, residence, surfDecl) %>%
     summarise_all(mean)%>%
     mutate(t = 1,
            #Convective transfer
@@ -307,7 +498,7 @@ hollow <- function(Surf, Plant, percentile = 0.5, Height = 1, woodDensity = 700,
            h = 0.35 + 0.47*Re^(1/2)*0.837,
            #Incoming heat from surface
            pt = pmax(0, t-Tb),
-           comBark = ifelse(pt <= resBark, comBark, 0),
+           comBark = ifelse(pt <= resBark, comBark, 0), #Set comBark = 0 after its residence time
            postS = frame:::bole(lengthSurface,residence, depth, h = Height,
                                 surfDecl = 10, t = pt),
            tempS = ifelse(Horiz <=0, pmax(tempAir, postS, comBark), tempAir),
@@ -433,7 +624,7 @@ hollow <- function(Surf, Plant, percentile = 0.5, Height = 1, woodDensity = 700,
   pbar <-  txtProgressBar(max = TIME, style = 3)
   # Loop through each time step and collect outputs
   for(t in 2:TIME){
-    Cb <-threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude) %>%
+    Cb <-threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude, residence, surfDecl) %>%
       summarise_all(mean)%>%
       mutate(t = t,
              #Convective transfer
@@ -580,9 +771,9 @@ hollow <- function(Surf, Plant, percentile = 0.5, Height = 1, woodDensity = 700,
   
   # Create table
   Ca <- Ca %>%
-    select(t, tempS, tempA, tempB, tempC, tempD, tempE,
-           moistureA, moistureB, moistureC, moistureD, moistureE) %>%
-    mutate(mortality = ifelse(tempE < 67.5-0.3017*30.17*RH, 0, 1))
+ #   select(t, RH, tempS, tempA, tempB, tempC, tempD, tempE,
+#           moistureA, moistureB, moistureC, moistureD, moistureE) %>%
+    mutate(VPmortality = ifelse(tempE < 67.5-0.3017*30.17*RH, 0, 1))
   
   return(Ca)
 }
@@ -776,6 +967,5 @@ underground <- function(Surf, Plant, diameter = 6, surface = 677, percentile = 0
   Ca <- Ca %>%
     select(t, repId, ros_kph, tempAir, tempS, tempSoil, moisture,
            cpSoil, kSoil, att, qc, qr, qrO, qR, Q, fourier, fourierO, mortality)
-  write.csv(Ca, "underground.csv")
   return(Ca)
 }

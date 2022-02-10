@@ -7,7 +7,6 @@
 hollow(
   Surf,
   Plant,
-  percentile = 0.5,
   Height = 1,
   woodDensity = 700,
   barkDensity = 500,
@@ -15,7 +14,7 @@ hollow(
   bark = 0.02,
   comBark = 700,
   resBark = 45,
-  RH = 0.2,
+  RH = 0.5,
   moisture = 0.2,
   bMoisture = 0.5,
   distance = 5,
@@ -25,10 +24,10 @@ hollow(
   Altitude = 0,
   Dimension = 0.3,
   Area = 0.03,
-  diameter = 0.005,
-  surfDecl = 10,
-  startTemp = 25,
-  Shape = "Flat",
+  diameter = 6,
+  surfDecl = 2,
+  startTemp = 21,
+  Shape = "Cylinder",
   updateProgress = NULL
 )
 }
@@ -36,8 +35,6 @@ hollow(
 \item{Surf}{The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'}
 
 \item{Plant}{The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.}
-
-\item{percentile}{defines which heating statistics are used for each second, from 0 (min) to 1 (max)}
 
 \item{Height}{The height directly over ground (m) at which the species is expected to shelter from a fire.}
 
@@ -78,6 +75,8 @@ hollow(
 \item{Shape}{The approximate shape of the hollow exterior - either "Flat", "Sphere", or "Cylinder"}
 
 \item{updateProgress}{Progress bar for use in the dashboard}
+
+\item{percentile}{defines which heating statistics are used for each second, from 0 (min) to 1 (max)}
 
 \item{hollowTemp}{The starting temperature inside the hollow (deg C)}
 }
