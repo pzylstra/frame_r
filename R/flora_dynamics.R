@@ -1929,30 +1929,34 @@ frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", to
       if (!is.error(kmeans(df, centers = nstrat, nstart = 25))){
         km.res <- kmeans(df, centers = nstrat, nstart = 25)
         clust <- cbind(veg_subset, cluster = km.res$cluster)
+        testa <- stratTest(clust)
         test <- aov(cluster ~ base * top * he * ht, data = clust)
-        sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[3]]
+        sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[3]]+testa
       }
     }
-    if (length(which(sig < 0.01)) > 0) {
-      nstrat <- as.numeric(max(which(sig < 0.01)))
+    if (length(which(sig < 0.001)) > 0) {
+      nstrat <- as.numeric(max(which(sig < 0.001)))
     } else {
       if (length(sig[!is.na(sig)])>0) {
-        nstrat <- as.numeric(which(sig == min(sig, na.rm = TRUE)))
+        nstrat <- as.numeric(min(which(sig == min(sig, na.rm = TRUE))))
       } else {
         nstrat <- 1
       }
     }
+    rm(list=".Random.seed", envir=globalenv())
     set.seed(123)
     km.res <- kmeans(df, centers = nstrat, nstart = 25)
     clust <- cbind(veg_subset, cluster = km.res$cluster)
     
+    # Summarise strata and order by mean height
     h <- clust %>% 
+      mutate(mid = (base+top+he+ht)/4)%>%
       group_by(cluster) %>% 
       summarise_if(is.numeric, mean)
-    
-    h <- h[wrapr::orderv(h[,4]),] %>% 
+    h <- h[wrapr::orderv(h[,11]),] %>% 
       mutate(Stratum = 1:nstrat) %>% 
       select(cluster, Stratum)
+    
     strat <- left_join(clust, h, by = "cluster") %>% 
       dplyr::select(all_of(c(pN, spName, top, "Stratum")))
     veg <- left_join(veg, strat, by = c(pN, spName, top))
