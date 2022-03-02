@@ -67,6 +67,8 @@ buildStructureP <- function(dat, age, rec = 1) {
 
 buildFloraP <- function(comm, tr, age, rec = 1, moist = 1, sLitter = 15, diameter = 0.005) {
   
+  comm <- left_join(as.data.frame(comm), tr, by = c("species" = "Species"))%>%
+    mutate(species = name)
   # Summarise strata
   strata <- comm %>%
     group_by(Stratum, species) %>%
@@ -191,33 +193,54 @@ buildTraitsP <- function(comm, propDead = 0, leafForm = "Flat", lwRat = 3, leafA
 #' Reads traits from an input table
 #'
 #' @param comm The output from stratify_community
-#' @param tr A table of input traits
-#' @param deltaL Leaf density (g/cm3)
+#' @param tr Table of input traits
+#' @param deltaL Default leaf density (g/cm3)
+#' @param propDead Default proportion of foliage dead
+#' @param leafForm Default leaf shape: Flat or Round
+#' @param lwRat Default ratio of leaf length to width
+#' @param leafA Default area of a leaf in m2
+#' @param ignitionTemp Default temperature of the endotherm (degC)
+#' @param moist Default leaf moisture (ratio moisture weight to dry weight)
+#' @param G.C_rat Default ratio of gaps to clumps of leaves
+#' @param C.C_rat Default ratio of clump to canopy size
+#' @param ram Default branch ramification (stem order)
+#' @param bark_density Default bark density (kg)
 #' 
 #' @export
 #'
 
-collectTraitsP <- function(comm, deltaL = 0.46) {
+collectTraitsP <- function(comm, tr, 
+                           leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5, propDead = 0,
+                           ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46,
+                           bark_density = 200) {
+  comm <- left_join(as.data.frame(comm), tr, by = c("species" = "Species"))%>%
+    mutate(species = name)
+  
+  # Add missing fields
+  #  traitList <- c("name", "leafForm", "moisture", "propDead", "ignitionTemp", "lwRat", "leaf_area", "bark_density", "G.C_rat", "C.C_rat", "stemOrder", "leaf_thickness")
+  
+  #  for (n in traitList) {
+  #    if (!(n %in% names(comm))) {
+  #      comm[n] <- NA
+  #    }
+  #  }
   
   # Join to plant traits and clean empty data
-  comm["leafForm"][is.na(comm["leafForm"])] <- "Flat"
-  comm["moisture"][is.na(comm["moisture"])] <- 1
-  comm["propDead"][is.na(comm["propDead"])] <- 0
-  comm["ignitionTemp"][is.na(comm["ignitionTemp"])] <- 260
-  comm["lwRat"][is.na(comm["lwRat"])] <- 3
-  comm["leaf_area"][is.na(comm["leaf_area"])] <- 0.002547
-  comm["bark_density"][is.na(comm["bark_density"])] <- 200
-  comm["G.C_rat"][is.na(comm["G.C_rat"])] <- 3
-  comm["C.C_rat"][is.na(comm["C.C_rat"])] <- 0.1
-  comm["stemOrder"][is.na(comm["stemOrder"])] <- 5
+  comm["leafForm"][is.na(comm["leafForm"])] <- leafForm
+  comm["moisture"][is.na(comm["moisture"])] <- moist
+  comm["propDead"][is.na(comm["propDead"])] <- propDead
+  comm["ignitionTemp"][is.na(comm["ignitionTemp"])] <- ignitionTemp
+  comm["lwRat"][is.na(comm["lwRat"])] <- lwRat
+  comm["leaf_area"][is.na(comm["leaf_area"])] <- leafA
+  comm["bark_density"][is.na(comm["bark_density"])] <- bark_density
+  comm["G.C_rat"][is.na(comm["G.C_rat"])] <- G.C_rat
+  comm["C.C_rat"][is.na(comm["C.C_rat"])] <- C.C_rat
+  comm["stemOrder"][is.na(comm["stemOrder"])] <- ram
+  comm[["leaf_thickness"]][is.na(comm[["leaf_thickness"]])] <- comm$lma/(deltaL*1000)
+  comm[["name"]][is.na(comm[["name"]])] <- comm$species
   
-  # Summarise strata
   comm <- comm %>%
     mutate(c_vol = (pi*(w/2)^2*(height-ht)/3)+(pi*(w/2)^2*(ht-he))+(pi*(w/2)^2*(he-base)),
-           leaf_thickness = case_when(is.na(leaf_thickness) ~ lma/(deltaL*1000),
-                                      TRUE ~ leaf_thickness),
-           name = case_when(is.na(name) ~ species,
-                            TRUE ~ name),
            nLeaves = area_leaf/leaf_area,
            branchA = frontalArea * C.C_rat,
            branchV = 4/3*sqrt(branchA/pi)*branchA,
@@ -226,6 +249,7 @@ collectTraitsP <- function(comm, deltaL = 0.46) {
            clumpD = sqrt(branchA/pi),
            lSep = (branchV*stemOrder)/((leavesClump/0.88)^(1/1.18)))
   
+  # Summarise strata
   sp_names <- unique(comm$name)
   
   form <- comm %>%
@@ -237,27 +261,27 @@ collectTraitsP <- function(comm, deltaL = 0.46) {
     summarise_if(is.numeric, mean)
   spec <- unique(summ$species)
   
-  # Create flora table
-  flo <- data.frame(matrix(ncol = 12, nrow = length(spec)))
-  colnames(flo) <- c("name", "propDead", "leafForm", "leafThickness", "leafWidth", "leafLength", 
-                     "leafSeparation", "stemOrder", "ignitionTemp", "moisture", "G.C_rat", "C.C_rat")
+  # Create trait table
+  t <- data.frame(matrix(ncol = 12, nrow = length(spec)))
+  colnames(t) <- c("name", "propDead", "leafForm", "leafThickness", "leafWidth", "leafLength", 
+                   "leafSeparation", "stemOrder", "ignitionTemp", "moisture", "G.C_rat", "C.C_rat")
   n <- 1
   for (sp in 1: length(spec)) {
-    flo$name[sp] <- sp_names[sp]
-    flo$propDead[sp]  <- summ$propDead[sp]
-    flo$leafForm[sp]  <- form$leafForm[sp]
-    flo$leafThickness[sp]  <- summ$leaf_thickness[sp]
-    flo$leafLength[sp]  <- sqrt(2*summ$leaf_area[sp]*summ$lwRat[sp])
-    flo$leafWidth[sp]  <- flo$leafLength[sp] / summ$lwRat[sp]
-    flo$leafSeparation[sp]  <- summ$lSep[sp]
-    flo$stemOrder[sp]  <- summ$stemOrder[sp]
-    flo$ignitionTemp[sp]  <- summ$ignitionTemp[sp]
-    flo$moisture[sp]  <- summ$moisture[sp]
-    flo$G.C_rat[sp] <- summ$G.C_rat[sp]
-    flo$C.C_rat[sp] <- summ$C.C_rat[sp]
+    t$name[sp] <- sp_names[sp]
+    t$propDead[sp]  <- summ$propDead[sp]
+    t$leafForm[sp]  <- form$leafForm[sp]
+    t$leafThickness[sp]  <- summ$leaf_thickness[sp]
+    t$leafLength[sp]  <- sqrt(2*summ$leaf_area[sp]*summ$lwRat[sp])
+    t$leafWidth[sp]  <- t$leafLength[sp] / summ$lwRat[sp]
+    t$leafSeparation[sp]  <- summ$lSep[sp]
+    t$stemOrder[sp]  <- summ$stemOrder[sp]
+    t$ignitionTemp[sp]  <- summ$ignitionTemp[sp]
+    t$moisture[sp]  <- summ$moisture[sp]
+    t$G.C_rat[sp] <- summ$G.C_rat[sp]
+    t$C.C_rat[sp] <- summ$C.C_rat[sp]
     n <- n+1
   }
-  return(flo)
+  return(t)
 }
 
 
@@ -265,12 +289,11 @@ collectTraitsP <- function(comm, deltaL = 0.46) {
 #' outputs from plant
 #'
 #' @param dat The results of run_scm_collect
-#' @param tr An optional table of input traits
+#' @param tr Table of input traits
 #' @param age Years since disturbance
 #' @param rec Number of the record
-#' @param sample Proportion of cohorts to test (0-1)
+#' @param propSamp Proportion of cohorts to test (0-1)
 #' @param transects Number of repeats for each sample
-#' @param moist Leaf moisture (ratio moisture weight to dry weight)
 #' @param openness Ratio of gaps to clumps of leaves
 #' @param clump Ratio of clump frontal area diameter to crown frontal area diameter
 #' @param litter Weight of surface litter (t/ha)
@@ -294,22 +317,17 @@ collectTraitsP <- function(comm, deltaL = 0.46) {
 #' @export
 #'
 
-frameTables <- function(dat, tr, age, rec = 1, sample = 0.5, transects = 10, propDead = 0, 
+frameTables <- function(dat, tr, age, rec = 1, propSamp = 0.5, transects = 10, propDead = 0, 
                         leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, 
                         deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma,
                         sLitter = 15, diameter = 0.005) {
   
-  comm <- stratify_community(dat, tr, age, lat, map, mat, sample, transects)
+  comm <- stratify_community(dat, tr, age, lat, map, mat, propSamp, transects)
   Structure <- buildStructureP(comm, age, rec)
-  comm <- frame:::updateSpecies(comm, tr)
+#  comm <- frame:::updateSpecies(comm, tr)
   Flora <- buildFloraP(comm, tr, age, rec, moist, sLitter, diameter)
-  Traits <- if(!missing(tr)) {
-    collectTraitsP(comm, deltaL)
-  } else {
-    buildTraitsP(comm, propDead, leafForm, lwRat, leafA, ram,
-                 ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, lma)
-  }
+  Traits <- collectTraitsP(comm, tr)
   
   return(list(Flora, Structure, Traits))
 }
@@ -339,7 +357,7 @@ updateSpecies <- function(comm, tr){
 #' @param max Maximum years since disturbance
 #' @param interval Time interval for sampling
 #' @param rec Number of the record
-#' @param sample Proportion of cohorts to test (0-1)
+#' @param propSamp Proportion of cohorts to test (0-1)
 #' @param transects Number of repeats for each sample
 #' @param moist Leaf moisture (ratio moisture weight to dry weight)
 #' @param openness Ratio of gaps to clumps of leaves
@@ -359,20 +377,27 @@ updateSpecies <- function(comm, tr){
 #' @param mat Mean annual temperature (degC)
 #' @param deltaL Leaf density (g/cm3)
 #' @param lma List of LMA values per species (kgm−2)
-#' @param sLitter Weight of surface litter (t/ha)
+#' @param negEx Value determining the model used. 
+#' 1 = olson, 2 = Burr
+#' @param max Maximum weight (t/ha)
+#' @param rate	Rate of growth for a negative exponential function
+#' @param aBurr Parameter in the Burr equation
+#' @param bBurr Parameter in the Burr equation
 #' @param diameter Mean diameter of surface litter pieces (m)
 #'
 #' @export
 
-frameDynTab <- function(dat, tr, upper, interval, sample = 0.5, transects = 10, propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
+frameDynTab <- function(dat, tr, upper, interval, propSamp = 0.5, transects = 10, propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma,
-                        sLitter = 15, diameter = 0.005) {
+                        negEx = 1, max = 54.22, rate = 0.026, aBurr = 3.35, bBurr = 0.832, diameter = 0.005) {
   Flora <- data.frame()
   Structure <- data.frame()
   T <- data.frame()
   rec <- 1
   for (age in seq(interval,upper,by = interval)) {
-    tabs <- frameTables(dat, tr, age, rec, sample, transects, propDead, leafForm, lwRat, leafA, ram,
+    # Need to update litter model to use plant outputs
+    sLitter <- frame::litter(negEx, max, rate, a = aBurr, b = bBurr, age)
+    tabs <- frameTables(dat, tr, age, rec, propSamp, transects, propDead, leafForm, lwRat, leafA, ram,
                         ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, lat, map, mat, lma, sLitter, diameter)
     Flora <- rbind(Flora,tabs[[1]])
     Structure <- rbind(Structure,tabs[[2]])
@@ -396,7 +421,7 @@ frameDynTab <- function(dat, tr, upper, interval, sample = 0.5, transects = 10, 
 #' @param max Maximum years since disturbance
 #' @param interval Time interval for sampling
 #' @param rec Number of the record
-#' @param sample Proportion of cohorts to test (0-1)
+#' @param propSamp Proportion of cohorts to test (0-1)
 #' @param transects Number of repeats for each sample
 #' @param moist Leaf moisture (ratio moisture weight to dry weight)
 #' @param openness Ratio of gaps to clumps of leaves

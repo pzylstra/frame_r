@@ -4,14 +4,48 @@
 \alias{collectTraitsP}
 \title{Creates traits table for FRaME from plant modelling}
 \usage{
-collectTraitsP(comm, deltaL = 0.46)
+collectTraitsP(
+  comm,
+  tr,
+  leafForm = "Flat",
+  lwRat = 3,
+  leafA = 0.002547,
+  ram = 5,
+  propDead = 0,
+  ignitionTemp = 260,
+  moist = 1,
+  G.C_rat = 3,
+  C.C_rat = 0.1,
+  deltaL = 0.46,
+  bark_density = 200
+)
 }
 \arguments{
 \item{comm}{The output from stratify_community}
 
-\item{deltaL}{Leaf density (g/cm3)}
+\item{tr}{Table of input traits}
 
-\item{tr}{A table of input traits}
+\item{leafForm}{Default leaf shape: Flat or Round}
+
+\item{lwRat}{Default ratio of leaf length to width}
+
+\item{leafA}{Default area of a leaf in m2}
+
+\item{ram}{Default branch ramification (stem order)}
+
+\item{propDead}{Default proportion of foliage dead}
+
+\item{ignitionTemp}{Default temperature of the endotherm (degC)}
+
+\item{moist}{Default leaf moisture (ratio moisture weight to dry weight)}
+
+\item{G.C_rat}{Default ratio of gaps to clumps of leaves}
+
+\item{C.C_rat}{Default ratio of clump to canopy size}
+
+\item{deltaL}{Default leaf density (g/cm3)}
+
+\item{bark_density}{Default bark density (kg)}
 }
 \description{
 Reads traits from an input table
