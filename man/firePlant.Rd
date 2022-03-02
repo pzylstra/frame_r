@@ -38,7 +38,7 @@ firePlant(
 
 \item{rec}{Number of the record}
 
-\item{sample}{Proportion of cohorts to test (0-1)}
+\item{propSamp}{Proportion of cohorts to test (0-1)}
 
 \item{transects}{Number of repeats for each sample}
 
