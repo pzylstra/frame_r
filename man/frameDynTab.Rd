@@ -10,7 +10,7 @@ frameDynTab(
   tr,
   upper,
   interval,
-  sample = 0.5,
+  propSamp = 0.5,
   transects = 10,
   propDead = 0,
   leafForm = "Flat",
@@ -26,7 +26,11 @@ frameDynTab(
   map = 1000,
   mat = 20,
   lma,
-  sLitter = 15,
+  negEx = 1,
+  max = 54.22,
+  rate = 0.026,
+  aBurr = 3.35,
+  bBurr = 0.832,
   diameter = 0.005
 )
 }
@@ -37,7 +41,7 @@ frameDynTab(
 
 \item{interval}{Time interval for sampling}
 
-\item{sample}{Proportion of cohorts to test (0-1)}
+\item{propSamp}{Proportion of cohorts to test (0-1)}
 
 \item{transects}{Number of repeats for each sample}
 
@@ -65,11 +69,18 @@ frameDynTab(
 
 \item{lma}{List of LMA values per species (kgm−2)}
 
-\item{sLitter}{Weight of surface litter (t/ha)}
+\item{negEx}{Value determining the model used. 
+1 = olson, 2 = Burr}
+
+\item{max}{Maximum weight (t/ha)}
+
+\item{rate}{Rate of growth for a negative exponential function}
+
+\item{aBurr}{Parameter in the Burr equation}
+
+\item{bBurr}{Parameter in the Burr equation}
 
 \item{diameter}{Mean diameter of surface litter pieces (m)}
-
-\item{max}{Maximum years since disturbance}
 
 \item{rec}{Number of the record}
 

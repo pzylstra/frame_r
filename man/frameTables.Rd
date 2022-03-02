@@ -10,7 +10,7 @@ frameTables(
   tr,
   age,
   rec = 1,
-  sample = 0.5,
+  propSamp = 0.5,
   transects = 10,
   propDead = 0,
   leafForm = "Flat",
@@ -33,13 +33,13 @@ frameTables(
 \arguments{
 \item{dat}{The results of run_scm_collect}
 
-\item{tr}{An optional table of input traits}
+\item{tr}{Table of input traits}
 
 \item{age}{Years since disturbance}
 
 \item{rec}{Number of the record}
 
-\item{sample}{Proportion of cohorts to test (0-1)}
+\item{propSamp}{Proportion of cohorts to test (0-1)}
 
 \item{transects}{Number of repeats for each sample}
 
