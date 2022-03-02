@@ -42,6 +42,16 @@ on the left grow directly beneath those in the stratum on the right. Acceptable 
 are t, f, or blank, where the outcome will be decided by the relative stratum heights.
 nsR, eR, mR, cR - maximum species richness recorded for each stratum}
 
+\item{Flora}{A dataframe with the fields:
+record - a unique, consecutively numbered identifier per site
+species - the name of the species, which will call trait data from 'default.species.params'
+moisture - the moisture content of the species in whole numbers (eg 1 for 100% ODW)
+stratum - numeric value from 1 to 4, counting from lowest stratum
+comp - % composition or count of that species in the stratum. If absent, all species will be considered equally
+hc, he, ht, hp & w - canopy dimensions for that species (m)
+clump - mean ratio of clump diameter to crown diameter
+openness - proportion of plant canopy occupied by gaps between clumps}
+
 \item{db.path}{Name of the exported database}
 
 \item{slope}{Mean slope (deg)}
