@@ -25,6 +25,8 @@ simplefmc(
 
 \item{tAir}{Atmospheric temperature (K)}
 
+\item{vAir}{Wind speed (m/s)}
+
 \item{pAir}{Atmospheric pressure (Pa)}
 
 \item{rhAir}{Relative humidity (%)}
@@ -44,8 +46,6 @@ simplefmc(
 \item{sigma}{Surface area: volume ratio of litter particles (m2/m3)}
 
 \item{EPS}{Sensitivity of iteration}
-
-\item{vAirWind}{speed (m/s)}
 }
 \description{
 Function uses the 'Single differential equation model' of Matthews et al (2010)
