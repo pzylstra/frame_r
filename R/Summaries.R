@@ -67,11 +67,17 @@ stratum <- function(flames, sites, ros, surface)
   rep <- max(a$repId)
   st <- as.numeric(count(a))/rep
   i <- 1
-  for(loop in 1:rep) {
-    a$flameHeight[i]=Surf$heightSurface[loop]*a$extinct[i]
-    a$flameLength[i]=Surf$lengthSurface[loop]*a$extinct[i]
-    a$flameAngle[i]=Surf$angleSurface[loop]
-    i <- i + st
+  if (rep > 0 && !is.na(rep)) {
+    for(loop in 1:rep) {
+      a$flameHeight[i] <- Surf$heightSurface[loop]*a$extinct[i]
+      a$flameLength[i] <- Surf$lengthSurface[loop]*a$extinct[i]
+      a$flameAngle[i] <- Surf$angleSurface[loop]
+      i <- i + st
+    }
+  } else {
+    a$flameHeight[i] <- 0
+    a$flameLength[i] <- 0
+    a$flameAngle[i] <- 0
   }
   return(a)
 }
