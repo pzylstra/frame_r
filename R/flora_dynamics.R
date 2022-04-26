@@ -1884,6 +1884,26 @@ pWidth <- function(mods, sp, Age = 10){
   return(c)
 }
 
+#' Stratum test
+
+stratTest <- function(clust) {
+  
+  clust <- clust %>%
+    mutate(mid = (base+top+he+ht)/4)
+  sTab <- clust %>%
+    group_by(cluster)%>%
+    summarise_if(is.numeric, mean)
+  o<- sTab[wrapr::orderv(sTab[,11]),]
+  
+  o$test <- 0
+  for (n in 2:nrow(o)) {
+    o$test[n] <- as.numeric(o$mid[n]<sum(o$top[1]:o$top[n-1]))
+  }
+  
+  out <- sum(o$test)
+  return(out)
+}
+
 #' Arranges survey data into strata using k-means clustering
 #' 
 #' Data are stratified into 2-4 strata, then the largest number of strata 
