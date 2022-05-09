@@ -13,13 +13,13 @@ INSTALLATION INSTRUCTIONS
 ____________________________________________________________________________________
 HOW TO USE FRaME
 
-Model overview: 
-Field survey methodology: https://youtu.be/8ofU_1u0U3A
-Measuring plant traits: 
-Processing field data for modelling: 
-Modelling fire behaviour: 
-Modelling first-order plant and soil impacts: 
-Modelling first-order animal impacts: 
+a. Model overview: 
+b. Field survey methodology: https://youtu.be/8ofU_1u0U3A
+c. Measuring plant traits: 
+d. Processing field data for modelling: 
+e. Modelling fire behaviour: 
+f. Modelling first-order plant and soil impacts: 
+g. Modelling first-order animal impacts: 
 ____________________________________________________________________________________
 The following references provide full details of the model
 
