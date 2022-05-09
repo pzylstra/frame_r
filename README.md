@@ -10,6 +10,17 @@ INSTALLATION INSTRUCTIONS
 5. Install devtools: install.packages("devtools")
 6. Run devtools::install_github("pzylstra/frame_r", build_vignettes = TRUE) to install FRaME
 
+____________________________________________________________________________________
+HOW TO USE FRaME
+
+Model overview: 
+Field survey methodology: https://youtu.be/8ofU_1u0U3A
+Measuring plant traits: 
+Processing field data for modelling: 
+Modelling fire behaviour: 
+Modelling first-order plant and soil impacts: 
+Modelling first-order animal impacts: 
+____________________________________________________________________________________
 The following references provide full details of the model
 
 USING FIELD DATA TO MODEL FLAMMABILITY DYNAMICS
