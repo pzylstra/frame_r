@@ -14,7 +14,7 @@ ________________________________________________________________________________
 HOW TO USE FRaME
 
 a. Model overview: 
-b. Field survey methodology: https://youtu.be/8ofU_1u0U3A
+b. Field survey methodology: https://youtu.be/sLn2jWSgUzk
 c. Measuring plant traits: 
 d. Processing field data for modelling: 
 e. Modelling fire behaviour: 
