@@ -20,8 +20,7 @@ INSTRUCTIONAL VIDEOS
 1. Field survey methodology: https://youtu.be/sLn2jWSgUzk
 2. Measuring plant traits: https://youtu.be/9JP6-cGCAds
 3. Processing field data for modelling: https://youtu.be/n4jul3i34GI
-
-Modelling fire behaviour: PENDING
+4. Modelling fire behaviour: https://youtu.be/Q8JJarbEkb4
 
 Modelling first-order plant and soil impacts: PENDING
 
