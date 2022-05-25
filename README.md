@@ -21,14 +21,7 @@ INSTRUCTIONAL VIDEOS
 2. Measuring plant traits: https://youtu.be/9JP6-cGCAds
 3. Processing field data for modelling: https://youtu.be/n4jul3i34GI
 4. Modelling fire behaviour: https://youtu.be/Q8JJarbEkb4
-
-Modelling first-order plant and soil impacts: PENDING
-
-Modelling first-order animal impacts: PENDING
-
-Modelling flammability dynamics: PENDING
-
-Coupling FRaME with plant to model fire from a dynamic vegetation model: PENDING
+5. Modelling first-order effects on flora, fauna, and soils: https://youtu.be/i7oJV9oH-M0
 ____________________________________________________________________________________
 ## Supporting references
 
