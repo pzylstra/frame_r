@@ -15,6 +15,7 @@
 #' @param Param A parameter dataframe used for FRaME,
 #' such as produced using readLegacyParamFile
 #' @param Test The temperature of the flora, default 70 degC
+#'
 #' @return dataframe
 #' @export
 
@@ -201,6 +202,7 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
 #' @param necT Temperature of necrosis (deg C)
 #' @param surfDecl adjusts the rate at which surface flame length declines after the front
 #' @param updateProgress Progress bar for use in the dashboard
+#'
 #' @return dataframe
 #' @export
 
@@ -650,6 +652,7 @@ cambium <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 
 #' @param necT Temperature of necrosis (deg C)
 #' @param surfDecl adusts the rate at which surface flame length declines after the front
 #' @param updateProgress Progress bar for use in the dashboard
+#'
 #' @return dataframe
 #' @export
 #'
@@ -993,6 +996,17 @@ girdle <- function(Surf, Plant, Height = 0.1, woodDensity = 700, barkDensity = 5
 # Modelling wildland fire temperatures. CALMScience Supplement, 4, 23–26.
 #
 # pAlphas is set to bole height - depth of surface litter
+#'
+#' @param lengthSurface 
+#' @param residence 
+#' @param depth 
+#' @param h 
+#' @param surfDecl 
+#' @param t 
+#'
+#' @return
+#' @export
+#'
 
 bole <- function(lengthSurface = 2, residence = 300, depth = 0.05, h = 0.1, surfDecl = 10, t = 1)
 {
@@ -1011,8 +1025,14 @@ bole <- function(lengthSurface = 2, residence = 300, depth = 0.05, h = 0.1, surf
 #
 # Model drawn from Kollmann, F. F. P. & Cote, W. A.
 # Principles of wood science and technology I. Solid wood. (Springer-Verlag, 1968)
-
-
+#'
+#' @param rhoW 
+#' @param kAir 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 kWood <- function(T=100, rhoW=700, kAir = 0.026)
 {
   T <- T+273.15
@@ -1023,3 +1043,59 @@ kWood <- function(T=100, rhoW=700, kAir = 0.026)
   return(bridge*kA+(1-bridge)*kB)
 }
 
+
+#' Collects flame segments for a specified plant in a stratum
+#'
+#' @param paths Output table from the function repFlame
+#' @param Stratum Name of the stratum being studied
+#' @param Species Name of the species being studied
+#' @param repId Number of the repId being studied
+#'
+#' @return dataframe
+#' @export
+#'
+#' @examples balga <- plantFlame(IPW, "NearSurface", "Xanthorrhoea preissii", 6)
+
+plantFlame <- function(paths, Stratum, Species, repId) {
+  
+  IP <- paths[paths$level == Stratum & paths$species == Species & paths$repId == repId,] %>%
+    mutate(angle = atan((y1-y0)/(x1-x0)),
+           x2 = flameLength * cos(angle) + x0,
+           y2 = flameLength * sin(angle) + y0)
+  
+  x0 <- IP %>%
+    select(segIndex, x0)
+  x1 <- IP %>%
+    select(segIndex, x1)
+  IPX <- left_join(x0, x1)
+  x2 <- IP %>%
+    select(segIndex, x2)
+  IPX <- left_join(IPX,x2)
+  X <- reshape2::melt(IPX, id.vars="segIndex") %>%
+    mutate(x = value,
+           point = case_when(variable == "x0" ~ "A",
+                             variable == "x1" ~ "B",
+                             variable == "x2" ~ "C")) %>%
+    select(segIndex, point, x)
+  
+  
+  y0 <- IP %>%
+    select(segIndex, y0)
+  y1 <- IP %>%
+    select(segIndex, y1)
+  IPy <- left_join(y0, y1)
+  y2 <- IP %>%
+    select(segIndex, y2)
+  IPy <- left_join(IPy,y2)
+  Y <- reshape2::melt(IPy, id.vars="segIndex") %>%
+    mutate(y = value,
+           point = case_when(variable == "y0" ~ "A",
+                             variable == "y1" ~ "B",
+                             variable == "y2" ~ "C")) %>%
+    select(segIndex, point, y)
+  
+  XY <- left_join(X,Y, by = c("segIndex", "point"))
+  out <- XY[order(XY$segIndex),]
+  
+  return(out)
+}
