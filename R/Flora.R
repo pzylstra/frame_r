@@ -987,15 +987,15 @@ girdle <- function(Surf, Plant, Height = 0.1, woodDensity = 700, barkDensity = 5
 
 #####################################################################
 
-# Air temperature above ambient at the tree bole behind the flame front
-#
-# Dynamic air temperature at bole height, declining flame length exponentially
-#
-# Air temperature is modelled from dynamic flame segments using
-# Weber R.O., Gill A.M., Lyons P.R.A., Moore P.H.R., Bradstock R.A., Mercer G.N. (1995)
-# Modelling wildland fire temperatures. CALMScience Supplement, 4, 23–26.
-#
-# pAlphas is set to bole height - depth of surface litter
+#' Air temperature above ambient at the tree bole behind the flame front
+#'
+#' Dynamic air temperature at bole height, declining flame length exponentially
+#'
+#' Air temperature is modelled from dynamic flame segments using
+#' Weber R.O., Gill A.M., Lyons P.R.A., Moore P.H.R., Bradstock R.A., Mercer G.N. (1995)
+#' Modelling wildland fire temperatures. CALMScience Supplement, 4, 23–26.
+#'
+#' pAlphas is set to bole height - depth of surface litter
 #'
 #' @param lengthSurface 
 #' @param residence 
@@ -1021,10 +1021,10 @@ bole <- function(lengthSurface = 2, residence = 300, depth = 0.05, h = 0.1, surf
 
 
 #####################################################################
-# Thermal conductivity of dry wood
-#
-# Model drawn from Kollmann, F. F. P. & Cote, W. A.
-# Principles of wood science and technology I. Solid wood. (Springer-Verlag, 1968)
+#' Thermal conductivity of dry wood
+#'
+#' Model drawn from Kollmann, F. F. P. & Cote, W. A.
+#' Principles of wood science and technology I. Solid wood. (Springer-Verlag, 1968)
 #'
 #' @param rhoW 
 #' @param kAir 
