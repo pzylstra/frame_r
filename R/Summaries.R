@@ -1,7 +1,9 @@
 #' Summary table of surface results
 #'
 #' Summarises FRaME generated surface fire behaviour by RepId
+#'
 #' @param surface The dataframe $SurfaceResults
+#'
 #' @return dataframe
 #' @export
 
@@ -22,10 +24,12 @@ surf <- function(surface)
 #' Summary table of stratum results
 #'
 #' Summarises FRaME generated fire behaviour by stratum and RepId
+#'
 #' @param flames The dataframe $FlameSummaries
 #' @param sites The dataframe $Sites
 #' @param ros The dataframe $ROS
 #' @param surface The dataframe $SurfaceResults
+#'
 #' @return dataframe
 #' @export
 
@@ -86,10 +90,12 @@ stratum <- function(flames, sites, ros, surface)
 #' Summary table of fire behaviour
 #'
 #' Summarises FRaME generated fire behaviour by RepId
+#'
 #' @param flames The dataframe $FlameSummaries
 #' @param sites The dataframe $Sites
 #' @param ros The dataframe $ROS
 #' @param surface The dataframe $SurfaceResults
+#'
 #' @return dataframe
 #' @export
 
@@ -114,10 +120,12 @@ frameSummary <- function(flames, sites, ros, surface)
 #' Discontinued version of summary table of fire behaviour
 #'
 #' Summarises FRaME generated fire behaviour by RepId
+#'
 #' @param flames The dataframe $FlameSummaries
 #' @param sites The dataframe $Sites
 #' @param ros The dataframe $ROS
 #' @param surface The dataframe $SurfaceResults
+#'
 #' @return dataframe
 #' @export
 
@@ -134,7 +142,9 @@ summary <- function(flames, sites, ros, surface)
 #'
 #' Summarises FRaME generated flame segments into a combined,
 #' representative plant flame for each repId where plants ignited
+#'
 #' @param IP The dataframe $IP
+#'
 #' @return dataframe
 #' @export
 
@@ -167,7 +177,9 @@ repFlame <- function(IP)
 #' Stratum descriptors from a param file
 #'
 #' For each stratum, finds mean crown width, plant separation, and number of species
+#'
 #' @param base.params Input parameter file
+#'
 #' @return dataframe
 #' @export
 
@@ -227,7 +239,9 @@ strata <- function(base.params)
 #' Species descriptors from a param file
 #'
 #' Finds dimensions and moisture of each species
+#'
 #' @param base.params Input parameter file
+#'
 #' @return dataframe
 #' @export
 
