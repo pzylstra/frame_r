@@ -1885,6 +1885,8 @@ pWidth <- function(mods, sp, Age = 10){
 }
 
 #' Stratum test
+#'
+#' @param clust 
 
 stratTest <- function(clust) {
   
@@ -1929,7 +1931,7 @@ frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", to
   veg <- datClean(veg = veg,  base = "base", top = "top", he = "he", ht = "ht")
   veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, base, top, he, ht)))
   veg_subset <- veg_subset[complete.cases(veg_subset), ] # Omit NAs in relevant columns
-  veg_subset <- veg_subset %>%
+  veg_subset <- veg_subset %>% #log-scale dimensions for stratification
     mutate(base = case_when(veg_subset[,3] == 0 ~ 0.001, TRUE ~ veg_subset[,3]),
            lBase = log(veg_subset[,3]),
            lBase = case_when(is.infinite(lBase) ~ -6.9, TRUE ~ veg_subset[,3]),
@@ -2084,6 +2086,8 @@ richS <- function(dat, thres = 0, pnts = 10,
 #' Point - numbered point in a transect
 #' A field with the base height of the plants
 #' A field with the top height of the plants
+#' he
+#' ht
 #' 
 #' Species that are less common than the set threshold are combined as "Minor Species"
 #'
@@ -2525,11 +2529,11 @@ susp <- function(Flora, Structure, default.species.params, density = 300, top = 
 #' @param negEx Value determining the model used. 
 #' 1 = olson, 2 = Burr
 #' @param max Maximum weight (t/ha)
-#' @param rate	Rate of growth for a negative exponential function
+#' @param rate Growth rate for a negative exponential function
 #' @param a Parameter in the Burr equation
 #' @param b Parameter in the Burr equation
 #' @param age The number of years since last fire
-#' @return dataframe
+#' @return value
 #' @export
 
 litter <- function(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = 10)
@@ -2541,6 +2545,33 @@ litter <- function(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, ag
   }
   
   return(surf)
+}
+
+
+#' Combines multiple transects into one
+#'
+#' @param alldata Raw survey data with one or more transects
+#'
+#' @return dataframe
+#' @export
+#'
+#' @examples
+transectLong <- function(alldata){
+  Sites <- unique(alldata$Site)
+  maxPoint <- max(dplyr::filter(alldata, Site == Sites[1])$Point)
+  out <- dplyr::filter(alldata, Site == Sites[1])
+  
+  # Rename consecutive sites
+  for (s in Sites) {
+    if (s > Sites[1]) {
+      outA <- dplyr::filter(alldata, Site == Sites[s]) %>%
+        mutate(Site = Sites[1],
+               Point = Point + maxPoint)
+      maxPoint <- max(outA$Point)
+      out <- rbind(out, outA)
+    }
+  }
+  return(out)
 }
 
 #' Processes field survey data into tables formatted for fire modelling
@@ -2841,26 +2872,43 @@ datClean <- function(veg,  base = "base", top = "top", he = "he", ht = "ht") {
   # Find missing data
   entries <- which(is.na(veg[top]))
   if (length(entries)>0) {
-    cat(" datClean removed these rows as they were missing top heights", "\n", entries, "\n", "\n")
+    cat(" Removed these rows as they were missing top heights", "\n", entries, "\n", "\n")
     veg <- veg[-entries,] 
   }
   
   # Fill empty dimensions
   entries <- which(is.na(veg[ht])|is.na(veg[he]))
   if (length(entries)>0) {
-    cat(" datClean filled empty values of ht & he with top and base heights for these rows", "\n", entries, "\n", "\n")
+    cat(" Filled empty values of ht & he with top and base heights for these rows", "\n", entries, "\n", "\n")
     veg[ht][is.na(veg[ht])]<-veg[top][is.na(veg[ht])]
     veg[he][is.na(veg[he])]<-veg[base][is.na(veg[he])]
+  }
+  
+  # Remove plants <1cm
+  entries <- which(veg[top]<0.01)
+  if (length(entries)>0) {
+    cat(" Removed these rows as species were too small to model", "\n", entries, "\n", "\n")
+    veg <- veg[-entries,]
+  }
+  
+  # Set low bases to ground level
+  entries <- which(veg[he]<0.01 | veg[base]<0.01)
+  if (length(entries)>0) {
+    cat(" Set one or both base values for these rows to zero", "\n", entries, "\n", "\n")
+    veg <- veg %>%
+      mutate(he = case_when(he < 0.01 ~ 0, TRUE ~ he)) %>%
+      mutate(base = case_when(base < 0.01 ~ 0, TRUE ~ base))
   }
   
   # Remove faulty data
   entries <- which(veg[ht]<veg[he]|veg[top]<veg[base])
   if (length(entries)>0) {
-    cat(" datClean removed these rows as upper and lower heights conflicted", "\n", entries)
+    cat(" Removed these rows as upper and lower heights conflicted", "\n", entries)
     veg <- veg[-entries,]
   }
   return(veg)
 }
+
 
 #' Removes leaf trait diversity
 #' 
