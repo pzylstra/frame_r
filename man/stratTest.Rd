@@ -6,6 +6,9 @@
 \usage{
 stratTest(clust)
 }
+\arguments{
+\item{clust}{}
+}
 \description{
 Stratum test
 }

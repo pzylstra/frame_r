@@ -6,16 +6,19 @@
 \usage{
 frameWeather(
   clim,
-  m = 15,
+  m = 0.15,
   LAI = 3,
   WRF = 3,
+  hCan = 20,
   rholitter = 550,
   litterW = 10,
   lat = -31.89,
   altitude = 8,
-  slope = 0,
-  rangeDir = 0,
+  slope = 6.7,
+  slopeSD = 4.9,
+  rangeDir = 270,
   dt = 3600,
+  cardinal = FALSE,
   nelsonA = 5.2,
   nelsonB = -19,
   conLitter = 3e-04,
@@ -40,7 +43,29 @@ Rain (Daily rainfall, mm)}
 
 \item{m}{The starting moisture (proportion ODW)}
 
+\item{LAI}{Leaf area index of the vegetation}
+
+\item{WRF}{Wind reduction factor}
+
+\item{hCan}{Height of the tree canopy (m)}
+
+\item{rholitter}{Density of litter particles (kg/m3)}
+
+\item{litterW}{Weight of litter (t/ha)}
+
+\item{lat}{Latitude (degrees)}
+
+\item{altitude}{(m)}
+
+\item{slope}{(degrees)}
+
+\item{slopeSD}{Standard deviation of the slope}
+
+\item{rangeDir}{Cardinal direction of the ridgelines - either Nth/Sth (0) or west/east (270)}
+
 \item{dt}{Seconds per time step}
+
+\item{cardinal}{Simplify compass directions to cardinal (TRUE/FALSE)}
 
 \item{nelsonA}{Constant from Nelson FMC model}
 
@@ -51,18 +76,6 @@ Rain (Daily rainfall, mm)}
 \item{sigma}{Surface area: volume ratio of litter particles (m2/m3)}
 
 \item{EPS}{Sensitivity of iteration}
-
-\item{tAir}{Atmospheric temperature (K)}
-
-\item{vAir}{Wind speed (m/s)}
-
-\item{pAir}{Atmospheric pressure (Pa)}
-
-\item{rhAir}{Relative humidity (%)}
-
-\item{rhoLitter}{Density of leaves (kg/m3)}
-
-\item{insolation}{Solar energy at the soil surface (kW/m2)}
 }
 \description{
 Function uses the 'Single differential equation model' of Matthews et al (2010)

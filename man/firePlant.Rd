@@ -32,49 +32,45 @@ firePlant(
 \arguments{
 \item{dat}{The results of frameDynTab}
 
-\item{max}{Maximum years since disturbance}
+\item{db.path}{}
 
-\item{interval}{Time interval for sampling}
+\item{reps}{}
 
-\item{rec}{Number of the record}
+\item{slope}{}
 
-\item{propSamp}{Proportion of cohorts to test (0-1)}
+\item{slopeSD}{}
 
-\item{transects}{Number of repeats for each sample}
+\item{slopeRange}{}
 
-\item{openness}{Ratio of gaps to clumps of leaves}
+\item{temp}{}
 
-\item{clump}{Ratio of clump frontal area diameter to crown frontal area diameter}
+\item{tempSD}{}
 
-\item{litter}{Weight of surface litter (t/ha)}
+\item{tempRange}{}
 
-\item{diameter}{Mean diameter of surface litter pieces (m)}
+\item{DFMC}{}
 
-\item{propDead}{Proportion of foliage dead}
+\item{DFMCSD}{}
 
-\item{leafForm}{Flat or Round}
+\item{DFMCRange}{}
 
-\item{lwRatio}{Ratio of leaf length to width}
+\item{wind}{}
 
-\item{leafA}{Area of a leaf in m2}
+\item{windSD}{}
 
-\item{ignitionTemp}{Temperature of the endotherm (degC)}
+\item{windRange}{}
 
-\item{moist}{Leaf moisture (ratio moisture weight to dry weight)}
+\item{moistureMultiplier}{}
 
-\item{G.C_rat}{Ratio of gaps to clumps of leaves}
+\item{moistureSD}{}
 
-\item{C.C_rat}{Ratio of clump to canopy size}
+\item{moistureRange}{}
 
-\item{lat}{Latitude (degrees)}
+\item{fLine}{}
 
-\item{map}{Mean annual precipitation (mm)}
+\item{leafVar}{}
 
-\item{mat}{Mean annual temperature (degC)}
-
-\item{deltaL}{Leaf density (g/cm3)}
-
-\item{lma}{List of LMA values per species (kgm−2)}
+\item{updateProgress}{}
 }
 \description{
 Models fire behaviour across a range of ages

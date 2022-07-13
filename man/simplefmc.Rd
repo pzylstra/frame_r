@@ -29,7 +29,7 @@ simplefmc(
 
 \item{pAir}{Atmospheric pressure (Pa)}
 
-\item{rhAir}{Relative humidity (%)}
+\item{rhAir}{Relative humidity (Percent)}
 
 \item{dt}{Seconds per time step}
 

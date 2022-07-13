@@ -43,6 +43,8 @@ Input table requires the following fields:
 Point - numbered point in a transect
 A field with the base height of the plants
 A field with the top height of the plants
+he
+ht
 }
 \details{
 Species that are less common than the set threshold are combined as "Minor Species"

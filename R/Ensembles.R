@@ -294,53 +294,59 @@ fireSet <- function(site, Structure, Flora, traits = default.species.params)
 plantVar <- function (base.params, Strata, Species,
                       l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, Hs = 0.2, Hr = 1.41)
 {
-  tbl <- base.params
-  
-  # 1. VARY LEAF TRAITS
-  tbl <- ffm_param_variance(tbl, max.prop = l, method = "uniform")
-  
-  # 2. VARY STRUCTURE
-  SpeciesN <- 1
-  SpeciesP <- 1
-  StN <- as.numeric(count(Strata))
-  for (si in 1:StN) {
+  test <- FALSE
+  while (test == FALSE) {
+    tbl <- base.params
     
-    # 2a. Determine which strata are present
-    if (runif(1) <= Strata$cover[si]) {
+    # 1. VARY LEAF TRAITS
+    tbl <- ffm_param_variance(tbl, max.prop = l, method = "uniform")
+    
+    # 2. VARY STRUCTURE
+    SpeciesN <- 1
+    SpeciesP <- 1
+    StN <- as.numeric(count(Strata))
+    for (si in 1:StN) {
       
-      # 2b. Vary moisture in species present
-      for (t in 1:Strata$speciesN[si]) {
-        Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
-                             sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] *
-                               Mr)
-        tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
-                                             "liveLeafMoisture", Mrand)
-        (SpeciesN = SpeciesN + 1)
+      # 2a. Determine which strata are present
+      if (runif(1) <= Strata$cover[si]) {
+        
+        # 2b. Vary moisture in species present
+        for (t in 1:Strata$speciesN[si]) {
+          Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
+                               sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] *
+                                 Mr)
+          tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
+                                               "liveLeafMoisture", Mrand)
+          (SpeciesN = SpeciesN + 1)
+        }
+      }
+      
+      # 2c. Mark species for removal if stratum is not present
+      else {
+        for (f in 1:Strata$speciesN[si]) {
+          tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
+                                               "liveLeafMoisture", 10000)
+          SpeciesN = SpeciesN + 1
+        }
+      }
+      
+      # 2d. Vary plant crown dimensions
+      for (p in 1:Strata$speciesN[si]) {
+        peak <- rtnorm(n = 1, mean = Species$hp[SpeciesP],
+                       sd = Hs, a = Species$hp[SpeciesP]/Hr, b = Species$hp[SpeciesP] *
+                         Hr)
+        tbl <- tbl %>%
+          ffm_set_species_param(si, SpeciesP, "hp", peak) %>%
+          ffm_set_species_param(si, SpeciesP, "ht", peak * Species$htR[SpeciesP]) %>%
+          ffm_set_species_param(si, SpeciesP, "he", peak * Species$heR[SpeciesP]) %>%
+          ffm_set_species_param(si, SpeciesP, "hc", peak *Species$hcR[SpeciesP]) %>%
+          ffm_set_species_param(si, SpeciesP, "w", peak * Species$wR[SpeciesP])
+        SpeciesP = SpeciesP + 1
       }
     }
-    
-    # 2c. Mark species for removal if stratum is not present
-    else {
-      for (f in 1:Strata$speciesN[si]) {
-        tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
-                                             "liveLeafMoisture", 10000)
-        SpeciesN = SpeciesN + 1
-      }
-    }
-    
-    # 2d. Vary plant crown dimensions
-    for (p in 1:Strata$speciesN[si]) {
-      peak <- rtnorm(n = 1, mean = Species$hp[SpeciesP],
-                     sd = Hs, a = Species$hp[SpeciesP]/Hr, b = Species$hp[SpeciesP] *
-                       Hr)
-      tbl <- tbl %>%
-        ffm_set_species_param(si, SpeciesP, "hp", peak) %>%
-        ffm_set_species_param(si, SpeciesP, "ht", peak * Species$htR[SpeciesP]) %>%
-        ffm_set_species_param(si, SpeciesP, "he", peak * Species$heR[SpeciesP]) %>%
-        ffm_set_species_param(si, SpeciesP, "hc", peak *Species$hcR[SpeciesP]) %>%
-        ffm_set_species_param(si, SpeciesP, "w", peak * Species$wR[SpeciesP])
-      SpeciesP = SpeciesP + 1
-    }
+    x <- tbl$species[tbl$value==10000]
+    x <- x[!is.na(x)]
+    test <- length(x) < max(Species$sp)
   }
   
   # 2e. Remove species and strata not present
@@ -616,6 +622,8 @@ specPoint <- function(base.params, Structure, a)
   Species <- Species%>%
     mutate(species = as.character(sp))
   Species[,"new"] <- cumsum(Species$include)
+  base.params <- base.params %>%
+    mutate(species = as.character(species))
   
   param <- left_join(base.params, Species, by="species")%>%
     subset(include != 0 | is.na(include))%>%

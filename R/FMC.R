@@ -8,6 +8,7 @@
 #' @param slope Slope in degrees
 #' @param LAI Leaf Area Index
 #' @param cloud Proportion cloud cover (0-1)
+#'
 #' @export
 
 insol <- function(lat = -32, hr = 12, month = "December", aspect = 0, slope = 0, LAI = 3, cloud = 0){
@@ -35,7 +36,6 @@ insol <- function(lat = -32, hr = 12, month = "December", aspect = 0, slope = 0,
 # Finds saturation specific humidity from Stull (1988) Eqn 7.5.2c and d
 
 QSat <- function(tAir = 293.46, pAir = 101180){
-#  esat <- 611.2 * exp(17.67 * (tAir - 273.15) / (tAir - 29.66))
   Q <- 0.622 * (611.2 * exp(17.67 * (tAir - 273.15) / (tAir - 29.66))) / pAir
   return(Q)
 }
@@ -62,13 +62,14 @@ Ema <- function(m, nelsonA = 5.2, nelsonB = -19, conLitter = 0.0006, tAir = 293.
 #' @param tAir Atmospheric temperature (K)
 #' @param vAir Wind speed (m/s)
 #' @param pAir Atmospheric pressure (Pa)
-#' @param rhAir Relative humidity (%)
+#' @param rhAir Relative humidity (Percent)
 #' @param sigma Surface area: volume ratio of litter particles (m2/m3)
 #' @param rhoLitter Density of leaves (kg/m3)
 #' @param conLitter Litter conductance (m/s)
 #' @param dt Seconds per time step
 #' @param EPS Sensitivity of iteration
 #' @param insolation Solar energy at the soil surface (kW/m2)
+#'
 #' @export
 
 simplefmc <- function(m, tAir = 293.46, vAir = 3.52, pAir = 101180, rhAir = 58, dt = 3600, insolation = 150, rhoLitter = 550,
@@ -105,7 +106,39 @@ simplefmc <- function(m, tAir = 293.46, vAir = 3.52, pAir = 101180, rhAir = 58, 
 }
 
 
+
+#' Helper function for frameWeather
+#'
+#' @param clim 
+#' 
 tidyWeather <- function(clim) {
+  
+  # Fill empty directions
+  if (clim$dPM[1] == 0 || is.null(clim$dPM[1])) {
+    fill <- "N"
+  } else {
+    fill <- clim$dPM[1]}
+  if (clim$dAM[1] == 0 || is.null(clim$dAM[1])) {
+    clim$dAM[1] <- fill
+  }
+  if (clim$dPM[1] == 0 || is.null(clim$dPM[1])) {
+    clim$dPM[1] <- clim$dAM[1]
+  }
+  
+  for (r in 2:nrow(clim)) {
+    if (clim$dPM[r] == 0 || is.null(clim$dPM[r])) {
+      fill <- "N"
+    } else {
+      fill <- clim$dPM[r]}
+    if (clim$dAM[r] == 0 || is.null(clim$dAM[r])) {
+      clim$dAM[r] <- fill
+    }
+    if (clim$dPM[r] == 0 || is.null(clim$dPM[r])) {
+      clim$dPM[r] <- clim$dAM[r]
+    }
+  }
+  
+  # Set initial values
   clim <- clim %>%
     mutate(tAM = tAM + 273.15,
            tPM = tPM + 273.15,
@@ -116,6 +149,39 @@ tidyWeather <- function(clim) {
            cAM = cAM/8,
            cPM = cPM/8,
            MSLP = MSLP*100,
+           # Set directions to degrees
+           dAM = case_when(dAM == "N" ~ 0,
+                           dAM == "NNE" ~ 22,
+                           dAM == "NE" ~ 45,
+                           dAM == "ENE" ~ 68,
+                           dAM == "E" ~ 90,
+                           dAM == "ESE" ~ 112,
+                           dAM == "SE" ~ 135,
+                           dAM == "SSE" ~ 158,
+                           dAM == "S" ~ 180,
+                           dAM == "SSW" ~ 202,
+                           dAM == "SW" ~ 225,
+                           dAM == "WSW" ~ 248,
+                           dAM == "W" ~ 270,
+                           dAM == "WNW" ~ 292,
+                           dAM == "NW" ~ 315,
+                           dAM == "NNW" ~ 338),
+           dPM = case_when(dPM == "N" ~ 0,
+                           dPM == "NNE" ~ 22,
+                           dPM == "NE" ~ 45,
+                           dPM == "ENE" ~ 68,
+                           dPM == "E" ~ 90,
+                           dPM == "ESE" ~ 112,
+                           dPM == "SE" ~ 135,
+                           dPM == "SSE" ~ 158,
+                           dPM == "S" ~ 180,
+                           dPM == "SSW" ~ 202,
+                           dPM == "SW" ~ 225,
+                           dPM == "WSW" ~ 248,
+                           dPM == "W" ~ 270,
+                           dPM == "WNW" ~ 292,
+                           dPM == "NW" ~ 315,
+                           dPM == "NNW" ~ 338),
            specHumAM = (rhAM/100)*frame:::QSat(tAM, MSLP),
            specHumPM = (rhPM/100)*frame:::QSat(tPM, MSLP))
   
@@ -138,6 +204,9 @@ tidyWeather <- function(clim) {
   cloud  <- clim[,c('cAM','cPM','Day')] %>% pivot_longer(c(cAM, cPM), names_to = "Time", values_to = "Cloud") %>%
     mutate(Time = case_when(Time == "cAM" ~ 9,
                             Time == "cPM" ~ 15))
+  Direction  <- clim[,c('dAM','dPM','Day')] %>% pivot_longer(c(dAM, dPM), names_to = "Time", values_to = "Direction") %>%
+    mutate(Time = case_when(Time == "dAM" ~ 9,
+                            Time == "dPM" ~ 15))
   Rain  <- clim[,c('Rain', 'MSLP', 'Day')] %>% 
     mutate(Time = 9)
   out <- left_join(Temp, cloud, by = c("Day", "Time"))
@@ -145,8 +214,9 @@ tidyWeather <- function(clim) {
   out <- left_join(out, specHum, by = c("Day", "Time"))
   out <- left_join(out, Wind, by = c("Day", "Time"))
   out <- left_join(out, Rain, by = c("Day", "Time"))
+  out <- left_join(out, Direction, by = c("Day", "Time"))
   out <- out %>%
-    select(Day, Hour, Rain, MSLP, Cloud, Temp, RH, specHum, Wind)
+    select(Day, Hour, Rain, MSLP, Cloud, Temp, RH, specHum, Wind, Direction)
   out <- out[order(out$Hour),]
   
   return(out)
@@ -173,23 +243,30 @@ tidyWeather <- function(clim) {
 #' @param m The starting moisture (proportion ODW)
 #' @param nelsonA Constant from Nelson FMC model
 #' @param nelsonB Constant from Nelson FMC model
-#' @param tAir Atmospheric temperature (K)
-#' @param vAir Wind speed (m/s)
-#' @param pAir Atmospheric pressure (Pa)
-#' @param rhAir Relative humidity (%)
 #' @param sigma Surface area: volume ratio of litter particles (m2/m3)
-#' @param rhoLitter Density of leaves (kg/m3)
 #' @param conLitter Litter conductance (m/s)
 #' @param dt Seconds per time step
+#' @param LAI Leaf area index of the vegetation
+#' @param WRF Wind reduction factor
+#' @param rholitter Density of litter particles (kg/m3)
+#' @param litterW Weight of litter (t/ha)
+#' @param lat Latitude (degrees)
+#' @param altitude (m)
+#' @param slope (degrees)
+#' @param rangeDir Cardinal direction of the ridgelines - either Nth/Sth (0) or west/east (270)
 #' @param EPS Sensitivity of iteration
-#' @param insolation Solar energy at the soil surface (kW/m2)
+#' @param hCan Height of the tree canopy (m)
+#' @param cardinal Simplify compass directions to cardinal (TRUE/FALSE)
+#' @param slopeSD Standard deviation of the slope
+#'
 #' @export
 
-frameWeather <- function(clim, m = 15, LAI = 3, WRF = 3, rholitter = 550, litterW = 10,
-                         lat = -31.89, altitude = 8, slope = 0, rangeDir = 0,  dt = 3600,
-                         nelsonA = 5.2, nelsonB = -19, conLitter = 0.0003, sigma = 3000, EPS = 0.01) {
+frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter = 550, litterW = 10,
+                         lat = -31.89, altitude = 8, slope = 6.7, slopeSD = 4.9, rangeDir = 270,  dt = 3600, 
+                         cardinal = FALSE, nelsonA = 5.2, nelsonB = -19, conLitter = 0.0003, sigma = 3000, EPS = 0.01) {
   climDay <- tidyWeather(clim)
   Rain <- climDay[,c('Hour', 'Rain')]
+  Direction <- climDay[,c('Hour', 'Direction')] 
   
   # Interpolate
   Hour <- seq(from = 1, to = max(climDay$Hour), by = 1)
@@ -212,17 +289,56 @@ frameWeather <- function(clim, m = 15, LAI = 3, WRF = 3, rholitter = 550, litter
   } else {1}
   
   out <- as.data.frame(Hour)
-  out$Temp <- Temp
+  out$TempA <- Temp
+  # Adjust temp for canopy height. Model taken from Fig. 2 of 
+  # Jucker, T., Hardwick, S.R., Both, S., Elias, D.M.O., Ewers, R.M., Milodowski, D.T., et al. (2018). 
+  # Canopy structure and topography jointly constrain the microclimate of human-modified tropical landscapes. Glob. Chang. Biol., 24, 5243–5258.
+  out$Temp = (-(0.0009*exp(0.1195*(out$TempA-273.15)))*log(hCan)+1)*(out$TempA-273.15)+273.15
   out$sRH <- sRH
   out$MSLP <- MSLP
-  out$RH <- (sRH / frame:::QSat(Temp, MSLP))*100
+  out$RHA <- (sRH / frame:::QSat(out$TempA, out$MSLP))*100
+  out$RH <- (sRH / frame:::QSat(out$Temp, out$MSLP))*100
   out$Wind <- Wind
   out$Cloud <- Cloud
   
   # Add rain
   out <- out %>%
-    left_join(Rain, by = "Hour")
+    left_join(Rain, by = "Hour") 
   out$Rain[is.na(out$Rain)] <- 0
+  
+  # Add direction
+  # Optional set to cardinal directions
+  if (cardinal == TRUE) {
+    Direction <- Direction %>%
+      mutate(Direction = case_when(Direction == 22 ~ 0,
+                                   Direction == 45 ~ 0,
+                                   Direction == 68 ~ 90,
+                                   Direction == 112 ~ 90,
+                                   Direction == 135 ~ 90,
+                                   Direction == 158 ~ 180,
+                                   Direction == 202 ~ 180,
+                                   Direction == 225 ~ 180,
+                                   Direction == 248 ~ 270,
+                                   Direction == 292 ~ 270,
+                                   Direction == 315 ~ 270,
+                                   Direction == 338 ~ 0,
+                                   TRUE ~ Direction))
+  }
+  # First value
+  r <- 1
+  nr <- NA
+  while (is.na(nr)) {
+    nr <- Direction$Direction[r]
+    r <- r+1
+  }
+  out <- left_join(out, Direction, by = "Hour")
+  out$Direction[1] <- nr
+  
+  for (r in 2:nrow(out)) {
+    if (is.na(out$Direction[r])) {
+      out$Direction[r] <- out$Direction[r-1]
+    }
+  }
   
   # Calculate inputs & moisture
   out <- out %>%
@@ -234,22 +350,42 @@ frameWeather <- function(clim, m = 15, LAI = 3, WRF = 3, rholitter = 550, litter
            solarAltitude = asin(cos(lat*pi/180)*cos(Declination*pi/180)*cos(hourAngle*pi/180)+sin(lat*pi/180)*sin(Declination*pi/180)),
            TerrainA = (cos((hourAngle-(rangeDir+90))*pi/180)*slope)*pi/180,
            TerrainB = (cos((hourAngle-(rangeDir-90))*pi/180)*slope)*pi/180,
+           TerrainC = (cos((hourAngle-(rangeDir-90))*pi/180)*(slope+slopeSD))*pi/180,
+           TerrainD = (cos((hourAngle-(rangeDir-90))*pi/180)*(slope+2*slopeSD))*pi/180,
            ZenithA = acos(sin(lat*pi/180)*sin(Declination*pi/180)+cos(lat*pi/180)*cos(Declination*pi/180)*cos(hourAngle*pi/180))-TerrainA,
            ZenithB = acos(sin(lat*pi/180)*sin(Declination*pi/180)+cos(lat*pi/180)*cos(Declination*pi/180)*cos(hourAngle*pi/180))-TerrainB,
+           ZenithC = acos(sin(lat*pi/180)*sin(Declination*pi/180)+cos(lat*pi/180)*cos(Declination*pi/180)*cos(hourAngle*pi/180))-TerrainC,
+           ZenithD = acos(sin(lat*pi/180)*sin(Declination*pi/180)+cos(lat*pi/180)*cos(Declination*pi/180)*cos(hourAngle*pi/180))-TerrainD,
            ShadeA = 1-exp(-(2/(pi*tan(pmax(0.01,1.570796-ZenithA))))*LAI),
            ShadeB = 1-exp(-(2/(pi*tan(pmax(0.01,1.570796-ZenithB))))*LAI),
-           InsolationA = pmax(0,((1-ShadeA)*Cloud*1000*cos(ZenithA))),
-           InsolationB = pmax(0,((1-ShadeB)*Cloud*1000*cos(ZenithB))),
+           ShadeC = 1-exp(-(2/(pi*tan(pmax(0.01,1.570796-ZenithC))))*LAI),
+           ShadeD = 1-exp(-(2/(pi*tan(pmax(0.01,1.570796-ZenithD))))*LAI),
+           InsolationA = pmax(0,((1-ShadeA)*(1-Cloud)*1000*cos(ZenithA))),
+           InsolationB = pmax(0,((1-ShadeB)*(1-Cloud)*1000*cos(ZenithB))),
+           InsolationC = pmax(0,((1-ShadeC)*(1-Cloud)*1000*cos(ZenithC))),
+           InsolationD = pmax(0,((1-ShadeD)*(1-Cloud)*1000*cos(ZenithD))),
            RainAdj = pmax(0,Rain-(0.001*(Rain/2)+0.08*LAI)),
-           Wetting =((10*pmin(RainAdj,(0.01*RainAdj+0.36*(litterW/5))))/litterW))
+           Wetting =((10*pmin(RainAdj,(0.01*RainAdj+0.36*(litterW/5))))/litterW),
+           SoilA = Temp + (8.15 - 2.25 * exp(-0.6 * Wind) - 0.0312 * Temp + 
+                             (0.021 + (-0.04 + 0.0006 * Temp - 0.00000125 * Temp ^ 2) * exp(-0.6 * Wind)) * InsolationA) - 273.15,
+           SoilB = Temp + (8.15 - 2.25 * exp(-0.6 * Wind) - 0.0312 * Temp + 
+                             (0.021 + (-0.04 + 0.0006 * Temp - 0.00000125 * Temp ^ 2) * exp(-0.6 * Wind)) * InsolationB) - 273.15,
+           SoilC = Temp + (8.15 - 2.25 * exp(-0.6 * Wind) - 0.0312 * Temp + 
+                             (0.021 + (-0.04 + 0.0006 * Temp - 0.00000125 * Temp ^ 2) * exp(-0.6 * Wind)) * InsolationC) - 273.15,
+           SoilD = Temp + (8.15 - 2.25 * exp(-0.6 * Wind) - 0.0312 * Temp + 
+                             (0.021 + (-0.04 + 0.0006 * Temp - 0.00000125 * Temp ^ 2) * exp(-0.6 * Wind)) * InsolationD) - 273.15)
   
   for (t in out$Hour) {
     if (t == 1) {
-      mA <- m/100
-      mB <- m/100
+      mA <- m
+      mB <- m
+      mC <- m
+      mD <- m
     } else {
       mA <- out$moistureA[t-1]
       mB <- out$moistureB[t-1]
+      mC <- out$moistureC[t-1]
+      mD <- out$moistureD[t-1]
     } 
     out$moistureA[t] <- pmax(0.01,pmin(mA,(frame::simplefmc(m = mA,
                                                             tAir = out$Temp[t],
@@ -277,12 +413,39 @@ frameWeather <- function(clim, m = 15, LAI = 3, WRF = 3, rholitter = 550, litter
                                                             conLitter = conLitter,
                                                             sigma = sigma,
                                                             EPS = EPS)))) - max(0,0.5*(mB-1)) + out$Wetting[t]
+    out$moistureC[t] <- pmax(0.01,pmin(mC,(frame::simplefmc(m = mC,
+                                                            tAir = out$Temp[t],
+                                                            vAir = out$Wind[t],
+                                                            pAir = out$MSLP[t],
+                                                            rhAir = out$RH[t],
+                                                            insolation = out$InsolationC[t],
+                                                            rhoLitter = rholitter,
+                                                            dt = dt,
+                                                            nelsonA = nelsonA,
+                                                            nelsonB = nelsonB,
+                                                            conLitter = conLitter,
+                                                            sigma = sigma,
+                                                            EPS = EPS)))) - max(0,0.5*(mC-1)) + out$Wetting[t]
+    out$moistureD[t] <- pmax(0.01,pmin(mD,(frame::simplefmc(m = mD,
+                                                            tAir = out$Temp[t],
+                                                            vAir = out$Wind[t],
+                                                            pAir = out$MSLP[t],
+                                                            rhAir = out$RH[t],
+                                                            insolation = out$InsolationD[t],
+                                                            rhoLitter = rholitter,
+                                                            dt = dt,
+                                                            nelsonA = nelsonA,
+                                                            nelsonB = nelsonB,
+                                                            conLitter = conLitter,
+                                                            sigma = sigma,
+                                                            EPS = EPS)))) - max(0,0.5*(mD-1)) + out$Wetting[t]
   }
   out <- out %>%
     mutate(Temp = Temp - 273.15,
+           TempA = TempA - 273.15,
            Wind = Wind * 3.6,
            MSLP = MSLP/100,
-           wetBulb = Temp*atan(0.151977*(RH+8.313659)^0.5)+atan(Temp+RH)-atan(RH-1.676331)+0.00391838*RH^(3/2)*atan(0.023101*RH)-4.686035,
+           wetBulb = TempA*atan(0.151977*(RHA+8.313659)^0.5)+atan(TempA+RHA)-atan(RHA-1.676331)+0.00391838*RHA^(3/2)*atan(0.023101*RHA)-4.686035,
            cgStrikes = 2.708*10^-46*exp(3.863*wetBulb))
   return(out)
 }

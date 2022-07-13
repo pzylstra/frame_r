@@ -2555,7 +2555,7 @@ litter <- function(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, ag
 #' @return dataframe
 #' @export
 #'
-#' @examples
+
 transectLong <- function(alldata){
   Sites <- unique(alldata$Site)
   maxPoint <- max(dplyr::filter(alldata, Site == Sites[1])$Point)

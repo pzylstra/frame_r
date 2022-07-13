@@ -9,7 +9,7 @@ frameDynTab(
   dat,
   tr,
   upper,
-  interval,
+  interval = c(2, 5),
   propSamp = 0.5,
   transects = 10,
   propDead = 0,
@@ -26,11 +26,6 @@ frameDynTab(
   map = 1000,
   mat = 20,
   lma,
-  negEx = 1,
-  max = 54.22,
-  rate = 0.026,
-  aBurr = 3.35,
-  bBurr = 0.832,
   diameter = 0.005
 )
 }
@@ -39,7 +34,9 @@ frameDynTab(
 
 \item{tr}{An optional table of input traits}
 
-\item{interval}{Time interval for sampling}
+\item{upper}{}
+
+\item{interval}{List of time intervals for sampling, length 2. 1st value for 1st 30 years.}
 
 \item{propSamp}{Proportion of cohorts to test (0-1)}
 
@@ -49,7 +46,11 @@ frameDynTab(
 
 \item{leafForm}{Flat or Round}
 
+\item{lwRat}{}
+
 \item{leafA}{Area of a leaf in m2}
+
+\item{ram}{}
 
 \item{ignitionTemp}{Temperature of the endotherm (degC)}
 
@@ -69,28 +70,7 @@ frameDynTab(
 
 \item{lma}{List of LMA values per species (kgm−2)}
 
-\item{negEx}{Value determining the model used. 
-1 = olson, 2 = Burr}
-
-\item{max}{Maximum weight (t/ha)}
-
-\item{rate}{Rate of growth for a negative exponential function}
-
-\item{aBurr}{Parameter in the Burr equation}
-
-\item{bBurr}{Parameter in the Burr equation}
-
 \item{diameter}{Mean diameter of surface litter pieces (m)}
-
-\item{rec}{Number of the record}
-
-\item{openness}{Ratio of gaps to clumps of leaves}
-
-\item{clump}{Ratio of clump frontal area diameter to crown frontal area diameter}
-
-\item{litter}{Weight of surface litter (t/ha)}
-
-\item{lwRatio}{Ratio of leaf length to width}
 }
 \description{
 Constructs an age sequence of parameter files 

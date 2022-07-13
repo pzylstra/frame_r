@@ -125,6 +125,69 @@
 
 
 
+#'
+#'@format a data frame with 9 columns and a row for each point of measurement
+#'\describe{
+#' \item{Site}{A numeric record of the site}
+#' \item{SiteName}{A string name for the site}
+#' \item{Point}{The point number in the transect, often the metre mark}
+#' \item{Species}{The name of the species, consistent with other tables}
+#' \item{base}{Crown base height hc (m)}
+#' \item{top}{Crown top height hp (m)}
+#' \item{he}{Crown he height (m)}
+#' \item{ht}{Crown ht height (m)}
+#' \item{width}{Crown width w (m)}
+#'
+#'}
+#'
+#'@source {Raw survey data collected using a 3d transect at Warrungup Spring reserve, April 2019}
+#'
+"tuart_survey"
+
+
+
+#'
+#'@format a data frame with 12 columns and a row for each species
+#'\describe{
+#' \item{name}{The name of the species, consistent with other tables}
+#' \item{propDead}{Value between 0 & 1 giving the proportion of crown foliage that is dead}
+#' \item{leafForm}{Either Flat or Round}
+#' \item{leafThickness}{Thickness of the leaf (m)}
+#' \item{leafWidth}{Width of the leaf at the widest point (m)}
+#' \item{leafLength}{Length of the leaf (m)}
+#' \item{leafSeparation}{Mean distance between leaf petioles on a 1st-order stem (m)}
+#' \item{stemOrder}{Stem ramification or order}
+#' \item{ignitionTemp}{Tempereature of the endotherm or piloted ignition temp (C)}
+#' \item{moisture}{Ratio of moisture weight to oven-dry weight}
+#' \item{G.C_rat}{Ratio of gaps to clumps, or crown space to foliage clumps}
+#' \item{C.C_rat}{Ratio of individual clump area to crown area}
+#'
+#'}
+#'
+#'@source {Measurements from plants surveyed at Warrungup Spring reserve, April 2019}
+#'
+"tuart_traits"
+
+
+
+#'
+#'@format a data frame with 5 columns and a row for each time step
+#'\describe{
+#' \item{tm}{Consecutive integer to reference the time period}
+#' \item{T}{Ambient air temperature (deg. C)}
+#' \item{W}{Wind velocity (km/h)}
+#' \item{DFMC}{Dead fuel moisture content (proportion oven dry weight)}
+#' \item{time}{Hour of the day)}
+#'
+#'}
+#'
+#'@source {BOM AWS data for 16th May 2018, Mandurah weather station 009977. DFMC calculated using Matthews simple model}
+#'
+"tuart_weather"
+
+
+
+
 
 
 

@@ -68,6 +68,15 @@ siteBuilder <- function(site, Structure, a)
 
 
 
+#' Builds the dataframe strata.meta
+#'
+#' @param Structure 
+#' @param Flora 
+#' @param a 
+#'
+#' @return
+#'
+
 strataBuilder <- function(Structure, Flora, a)
 {
   # Collect subsets for record
@@ -127,6 +136,14 @@ strataBuilder <- function(Structure, Flora, a)
 }
 
 
+
+#' Builds the dataframe species.values
+#'
+#' @param Flora 
+#' @param site 
+#' @param a 
+#'
+#' @return
 
 speciesBuilder <- function(Flora, site, a)
 {

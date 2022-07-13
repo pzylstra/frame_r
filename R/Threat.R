@@ -34,7 +34,7 @@ phi <- function(Fl, Fa, S, D, H)
 #'
 #' Calculates the atmospheric transmissivity of radiation as used
 #' in AS3959 for bushfire risk assessment of built structures. Equations from
-#' Fuss, S P & Hamins, A
+#' Fuss & Hamins
 #' An estimate of the correction applied to radiant flame measurements due to
 #' attenuation by atmospheric CO2and H2O.
 #' Fire Saf. J. 37, 181–190 (2002)
