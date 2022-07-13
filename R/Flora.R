@@ -15,10 +15,12 @@
 #' @param Param A parameter dataframe used for FRaME,
 #' such as produced using readLegacyParamFile
 #' @param Test The temperature of the flora, default 70 degC
+#' @param targSp Name of species to be watched for scorch
+#'
 #' @return dataframe
 #' @export
 
-flora <- function(Surf, Plant, Param = Param, Test = 70)
+flora <- function(Surf, Plant, Param = Param, targSp = "a", Test = 70)
 {
   S <- strata(Param)
   n <- max(S$stratum)
@@ -26,14 +28,14 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
   #Max burn height
   c <- Plant[Plant$level == "Canopy", ]%>%
     group_by(repId) %>%
-    summarize_if(is.numeric,max)%>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
     mutate(c = y1)%>%
     select(repId, c)%>%
     right_join(Surf)
   c[is.na(c)] <- 0
   m <- Plant[Plant$level == "MidStorey", ]%>%
     group_by(repId) %>%
-    summarize_if(is.numeric,max)%>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
     mutate(m = y1)%>%
     select(repId, m)%>%
     right_join(c)%>%
@@ -41,7 +43,7 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
   m[is.na(m)] <- 0
   e <- Plant[Plant$level == "Elevated", ]%>%
     group_by(repId) %>%
-    summarize_if(is.numeric,max)%>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
     mutate(e = y1)%>%
     select(repId, e)%>%
     right_join(m)%>%
@@ -49,7 +51,7 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
   e[is.na(e)] <- 0
   ns <- Plant[Plant$level == "NearSurface", ]%>%
     group_by(repId) %>%
-    summarize_if(is.numeric,max)%>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
     mutate(ns = y1)%>%
     select(repId, ns)%>%
     right_join(e)%>%
@@ -83,7 +85,7 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
            htP = (sin(Angle)*pAlpha + y0 - El) * extinct)%>%
     select(repId, htP)%>%
     group_by(repId) %>%
-    summarize_all(max)%>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
     right_join(ground)
   plant[is.na(plant)] <- 0
   
@@ -96,6 +98,7 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
   nM <-ifelse(count(M)==0, 0,as.numeric(as.character(M$stratum)))
   C <- S[S$name == "canopy", ]
   nC <- ifelse(count(C)==0, 0,as.numeric(as.character(C$stratum)))
+  nSp <- targSp %in% unique(Param$species)
   
   
   #Final heating
@@ -109,7 +112,8 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
            eTop = ifelse(count(E)==0, 0, S$top[which(S$name == "elevated")]),
            mTop = ifelse(count(M)==0, 0, S$top[which(S$name == "midstorey")]),
            cTop = ifelse(count(C)==0, 0, S$top[which(S$name == "canopy")]),
-           
+           spBase = ifelse(nSp, as.numeric(filter(Param, species==targSp & param == "hc")$value), 0),
+           spTop = ifelse(nSp, as.numeric(filter(Param, species==targSp & param == "hp")$value), 0),
            #Calculate scorch and burn
            b1 = ifelse(nsTop == 0, 0, round(pmin(100,pmax(0,100*(ns-nsBase)/(nsTop-nsBase))),0)),
            b2 = ifelse(eTop == 0, 0, round(pmin(100,pmax(0,100*(e-eBase)/(eTop-eBase))),0)),
@@ -124,8 +128,9 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
                                 sc4 > 0 ~ 3,
                                 b1+b2 > 50 ~ 2,
                                 b1+b2 > 0 ~ 1,
-                                TRUE ~ 0))%>%
-    select(repId, wind_kph, Height, ns, e, m, c, b1, b2, b3, b4, sc1, sc2, sc3, sc4, severity)
+                                TRUE ~ 0),
+           targSp = ifelse(spTop == 0, 0, round(pmin(100,pmax(0,100*(Height-spBase)/(spTop-spBase))),0)))%>%
+    select(repId, wind_kph, Height, ns, e, m, c, b1, b2, b3, b4, sc1, sc2, sc3, sc4, severity, targSp)
   
   return(Iso)
 }
@@ -199,8 +204,9 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
 #' @param Altitude Height above sea level (m)
 #' @param startTemp The starting temperature of wood and bark (deg C)
 #' @param necT Temperature of necrosis (deg C)
-#' @param surfDecl adusts the rate at which surface flame length declines after the front
+#' @param surfDecl adjusts the rate at which surface flame length declines after the front
 #' @param updateProgress Progress bar for use in the dashboard
+#'
 #' @return dataframe
 #' @export
 
@@ -650,6 +656,7 @@ cambium <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 
 #' @param necT Temperature of necrosis (deg C)
 #' @param surfDecl adusts the rate at which surface flame length declines after the front
 #' @param updateProgress Progress bar for use in the dashboard
+#'
 #' @return dataframe
 #' @export
 #'
@@ -984,15 +991,26 @@ girdle <- function(Surf, Plant, Height = 0.1, woodDensity = 700, barkDensity = 5
 
 #####################################################################
 
-# Air temperature above ambient at the tree bole behind the flame front
-#
-# Dynamic air temperature at bole height, declining flame length exponentially
-#
-# Air temperature is modelled from dynamic flame segments using
-# Weber R.O., Gill A.M., Lyons P.R.A., Moore P.H.R., Bradstock R.A., Mercer G.N. (1995)
-# Modelling wildland fire temperatures. CALMScience Supplement, 4, 23–26.
-#
-# pAlphas is set to bole height - depth of surface litter
+#' Air temperature above ambient at the tree bole behind the flame front
+#'
+#' Dynamic air temperature at bole height, declining flame length exponentially
+#'
+#' Air temperature is modelled from dynamic flame segments using
+#' Weber R.O., Gill A.M., Lyons P.R.A., Moore P.H.R., Bradstock R.A., Mercer G.N. (1995)
+#' Modelling wildland fire temperatures. CALMScience Supplement, 4, 23–26.
+#'
+#' pAlphas is set to bole height - depth of surface litter
+#'
+#' @param lengthSurface 
+#' @param residence 
+#' @param depth 
+#' @param h 
+#' @param surfDecl 
+#' @param t 
+#'
+#' @return
+#' @export
+#'
 
 bole <- function(lengthSurface = 2, residence = 300, depth = 0.05, h = 0.1, surfDecl = 10, t = 1)
 {
@@ -1007,11 +1025,17 @@ bole <- function(lengthSurface = 2, residence = 300, depth = 0.05, h = 0.1, surf
 
 
 #####################################################################
-# Thermal conductivity of dry wood
-#
-# Model drawn from Kollmann, F. F. P. & Cote, W. A.
-# Principles of wood science and technology I. Solid wood. (Springer-Verlag, 1968)
-
+#' Thermal conductivity of dry wood
+#'
+#' Model drawn from Kollmann, F. F. P. & Cote, W. A.
+#' Principles of wood science and technology I. Solid wood. (Springer-Verlag, 1968)
+#'
+#' @param rhoW 
+#' @param kAir 
+#'
+#' @return
+#' @export
+#'
 
 kWood <- function(T=100, rhoW=700, kAir = 0.026)
 {
@@ -1023,3 +1047,271 @@ kWood <- function(T=100, rhoW=700, kAir = 0.026)
   return(bridge*kA+(1-bridge)*kB)
 }
 
+
+#' Collects flame segments for a specified plant in a stratum
+#'
+#' @param paths Output table from the function repFlame
+#' @param Stratum Name of the stratum being studied
+#' @param Species Name of the species being studied
+#' @param repId Number of the repId being studied
+#'
+#' @return dataframe
+#' @export
+#'
+#' @examples balga <- plantFlame(IPW, "NearSurface", "Xanthorrhoea preissii", 6)
+
+plantFlame <- function(paths, Stratum, Species, repId) {
+  
+  IP <- paths[paths$level == Stratum & paths$species == Species & paths$repId == repId,] %>%
+    mutate(angle = atan((y1-y0)/(x1-x0)),
+           x2 = flameLength * cos(angle) + x0,
+           y2 = flameLength * sin(angle) + y0)
+  
+  x0 <- IP %>%
+    select(segIndex, x0)
+  x1 <- IP %>%
+    select(segIndex, x1)
+  IPX <- left_join(x0, x1)
+  x2 <- IP %>%
+    select(segIndex, x2)
+  IPX <- left_join(IPX,x2)
+  X <- reshape2::melt(IPX, id.vars="segIndex") %>%
+    mutate(x = value,
+           point = case_when(variable == "x0" ~ "A",
+                             variable == "x1" ~ "B",
+                             variable == "x2" ~ "C")) %>%
+    select(segIndex, point, x)
+  
+  
+  y0 <- IP %>%
+    select(segIndex, y0)
+  y1 <- IP %>%
+    select(segIndex, y1)
+  IPy <- left_join(y0, y1)
+  y2 <- IP %>%
+    select(segIndex, y2)
+  IPy <- left_join(IPy,y2)
+  Y <- reshape2::melt(IPy, id.vars="segIndex") %>%
+    mutate(y = value,
+           point = case_when(variable == "y0" ~ "A",
+                             variable == "y1" ~ "B",
+                             variable == "y2" ~ "C")) %>%
+    select(segIndex, point, y)
+  
+  XY <- left_join(X,Y, by = c("segIndex", "point"))
+  out <- XY[order(XY$segIndex),]
+  
+  return(out)
+}
+
+
+#' Calculates LAI for a slice of a plant
+#'
+#' @param base.params 
+#' @param sp Name of the species
+#' @param yu Height at the top of the slice (m)
+#' @param yl Height at the base of the slice (m)
+#'
+#' @return
+#' @export
+#'
+
+LAIp <- function(base.params, sp = 1, yu = 100, yl = 0)
+{
+  
+  # Subset species
+  spPar <- subset(base.params, species == sp)
+  
+  # Collect parameters
+  Cd <- as.numeric(spPar$value[spPar$param == "clumpDiameter"])
+  Cs <- as.numeric(spPar$value[spPar$param == "clumpSeparation"])
+  ram <- as.numeric(spPar$value[spPar$param == "stemOrder"])
+  hc <- as.numeric(spPar$value[spPar$param == "hc"])
+  he <- as.numeric(spPar$value[spPar$param == "he"])
+  ht <- as.numeric(spPar$value[spPar$param == "ht"])
+  hp <- as.numeric(spPar$value[spPar$param == "hp"])
+  W <- as.numeric(spPar$value[spPar$param == "w"])
+  ll <- as.numeric(spPar$value[spPar$param == "leafLength"])
+  lw <- as.numeric(spPar$value[spPar$param == "leafWidth"])
+  ls <- as.numeric(spPar$value[spPar$param == "leafSeparation"])
+  
+  if (yu <= min(hc,he)) {
+    l <- 0
+  } else if (yl >= max(ht,hp)) {
+    l <- 0
+  } else {
+    
+    # Find w at cutoff cones
+    topRise <- abs(hp-ht)
+    baseFall <- abs(he-hc)
+    # Top of slice, plant top
+    wa <- ifelse(topRise==0,
+                 W,
+                 (W/topRise)*max(0,(hp-max(ht,yu))))
+    # Base of slice, plant top
+    wb <- ifelse(topRise==0,
+                 W,
+                 (W/topRise)*abs(hp-max(yl,ht)))
+    # Top of slice, plant base
+    wc <- ifelse(baseFall==0,
+                 W,
+                 (W/baseFall)*abs(min(he,yu)-hc))
+    # Base of slice, plant base
+    wd <- ifelse(baseFall==0,
+                 W,
+                 (W/baseFall)*max(0,(min(he,yl)-hc)))
+    
+    # Leaf area per clump
+    clumpLeaves <- 0.88*(Cd*ram/ls)^1.18
+    laClump <- (ll*lw/2) * clumpLeaves
+    
+    # Plant volume in slice
+    upperAboveSlice <- max(0,(hp-max(ht,yu))*(pi*(wa/2)^2))/3
+    upperFull <- ((hp-max(yl,ht))*(pi*(wb/2)^2))/3
+    upper <- max(0,upperFull-upperAboveSlice)
+    centre <- max(0,(min(yu,ht)-max(yl,he)))*(pi*(W/2)^2)
+    lowerFull <- ((min(yu,he)-hc)*(pi*(wc/2)^2))/3
+    lowerBelowSlice <- (max(0,(min(he,yl)-hc))*(pi*(wd/2)^2))/3
+    lower <- max(0,lowerFull-lowerBelowSlice)
+    vol <- upper+centre+lower
+    
+    # Clumps in slice
+    volC <- ((4/3)*pi*((Cd+Cs)/2)^3)
+    nClumps <- vol/volC
+    
+    #LAI per plant in slice
+    LA <- laClump * nClumps
+    l<- ifelse(max(wa,wb,wc,wd)==0,
+               0,
+               LA/(pi*(max(wa,wb,wc,wd)/2)^2))
+  }
+  return(l)
+}
+
+
+
+#' Calculates LAI for a horizontal slice of a plant community
+#'
+#' @param base.params 
+#' @param yu Top of slice (m)
+#' @param yl Base of slice (m)
+#'
+#' @return
+#' @export
+#'
+
+LAIcomm <- function(base.params, yu = 100, yl = 0)
+{
+  # Collect plant figures
+  l <- data.frame()
+  c <- data.frame()
+  s <- data.frame()
+  w <- data.frame()
+  N <- count(species(base.params))
+  str <- strata(base.params)
+  n <- 1
+  while(n <= N[1]) {
+    spPar <- subset(base.params, species == n)
+    laiN <- LAIp(base.params, sp = n, yu = yu, yl = yl)
+    l <- rbind(l,laiN)
+    c <- rbind(c,as.numeric(spPar$value[spPar$param == "composition"]))
+    s <- rbind(s, as.numeric(str$separation[as.numeric(spPar$stratum[1])]))
+    w <- rbind(w,as.numeric(spPar$value[spPar$param == "w"]))
+    n <- n + 1
+  }
+  
+  # Construct table
+  colnames(l) <- c("LAIp")
+  l$ID <- seq.int(nrow(l))
+  colnames(c) <- c("Weight")
+  c$ID <- seq.int(nrow(c))
+  colnames(s) <- c("Separation")
+  s$ID <- seq.int(nrow(s))
+  colnames(w) <- c("Width")
+  w$ID <- seq.int(nrow(w))
+  LAIplant <- left_join(l,c)%>%
+    left_join(s)%>%
+    mutate(Weight = ifelse(LAIp>0,
+                           Weight,
+                           0))%>%
+    left_join(w)
+  
+  # Calculate LAI
+  all <- sum(LAIplant$Weight)
+  LAIplant <- LAIplant %>% 
+    mutate(Weight = Weight/all,
+           Cover = (Width^2/Separation^2)*Weight,
+           LAIw = LAIp*Cover)
+  LAI <- sum(LAIplant$LAIw)
+  LAI[is.nan(LAI)] <- 0  
+  return(LAI)
+}
+
+
+#' Calculates a vertical wind profile
+#'
+#' @param base.params 
+#' @param slices Number of horizontal slices to use in calculation
+#'
+#' @return
+#' @export
+#'
+
+profileDet <- function(base.params, slices = 10)
+{
+  
+  # Collect slice details
+  top <- max(species(base.params)$hp)
+  slice <- top/slices
+  yu <- top
+  
+  # Loop through slices
+  l <- data.frame("l"=0)
+  gam <- data.frame("gam"=0)
+  W <- data.frame("w"=1)
+  w <- 1
+  n <- 1
+  
+  while(n <= slices) {
+    yl <- yu-slice
+    LAIslice <- LAIcomm(base.params = base.params, yl=yl, yu = yu)
+    g <- 1.785*LAIslice^0.372
+    w <- w*exp(g*((yl/yu)-1))
+    l <- rbind(l,LAIslice)
+    gam <- rbind(gam,g)
+    W <- rbind(W,w)
+    yu <- yl
+    n = n+1
+  }
+  
+  # Construct table
+  l$Slice <- seq.int(nrow(l))
+  gam$Slice <- seq.int(nrow(gam))
+  W$Slice <- seq.int(nrow(W))
+  wind <- left_join(l,gam)%>%
+    left_join(W)%>%
+    mutate(z = 1-((Slice-1)*(1/slices)),
+           hm = z*top)
+  return(wind)
+}
+
+
+#' Finds the Wind Reduction Factor for a param file
+#'
+#' @param base.params 
+#' @param test Height at which the WRF is calculated (m)
+#'
+#' @return
+#' @export
+#'
+
+windReduction <- function(base.params, test = 1.2)
+{
+  s <- strata(base.params)
+  t <- max(s$top)
+  slice <- round(t/test)
+  det <- profileDet(base.params, slices = slice)
+  w <- det[nrow(det)-1,]
+  wrf <- as.numeric(round(1/w$w[1], 1))
+  return(wrf)
+}

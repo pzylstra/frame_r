@@ -13,7 +13,7 @@ litter(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = 10)
 
 \item{max}{Maximum weight (t/ha)}
 
-\item{rate}{Rate of growth for a negative exponential function}
+\item{rate}{Growth rate for a negative exponential function}
 
 \item{a}{Parameter in the Burr equation}
 
@@ -22,7 +22,7 @@ litter(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = 10)
 \item{age}{The number of years since last fire}
 }
 \value{
-dataframe
+value
 }
 \description{
 Models the weight of surface litter from time since fire 

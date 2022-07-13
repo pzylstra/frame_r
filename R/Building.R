@@ -68,6 +68,15 @@ siteBuilder <- function(site, Structure, a)
 
 
 
+#' Builds the dataframe strata.meta
+#'
+#' @param Structure 
+#' @param Flora 
+#' @param a 
+#'
+#' @return
+#'
+
 strataBuilder <- function(Structure, Flora, a)
 {
   # Collect subsets for record
@@ -127,6 +136,14 @@ strataBuilder <- function(Structure, Flora, a)
 }
 
 
+
+#' Builds the dataframe species.values
+#'
+#' @param Flora 
+#' @param site 
+#' @param a 
+#'
+#' @return
 
 speciesBuilder <- function(Flora, site, a)
 {
@@ -203,6 +220,8 @@ unitBuilder <- function(Flora, a)
 {
   # Collect subsets for site
   fl <- Flora[Flora$record==a,]
+  fl <- fl[fl$species != "Litter",] %>%
+    arrange(stratum)
   
   # CREATE species.units
   ro <- as.numeric(nrow(fl))
@@ -584,6 +603,9 @@ buildSpeciesValues <- function(Flora, default.species.params, a)
 buildParams <- function(Structure, Flora, default.species.params, a,
                         fLine = 100, slope = 0, temp = 30, dfmc = 0.1, wind = 10)
 {
+  # Remove empty species, leaving litter
+  Flora <- Flora[which(Flora$species == "Litter" | Flora$comp != 0), ]
+  
   # Construct component tables
   site.meta <- buildSiteMeta(Structure, Flora, a, fLine = fLine, slope = slope,
                              temp = temp, dfmc = dfmc, wind = wind)

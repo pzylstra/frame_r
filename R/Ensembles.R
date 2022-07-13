@@ -294,53 +294,59 @@ fireSet <- function(site, Structure, Flora, traits = default.species.params)
 plantVar <- function (base.params, Strata, Species,
                       l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, Hs = 0.2, Hr = 1.41)
 {
-  tbl <- base.params
-  
-  # 1. VARY LEAF TRAITS
-  tbl <- ffm_param_variance(tbl, max.prop = l, method = "uniform")
-  
-  # 2. VARY STRUCTURE
-  SpeciesN <- 1
-  SpeciesP <- 1
-  StN <- as.numeric(count(Strata))
-  for (si in 1:StN) {
+  test <- FALSE
+  while (test == FALSE) {
+    tbl <- base.params
     
-    # 2a. Determine which strata are present
-    if (runif(1) <= Strata$cover[si]) {
+    # 1. VARY LEAF TRAITS
+    tbl <- ffm_param_variance(tbl, max.prop = l, method = "uniform")
+    
+    # 2. VARY STRUCTURE
+    SpeciesN <- 1
+    SpeciesP <- 1
+    StN <- as.numeric(count(Strata))
+    for (si in 1:StN) {
       
-      # 2b. Vary moisture in species present
-      for (t in 1:Strata$speciesN[si]) {
-        Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
-                             sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] *
-                               Mr)
-        tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
-                                             "liveLeafMoisture", Mrand)
-        (SpeciesN = SpeciesN + 1)
+      # 2a. Determine which strata are present
+      if (runif(1) <= Strata$cover[si]) {
+        
+        # 2b. Vary moisture in species present
+        for (t in 1:Strata$speciesN[si]) {
+          Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
+                               sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] *
+                                 Mr)
+          tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
+                                               "liveLeafMoisture", Mrand)
+          (SpeciesN = SpeciesN + 1)
+        }
+      }
+      
+      # 2c. Mark species for removal if stratum is not present
+      else {
+        for (f in 1:Strata$speciesN[si]) {
+          tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
+                                               "liveLeafMoisture", 10000)
+          SpeciesN = SpeciesN + 1
+        }
+      }
+      
+      # 2d. Vary plant crown dimensions
+      for (p in 1:Strata$speciesN[si]) {
+        peak <- rtnorm(n = 1, mean = Species$hp[SpeciesP],
+                       sd = Hs, a = Species$hp[SpeciesP]/Hr, b = Species$hp[SpeciesP] *
+                         Hr)
+        tbl <- tbl %>%
+          ffm_set_species_param(si, SpeciesP, "hp", peak) %>%
+          ffm_set_species_param(si, SpeciesP, "ht", peak * Species$htR[SpeciesP]) %>%
+          ffm_set_species_param(si, SpeciesP, "he", peak * Species$heR[SpeciesP]) %>%
+          ffm_set_species_param(si, SpeciesP, "hc", peak *Species$hcR[SpeciesP]) %>%
+          ffm_set_species_param(si, SpeciesP, "w", peak * Species$wR[SpeciesP])
+        SpeciesP = SpeciesP + 1
       }
     }
-    
-    # 2c. Mark species for removal if stratum is not present
-    else {
-      for (f in 1:Strata$speciesN[si]) {
-        tbl <- tbl %>% ffm_set_species_param(si, SpeciesN,
-                                             "liveLeafMoisture", 10000)
-        SpeciesN = SpeciesN + 1
-      }
-    }
-    
-    # 2d. Vary plant crown dimensions
-    for (p in 1:Strata$speciesN[si]) {
-      peak <- rtnorm(n = 1, mean = Species$hp[SpeciesP],
-                     sd = Hs, a = Species$hp[SpeciesP]/Hr, b = Species$hp[SpeciesP] *
-                       Hr)
-      tbl <- tbl %>%
-        ffm_set_species_param(si, SpeciesP, "hp", peak) %>%
-        ffm_set_species_param(si, SpeciesP, "ht", peak * Species$htR[SpeciesP]) %>%
-        ffm_set_species_param(si, SpeciesP, "he", peak * Species$heR[SpeciesP]) %>%
-        ffm_set_species_param(si, SpeciesP, "hc", peak *Species$hcR[SpeciesP]) %>%
-        ffm_set_species_param(si, SpeciesP, "w", peak * Species$wR[SpeciesP])
-      SpeciesP = SpeciesP + 1
-    }
+    x <- tbl$species[tbl$value==10000]
+    x <- x[!is.na(x)]
+    test <- length(x) < max(Species$sp)
   }
   
   # 2e. Remove species and strata not present
@@ -381,6 +387,8 @@ plantVar <- function (base.params, Strata, Species,
     tbl$value[tbl$stratum==s[1]&tbl$param=="levelName"] = "near surface"
     tbl$value[tbl$stratum==max(s)&tbl$param=="levelName"] = "canopy"
   }
+  # Remove marked species and tidy params file
+  tbl <- speciesDrop(tbl)
   return(tbl)
 }
 
@@ -458,12 +466,15 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
       SpeciesP = SpeciesP + 1
     }
   }
+  # Remove marked species and tidy params file
+  tbl <- speciesDrop(tbl)
   
   return(tbl)
 }
 
 
 #' Randomly modifies plant traits within defined ranges for non-deterministic predictions
+#' 
 #' Differs from plantVarS by using FRaME-updated tables
 #' 
 #' @param base.params Parameter input table
@@ -502,26 +513,28 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
   # Loop through plant strata
   
   StN <- as.numeric(count(Strata))
+  dCount <- 0
   
   for (str in 1:StN) {
     
     # Vary leaf moisture to randomly place points in the community and decide which plants will be present.
-    # Where the random number is > stratum cover, all species are made too moist to burn and excluded from modelling.
+    # Where the random number is > stratum cover, all species are marked with liveLeafMoisture == 100.
     # Otherwise, species are varied by Ms & Mr, and multiplied by Pm
     
-    if (runif(1) <= Strata$cover[str]) {
+    if (runif(1) <= Strata$cover[str] | dCount == StN - 2) {
       for (t in 1:Strata$speciesN[str]) {
         Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
                              sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] * Mr)
         tbl <- ffm_set_species_param(tbl, str, SpeciesN,
                                      "liveLeafMoisture", Mrand)
-        (SpeciesN = SpeciesN + 1)
+        (SpeciesN <- SpeciesN + 1)
       }
     } else {
+      dCount <- dCount+1
       for (f in 1:Strata$speciesN[str]) {
         tbl <- tbl %>% ffm_set_species_param(str, SpeciesN,
                                              "liveLeafMoisture", 100)
-        SpeciesN = SpeciesN + 1
+        SpeciesN <- SpeciesN + 1
       }
     }
     
@@ -540,6 +553,9 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
       SpeciesP = SpeciesP + 1
     }
   }
+  
+  # Remove marked species and tidy params file
+  tbl <- speciesDrop(tbl)
   
   return(tbl)
 }
@@ -606,6 +622,8 @@ specPoint <- function(base.params, Structure, a)
   Species <- Species%>%
     mutate(species = as.character(sp))
   Species[,"new"] <- cumsum(Species$include)
+  base.params <- base.params %>%
+    mutate(species = as.character(species))
   
   param <- left_join(base.params, Species, by="species")%>%
     subset(include != 0 | is.na(include))%>%
@@ -760,6 +778,78 @@ heightSD, heightRange, leafVar, updateProgress = NULL)
   }
 }
 
+#' Removes identified species from a param file and tidies the file
+#' 
+#' Species where liveLeafMoisture == 100 are removed, then
+#' empty strata removed and species & strata renumbered consecutively
+#' 
+#' @param base.params The params file to be adjusted
+
+speciesDrop <- function(base.params) {
+  
+  # 1. List table components
+  cutList <- as.vector(base.params[base.params$param == "liveLeafMoisture" & base.params$value == 100,])$species
+  
+  if (length(cutList) > 0) {
+    
+    end <- base.params[is.na(base.params$stratum),]
+    strDesc <- base.params[is.na(base.params$species) & !is.na(base.params$stratum),]
+    
+    # 2. Remove identified species
+    for (sp in cutList) {
+      base.params <- base.params[which(base.params$species != sp),]
+    }
+    
+    # 3. Rebuild table
+    stList <- unique(base.params$stratum[!is.na(base.params$stratum)])
+    for (st in stList) {
+      Rest <- strDesc[which(strDesc$stratum == st),]
+      base.params <- rbind(base.params, Rest)
+    }
+    
+    # Renumber strata
+    stNew <- as.data.frame(stList)
+    if (nrow(stNew) > 0) {
+      stNew$new = 1:nrow(stNew)
+      base.params <- base.params %>%
+        left_join(stNew, by = c("stratum" = "stList")) %>%
+        mutate(stratum = new) %>%
+        select(!"new")
+    }
+    
+    # Renumber species
+    spList <- unique(base.params$species)
+    spList <- spList[!is.na(spList)]
+    spNew <- as.data.frame(spList)
+    if (nrow(spNew) > 0) {
+      spNew$new = 1:nrow(spNew)
+      base.params <- base.params %>%
+        left_join(spNew, by = c("species" = "spList")) %>%
+        mutate(species = new) %>%
+        select(!"new")
+    }
+    
+    # Set NS & C
+    M <- as.integer(max(base.params$stratum, na.rm = TRUE))
+    base.params[which(base.params$stratum == M & base.params$param == "levelName"),]$value <- "canopy"
+    
+    if (nrow(stNew) > 1) {
+      m <- as.integer(min(base.params$stratum, na.rm = TRUE))
+      base.params[which(base.params$stratum == m & base.params$param == "levelName"),]$value <- "near surface"
+    }
+    
+    # Restore site data and reorder
+    base.params <- rbind(base.params, end)%>%
+      arrange(as.integer(stratum), as.integer(species)) %>%
+      
+      mutate_all(dplyr::funs(as.character))
+  }
+  
+  return(base.params)
+}
+
+
+
 #' Models probabilistic fire behaviour
 #' @param base.params Input parameter file
 #' @param db.path Name of the exported database
@@ -856,6 +946,114 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
     print("Probabilistic analysis requires a minimum of 3 replicates")
   }
 }
+
+
+#' Models probabilistic fire behaviour using species-specific variability from FRaME tables
+#' @param base.params Input parameter file
+#' @param db.path Name of the exported database
+#' @param jitters Number of repetitions for each row in the weather table
+#' @param slope Mean slope (deg)
+#' @param slopeSD Standard deviation of slope
+#' @param slopeRange Truncates variability by +/- mean * range
+#' @param temp Mean ambient temperature (deg.C)
+#' @param tempSD Standard deviation of temp
+#' @param tempRange Truncates variability by +/- mean * range
+#' @param DFMC Mean DFMC (Percent ODW)
+#' @param DFMCSD Standard deviation of DFMC
+#' @param DFMCRange Truncates variability by +/- mean * range
+#' @param wind Mean wind velocity (km/h)
+#' @param windSD Standard deviation of wind velocity
+#' @param windRange Truncates variability by +/- mean * range
+#' @param l Variation around input leaf dimensions
+#' @param Ms Standard deviation of LFMC
+#' @param Pm Multiplier of mean LFMC
+#' @param Mr Truncates LFMC variability by +/- Mr * LFMC
+#' @param Structure A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. Acceptable values
+#' are t, f, or blank, where the outcome will be decided by the relative stratum heights.
+#' nsR, eR, mR, cR - maximum species richness recorded for each stratum
+#' @param Flora A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' species - the name of the species, which will call trait data from 'default.species.params'
+#' moisture - the moisture content of the species in whole numbers (eg 1 for 100% ODW)
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - % composition or count of that species in the stratum. If absent, all species will be considered equally
+#' hc, he, ht, hp & w - canopy dimensions for that species (m)
+#' clump - mean ratio of clump diameter to crown diameter
+#' openness - proportion of plant canopy occupied by gaps between clumps
+#' @param updateProgress Progress bar for use in the dashboard
+#' @return dataframe
+#' @export
+#' @examples
+#' 
+#' ADD EXAMPLE
+
+
+probFire_Frame <- function(base.params, Structure, Flora, a, db.path = "out_mc.db",
+                           slope, slopeSD, slopeRange, temp, tempSD, tempRange,
+                           DFMC, DFMCSD, DFMCRange, wind, windSD, windRange, 
+                           jitters = 50, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, 
+                           updateProgress = NULL) {
+  
+  pbar <- txtProgressBar(max = jitters, style = 3)
+  
+  #Set input limits
+  DFMCRange <- pmax(1.0001, DFMCRange)
+  
+  if (jitters > 2) {
+    for (j in 1:jitters) {
+      db.recreate <- j == 1
+      # Modify environmental parameters
+      s <- rtnorm(n = 1, mean = slope, sd = slopeSD,
+                  a = slope-(slopeRange/2), b = slope+(slopeRange/2))
+      t <- rtnorm(n = 1, mean = temp, sd = tempSD,
+                  a = temp-(tempRange/2), b = temp+(tempRange/2)) 
+      d <- rtnorm(n = 1, mean = DFMC, sd = DFMCSD,
+                  a = pmax(0.02, DFMC-(DFMCRange/2)), b = pmin(0.199,DFMC+(DFMCRange/2))) 
+      w <- rtnorm(n = 1, mean = wind, sd = windSD,
+                  a = wind-(windRange/2), b = wind+(windRange/2))   
+      
+      base.params <- base.params %>%
+        ffm_set_site_param("slope", s, "deg") %>%
+        ffm_set_site_param("temperature", t) %>%
+        ffm_set_site_param("deadFuelMoistureProp", d) %>%
+        ffm_set_site_param("windSpeed", w)
+      
+      # Select species for a random point in the forest and import the weather parameters
+      tbl <- specPoint(base.params, Structure, a) %>%
+        ffm_set_site_param("windSpeed", w, "km/h") %>%
+        ffm_set_site_param("temperature", t, "degc") %>%
+        ffm_set_site_param("deadFuelMoistureProp", d)
+      
+      Strata <- strata(tbl)
+      Species <- species(tbl)
+      
+      # Recreate database on first run, then add following runs to this
+      db.recreate <- j == 1
+      
+      # Choose random point and vary plant traits for each species within their range
+      TBL <- plantVarFrame(tbl, Strata, Species, Flora, a, l = l,
+                           Ms = Ms, Pm = Pm, Mr = Mr)
+      # Run the model
+      ffm_run(TBL, db.path, db.recreate = db.recreate)
+      
+      Sys.sleep(0.25)
+      ####UpdateProgress
+      if (is.function(updateProgress)) {
+        text <- paste0("Number of remaining steps is ",max(weather$tm) - j )
+        updateProgress(detail = text)
+      }
+      setTxtProgressBar(pbar, j)
+    }
+  }  else  {
+    print("Probabilistic analysis requires a minimum of 3 replicates")
+  }
+}
+
 
 
 #' Models fire behaviour across ranged variables

@@ -12,7 +12,9 @@ threat(
   Height = 10,
   var = 10,
   Pressure = 1013.25,
-  Altitude = 0
+  Altitude = 0,
+  residence = 30,
+  surfDecl = 2
 )
 }
 \arguments{
@@ -24,11 +26,15 @@ threat(
 
 \item{Height}{The vertical distance in metres from the flame origin to the point}
 
-\item{var}{The angle in degrees that the plume spreads above/below a central vector;defaults to 10}
+\item{var}{The angle in degrees that the plume spreads above/below a central vector}
 
 \item{Pressure}{Sea level atmospheric pressure (hPa)}
 
 \item{Altitude}{Height above sea level (m)}
+
+\item{residence}{Surface flame residence time}
+
+\item{surfDecl}{Exponent describing the rate of post-front flame decay in surface litter}
 }
 \value{
 dataframe

@@ -4,7 +4,7 @@
 \alias{flora}
 \title{Scorch height using an isotherm}
 \usage{
-flora(Surf, Plant, Param = Param, Test = 70)
+flora(Surf, Plant, Param = Param, targSp = "a", Test = 70)
 }
 \arguments{
 \item{Surf}{The dataframe produced by the function 'summary',}
@@ -13,6 +13,8 @@ flora(Surf, Plant, Param = Param, Test = 70)
 
 \item{Param}{A parameter dataframe used for FRaME,
 such as produced using readLegacyParamFile}
+
+\item{targSp}{Name of species to be watched for scorch}
 
 \item{Test}{The temperature of the flora, default 70 degC}
 }

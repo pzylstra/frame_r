@@ -11,7 +11,8 @@ frameStratify(
   base = "base",
   top = "top",
   he = "he",
-  ht = "ht"
+  ht = "ht",
+  mStrat = 4
 )
 }
 \arguments{
