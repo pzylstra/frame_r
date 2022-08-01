@@ -139,20 +139,20 @@ buildFloraP <- function(comm, tr, age, rec = 1, moist = 1, sLitter = 15, diamete
 #' @param comm The output from stratify_community
 #' @param propDead Proportion of foliage dead
 #' @param leafForm Flat or Round
-#' @param lwRatio Ratio of leaf length to width
 #' @param leafA Area of a leaf in m2
 #' @param ignitionTemp Temperature of the endotherm (degC)
 #' @param moist Leaf moisture (ratio moisture weight to dry weight)
 #' @param G.C_rat Ratio of gaps to clumps of leaves
 #' @param C.C_rat Ratio of clump to canopy size
+#' @param lwRat 
+#' @param ram 
 #' @param deltaL Leaf density (g/cm3)
-#' @param lma List of LMA values per species (kgm−2)
-#' 
+#'
 #' @export
 #'
 
 buildTraitsP <- function(comm, propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
-                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, lma) {
+                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46) {
   
   # Summarise strata
   data <- comm %>%
@@ -301,13 +301,9 @@ collectTraitsP <- function(comm, tr,
 #' @param rec Number of the record
 #' @param propSamp Proportion of cohorts to test (0-1)
 #' @param transects Number of repeats for each sample
-#' @param openness Ratio of gaps to clumps of leaves
-#' @param clump Ratio of clump frontal area diameter to crown frontal area diameter
-#' @param litter Weight of surface litter (t/ha)
 #' @param diameter Mean diameter of surface litter pieces (m)
 #' @param propDead Proportion of foliage dead
 #' @param leafForm Flat or Round
-#' @param lwRatio Ratio of leaf length to width
 #' @param leafA Area of a leaf in m2
 #' @param ignitionTemp Temperature of the endotherm (degC)
 #' @param moist Leaf moisture (ratio moisture weight to dry weight)
@@ -317,9 +313,10 @@ collectTraitsP <- function(comm, tr,
 #' @param map Mean annual precipitation (mm)
 #' @param mat Mean annual temperature (degC)
 #' @param deltaL Leaf density (g/cm3)
-#' @param lma List of LMA values per species (kgm−2)
 #' @param sLitter Weight of surface litter (t/ha)
 #' @param diameter Mean diameter of surface litter pieces (m)
+#' @param lwRat 
+#' @param ram 
 #'
 #' @export
 #'
@@ -327,12 +324,11 @@ collectTraitsP <- function(comm, tr,
 frameTables <- function(dat, tr, age, rec = 1, propSamp = 0.5, transects = 10, propDead = 0, 
                         leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, 
-                        deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma,
+                        deltaL = 0.46, lat = -35, map = 1000, mat = 20,
                         sLitter = 15, diameter = 0.005) {
   
-  comm <- plant:::stratify_community(dat, tr, age, lat, map, mat, propSamp, transects)
-  Structure <- buildStructureP(comm, age, rec)
-#  comm <- frame:::updateSpecies(comm, tr)
+  comm <- suppressMessages(stratify_community(dat, tr, age, lat, map, mat, propSamp, transects))
+  Structure <- suppressMessages(buildStructureP(comm, age, rec))
   Flora <- buildFloraP(comm, tr, age, rec, moist, sLitter, diameter)
   Traits <- collectTraitsP(comm, tr)
   
@@ -361,7 +357,8 @@ updateSpecies <- function(comm, tr){
 #'
 #' @param dat The results of run_scm_collect
 #' @param tr An optional table of input traits
-#' @param interval List of time intervals for sampling, length 2. 1st value for 1st 30 years.
+#' @param interval List of sampling intervals, length 3.
+#' @param breaks List of time periods for each sampling interval, length 3.
 #' @param propSamp Proportion of cohorts to test (0-1)
 #' @param transects Number of repeats for each sample
 #' @param moist Leaf moisture (ratio moisture weight to dry weight)
@@ -377,27 +374,27 @@ updateSpecies <- function(comm, tr){
 #' @param map Mean annual precipitation (mm)
 #' @param mat Mean annual temperature (degC)
 #' @param deltaL Leaf density (g/cm3)
-#' @param lma List of LMA values per species (kgm−2)
 #' @param diameter Mean diameter of surface litter pieces (m)
-#' @param upper 
 #' @param lwRat 
 #' @param ram 
 #'
 #' @export
 
-frameDynTab <- function(dat, tr, upper, interval = c(2,5), propSamp = 0.5, transects = 10, propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
-                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, lat = -35, map = 1000, mat = 20, lma, diameter = 0.005) {
+frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), propSamp = 1, transects = 1, propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
+                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, lat = -35, map = 1000, mat = 20, diameter = 0.005) {
   Flora <- data.frame()
   Structure <- data.frame()
   Tr <- data.frame()
-  stepsA <- seq(interval[1],30, by = interval[1])
-  stepsB <- seq(30+interval[2],100, by=interval[2])
+  stepsA <- seq(interval[1],breaks[1], by = interval[1])
+  stepsB <- seq(breaks[1]+interval[2],breaks[2], by=interval[2])
+  stepsC <- seq(breaks[2]+interval[3],breaks[3], by=interval[3])
   steps <- append(stepsA,stepsB)
+  steps <- append(steps,stepsC)
   
   # Uses partial plant outputs for litter
   result <-  dat%>% 
     plant::tidy_patch() %>% 
-    plant:::FF16_expand_state() 
+    FF16_expand_state() 
   tab <- result$species%>%
     drop_na()
   mHt <- max(tab$height)
@@ -407,7 +404,7 @@ frameDynTab <- function(dat, tr, upper, interval = c(2,5), propSamp = 0.5, trans
   for (age in steps) {
     sLitter <- frame::litter(negEx = 1, max, rate, a = 1, b = 1, age)
     tabs <- frameTables(dat, tr, age, rec, propSamp, transects, propDead, leafForm, lwRat, leafA, ram,
-                        ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, lat, map, mat, lma, sLitter, diameter)
+                        ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, lat, map, mat, sLitter, diameter)
     Flora <- rbind(Flora,tabs[[1]])
     Structure <- rbind(Structure,tabs[[2]])
     Tr <- rbind(Tr,tabs[[3]])
