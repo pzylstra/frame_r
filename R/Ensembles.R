@@ -1381,3 +1381,46 @@ weatherSet_Frame <- function(base.params, weather, Structure, Flora, a, db.path 
   
   cat("Finished.  Output written to", db.path)
 }
+
+
+#' Modifies inputs until model runs
+#'
+#' @param base.params 
+#' @param db.path 
+#' @param db.recreate 
+#' @param testN Number of replicates to allow
+#' @param Strata 
+#' @param Species 
+#' @param Flora 
+#' @param a 
+#' @param l 
+#' @param Ms 
+#' @param Pm 
+#' @param Mr 
+#' @param Structure 
+#'
+#' @return \code{TRUE} if the run completed and results were written to
+#'   the output database successfully; \code{FALSE} otherwise.
+#' @export
+#'
+
+ffm_run_robust <- function(base.params, db.path, db.recreate = TRUE, testN = 5,
+                           Strata, Species, Flora, Structure, a = 1, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5){
+  rep<-1
+  while (rep < testN) {
+    if (!ffm_run(base.params, db.path = db.path, db.recreate = db.recreate)) {
+      base.params <- frame::specPoint(base.params, Structure, a)
+      base.params <- frame::plantVarFrame(base.params, Strata, Species, Flora, a, l,
+                                          Ms = Ms, Pm = Pm, Mr = Mr)
+      rep <- rep+1
+      if (rep <- testN) {
+        print("Parameter file is faulty")
+        test <- FALSE
+      }
+    } else {
+      rep <- testN
+      test <- TRUE
+    }
+  }
+  return(test)
+}
