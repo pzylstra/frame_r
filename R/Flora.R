@@ -1008,7 +1008,7 @@ girdle <- function(Surf, Plant, Height = 0.1, woodDensity = 700, barkDensity = 5
 #' @param surfDecl 
 #' @param t 
 #'
-#' @return
+#' @return value
 #' @export
 #'
 
@@ -1033,7 +1033,7 @@ bole <- function(lengthSurface = 2, residence = 300, depth = 0.05, h = 0.1, surf
 #' @param rhoW 
 #' @param kAir 
 #'
-#' @return
+#' @return value
 #' @export
 #'
 
@@ -1112,7 +1112,7 @@ plantFlame <- function(paths, Stratum, Species, repId) {
 #' @param yu Height at the top of the slice (m)
 #' @param yl Height at the base of the slice (m)
 #'
-#' @return
+#' @return value
 #' @export
 #'
 
@@ -1196,7 +1196,7 @@ LAIp <- function(base.params, sp = 1, yu = 100, yl = 0)
 #' @param yu Top of slice (m)
 #' @param yl Base of slice (m)
 #'
-#' @return
+#' @return value
 #' @export
 #'
 
@@ -1253,7 +1253,7 @@ LAIcomm <- function(base.params, yu = 100, yl = 0)
 #' @param base.params 
 #' @param slices Number of horizontal slices to use in calculation
 #'
-#' @return
+#' @return dataframe
 #' @export
 #'
 
@@ -1301,14 +1301,14 @@ profileDet <- function(base.params, slices = 10)
 #' @param base.params 
 #' @param test Height at which the WRF is calculated (m)
 #'
-#' @return
+#' @return value
 #' @export
 #'
 
 windReduction <- function(base.params, test = 1.2)
 {
   s <- strata(base.params)
-  t <- max(s$top)
+  t <- max(s$top, na.rm = TRUE)
   slice <- round(t/test)
   det <- profileDet(base.params, slices = slice)
   w <- det[nrow(det)-1,]
