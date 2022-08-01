@@ -10,6 +10,7 @@ riskDynamics(
   tr,
   clim,
   lightning = 0.05,
+  fires = 5,
   lat = -42.48,
   Altitude = 200,
   slopeM = 6.7,
@@ -24,7 +25,6 @@ riskDynamics(
   m = 0.15,
   rholitter = 550,
   hourStep = 3,
-  studyArea = 100,
   l = 0.1,
   Ms = 0.01,
   Pm = 1,
@@ -40,6 +40,7 @@ riskDynamics(
   resBark = 0,
   bMoisture = 0.5,
   vAir500 = 2,
+  testN = 5,
   distance = 2,
   trail = 1000,
   var = 10,
@@ -57,6 +58,8 @@ riskDynamics(
 \item{clim}{Formatted AM & PM weather conditions over a time sequence}
 
 \item{lightning}{Number of lightning strikes per km2}
+
+\item{fires}{Number of fires to model per age}
 
 \item{lat}{Latitude (degrees)}
 
@@ -85,8 +88,6 @@ riskDynamics(
 \item{rholitter}{}
 
 \item{hourStep}{}
-
-\item{studyArea}{}
 
 \item{l}{}
 
@@ -118,6 +119,8 @@ riskDynamics(
 
 \item{vAir500}{}
 
+\item{testN}{}
+
 \item{distance}{}
 
 \item{trail}{}
@@ -131,9 +134,13 @@ riskDynamics(
 \item{minR}{}
 
 \item{freeCores}{}
+
+\item{woodDensity}{}
+
+\item{targSp}{}
 }
 \value{
-
+list
 }
 \description{
 Calculates forest risk parameters over a growth series

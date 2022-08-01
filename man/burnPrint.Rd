@@ -43,8 +43,9 @@ burnPrint(
   Altitude = 200,
   necT = 60,
   surfDecl = 10,
-  minR = 0.001,
-  targSp = "a"
+  minR = 1,
+  targSp = "a",
+  testN = 5
 )
 }
 \arguments{
@@ -124,9 +125,11 @@ burnPrint(
 
 \item{surfDecl}{}
 
-\item{minR}{}
+\item{minR}{Minimum ROS (m/h)}
 
 \item{targSp}{}
+
+\item{testN}{}
 }
 \value{
 list

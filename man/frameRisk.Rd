@@ -11,10 +11,10 @@ frameRisk(
   a = a,
   weather,
   lightning = 0.05,
+  fires = 5,
   smoulder = 24,
   Extinction = 0.15,
   hourStep = 3,
-  studyArea = 100,
   slopeM = 6.7,
   slopeSD = 4.9,
   slopeLength = 391,
@@ -43,8 +43,9 @@ frameRisk(
   Altitude = 200,
   necT = 60,
   surfDecl = 10,
-  minR = 0.001,
-  targSp = "a"
+  minR = 1,
+  targSp = "a",
+  testN = 5
 )
 }
 \arguments{
@@ -60,13 +61,13 @@ frameRisk(
 
 \item{lightning}{}
 
+\item{fires}{Number of fires to model for each age}
+
 \item{smoulder}{}
 
 \item{Extinction}{}
 
 \item{hourStep}{}
-
-\item{studyArea}{}
 
 \item{slopeM}{}
 
@@ -124,12 +125,14 @@ frameRisk(
 
 \item{surfDecl}{}
 
-\item{minR}{}
+\item{minR}{Minimum ROS (m/h)}
 
 \item{targSp}{}
+
+\item{testN}{}
 }
 \value{
-
+list
 }
 \description{
 Find likelihood and consequence of death for canopy trees

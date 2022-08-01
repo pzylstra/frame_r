@@ -25,7 +25,6 @@ frameTables(
   lat = -35,
   map = 1000,
   mat = 20,
-  lma,
   sLitter = 15,
   diameter = 0.005
 )
@@ -47,7 +46,11 @@ frameTables(
 
 \item{leafForm}{Flat or Round}
 
+\item{lwRat}{}
+
 \item{leafA}{Area of a leaf in m2}
+
+\item{ram}{}
 
 \item{ignitionTemp}{Temperature of the endotherm (degC)}
 
@@ -65,19 +68,9 @@ frameTables(
 
 \item{mat}{Mean annual temperature (degC)}
 
-\item{lma}{List of LMA values per species (kgm−2)}
-
 \item{sLitter}{Weight of surface litter (t/ha)}
 
 \item{diameter}{Mean diameter of surface litter pieces (m)}
-
-\item{openness}{Ratio of gaps to clumps of leaves}
-
-\item{clump}{Ratio of clump frontal area diameter to crown frontal area diameter}
-
-\item{litter}{Weight of surface litter (t/ha)}
-
-\item{lwRatio}{Ratio of leaf length to width}
 }
 \description{
 Constructs parameter files for FRaME using 

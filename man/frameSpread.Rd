@@ -11,6 +11,7 @@ frameSpread(
   igLoc = -1,
   t = 1,
   hourStep = 3,
+  strikeTime = 1,
   Extinction = 0.15,
   fReach = 0,
   fEdge = 1,
@@ -41,8 +42,17 @@ frameSpread(
   vAir500 = 2,
   necT = 60,
   surfDecl = 10,
-  minR = 0.001,
-  targSp = "c"
+  minR = 1,
+  targSp = "c",
+  testN = 5,
+  Strata,
+  Species,
+  Flora,
+  Structure,
+  l = 0.1,
+  Ms = 0.01,
+  Pm = 1,
+  Mr = 1.5
 )
 }
 \arguments{
@@ -57,6 +67,8 @@ frameSpread(
 \item{t}{Record number in the weather set for which tio model}
 
 \item{hourStep}{Number of hours for which to model}
+
+\item{strikeTime}{}
 
 \item{Extinction}{Extinction litter moisture content (Percent ODW)}
 
@@ -121,6 +133,24 @@ frameSpread(
 \item{minR}{}
 
 \item{targSp}{}
+
+\item{testN}{}
+
+\item{Strata}{}
+
+\item{Species}{}
+
+\item{Flora}{}
+
+\item{Structure}{}
+
+\item{l}{}
+
+\item{Ms}{}
+
+\item{Pm}{}
+
+\item{Mr}{}
 }
 \value{
 dataframe

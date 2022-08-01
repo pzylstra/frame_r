@@ -8,10 +8,10 @@ built from plant modelling}
 frameDynTab(
   dat,
   tr,
-  upper,
-  interval = c(2, 5),
-  propSamp = 0.5,
-  transects = 10,
+  breaks = c(20, 50, 200),
+  interval = c(2, 5, 10),
+  propSamp = 1,
+  transects = 1,
   propDead = 0,
   leafForm = "Flat",
   lwRat = 3,
@@ -25,7 +25,6 @@ frameDynTab(
   lat = -35,
   map = 1000,
   mat = 20,
-  lma,
   diameter = 0.005
 )
 }
@@ -34,9 +33,9 @@ frameDynTab(
 
 \item{tr}{An optional table of input traits}
 
-\item{upper}{}
+\item{breaks}{List of time periods for each sampling interval, length 3.}
 
-\item{interval}{List of time intervals for sampling, length 2. 1st value for 1st 30 years.}
+\item{interval}{List of sampling intervals, length 3.}
 
 \item{propSamp}{Proportion of cohorts to test (0-1)}
 
@@ -67,8 +66,6 @@ frameDynTab(
 \item{map}{Mean annual precipitation (mm)}
 
 \item{mat}{Mean annual temperature (degC)}
-
-\item{lma}{List of LMA values per species (kgm−2)}
 
 \item{diameter}{Mean diameter of surface litter pieces (m)}
 }
