@@ -16,7 +16,7 @@ LAIp(base.params, sp = 1, yu = 100, yl = 0)
 \item{yl}{Height at the base of the slice (m)}
 }
 \value{
-
+value
 }
 \description{
 Calculates LAI for a slice of a plant

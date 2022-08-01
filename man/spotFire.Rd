@@ -22,7 +22,7 @@ spotFire(flameHeight, slope, FPC, windExposure, vAir, vAir500 = 2, fireArea)
 \item{fireArea}{Area of active fire (ha)}
 }
 \value{
-
+value
 }
 \description{
 Calculates spotting distance

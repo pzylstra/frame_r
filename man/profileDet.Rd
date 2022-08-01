@@ -12,7 +12,7 @@ profileDet(base.params, slices = 10)
 \item{slices}{Number of horizontal slices to use in calculation}
 }
 \value{
-
+dataframe
 }
 \description{
 Calculates a vertical wind profile

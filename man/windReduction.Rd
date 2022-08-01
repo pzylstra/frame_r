@@ -12,7 +12,7 @@ windReduction(base.params, test = 1.2)
 \item{test}{Height at which the WRF is calculated (m)}
 }
 \value{
-
+value
 }
 \description{
 Finds the Wind Reduction Factor for a param file

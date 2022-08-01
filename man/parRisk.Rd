@@ -10,7 +10,7 @@ parRisk(a)
 \item{a}{}
 }
 \value{
-
+list
 }
 \description{
 Internal function for riskDynamics

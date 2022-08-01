@@ -74,7 +74,7 @@ siteBuilder <- function(site, Structure, a)
 #' @param Flora 
 #' @param a 
 #'
-#' @return
+#' @return dataframe
 #'
 
 strataBuilder <- function(Structure, Flora, a)
@@ -143,7 +143,7 @@ strataBuilder <- function(Structure, Flora, a)
 #' @param site 
 #' @param a 
 #'
-#' @return
+#' @return dataframe
 
 speciesBuilder <- function(Flora, site, a)
 {

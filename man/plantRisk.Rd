@@ -60,7 +60,7 @@ plantRisk(
 \item{fireN}{}
 }
 \value{
-
+list
 }
 \description{
 Calculates risk (likelihood & consequence) for plants in a given climate & terrain

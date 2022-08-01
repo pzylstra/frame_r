@@ -14,7 +14,7 @@ ignitions(weather, smoulder = 24, Extinction = 0.15)
 \item{Extinction}{Extinction moisture threshold}
 }
 \value{
-
+dataframe
 }
 \description{
 Finds randomised lightning ignition time and location
