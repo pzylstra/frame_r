@@ -1,4 +1,4 @@
-#' Scorch height using an isotherm
+#' Scorch height using an isotherm, including target species
 #'
 #' Calculates the height to which vegetation will be consumed,
 #' and the height to a designated temperature isotherm reached for one second.
@@ -20,7 +20,7 @@
 #' @return dataframe
 #' @export
 
-flora <- function(Surf, Plant, Param = Param, targSp = "a", Test = 70)
+floraTarget <- function(Surf, Plant, Param = Param, targSp = "a", Test = 70)
 {
   S <- strata(Param)
   n <- max(S$stratum)
@@ -98,7 +98,7 @@ flora <- function(Surf, Plant, Param = Param, targSp = "a", Test = 70)
   nM <-ifelse(count(M)==0, 0,as.numeric(as.character(M$stratum)))
   C <- S[S$name == "canopy", ]
   nC <- ifelse(count(C)==0, 0,as.numeric(as.character(C$stratum)))
-  nSp <- targSp %in% unique(Param$species)
+  nSp <- targSp %in% unique(Param$value[which(Param$param=="name")])
   
   
   #Final heating
@@ -131,6 +131,138 @@ flora <- function(Surf, Plant, Param = Param, targSp = "a", Test = 70)
                                 TRUE ~ 0),
            targSp = ifelse(spTop == 0, 0, round(pmin(100,pmax(0,100*(Height-spBase)/(spTop-spBase))),0)))%>%
     select(repId, wind_kph, Height, ns, e, m, c, b1, b2, b3, b4, sc1, sc2, sc3, sc4, severity, targSp)
+  
+  return(Iso)
+}
+
+#' Scorch height using an isotherm
+#'
+#' Calculates the height to which vegetation will be consumed,
+#' and the height to a designated temperature isotherm reached for one second.
+#'
+#' Output fields are:
+#' Height - overall scorch height (m)
+#' ns, e, m, c - height of consumption in each stratum (m)
+#' b1, b2, b3, b4 - percentage of strata 1 (ns) to strata 4 (c) consumed
+#' sc1, sc2, sc3, sc4 - percentage of strata 1 (ns) to strata 4 (c) scorched
+#' d1, d2, d3, d4 - death (1) or survival (0) of standing foliage per stratum (50% or more scorch)
+#'
+#' @param Surf The dataframe produced by the function 'summary',
+#' @param Plant The dataframe produced by the function 'repFlame'.
+#' @param Param A parameter dataframe used for FRaME,
+#' such as produced using readLegacyParamFile
+#' @param Test The temperature of the flora, default 70 degC
+#'
+#' @return dataframe
+#' @export
+
+flora <- function(Surf, Plant, Param = Param, Test = 70)
+{
+  S <- strata(Param)
+  n <- max(S$stratum)
+  
+  #Max burn height
+  c <- Plant[Plant$level == "Canopy", ]%>%
+    group_by(repId) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
+    mutate(c = y1)%>%
+    select(repId, c)%>%
+    right_join(Surf)
+  c[is.na(c)] <- 0
+  m <- Plant[Plant$level == "MidStorey", ]%>%
+    group_by(repId) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
+    mutate(m = y1)%>%
+    select(repId, m)%>%
+    right_join(c)%>%
+    mutate(m = ifelse(c>0, S$top[3], m))
+  m[is.na(m)] <- 0
+  e <- Plant[Plant$level == "Elevated", ]%>%
+    group_by(repId) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
+    mutate(e = y1)%>%
+    select(repId, e)%>%
+    right_join(m)%>%
+    mutate(e = ifelse(m>0, S$top[2], e))
+  e[is.na(e)] <- 0
+  ns <- Plant[Plant$level == "NearSurface", ]%>%
+    group_by(repId) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
+    mutate(ns = y1)%>%
+    select(repId, ns)%>%
+    right_join(e)%>%
+    mutate(ns = ifelse(e>0, S$top[1], ns))
+  ns[is.na(ns)] <- 0
+  
+  #Heating from surface fire
+  ground <- ns%>%
+    mutate(Alpha = 1/(2*lengthSurface^2),
+           C = 950*lengthSurface*exp(-Alpha*lengthSurface^2),
+           pAlpha = abs(C/(Test-temperature)),
+           R = pAlpha*cos(angleSurface),
+           El = R * tan((slope_degrees * pi)/180),
+           ht = (sin(angleSurface)*pAlpha - El) * extinct,
+           ns = ns * extinct,
+           e = e * extinct,
+           m = m * extinct,
+           c = c * extinct
+    )%>%
+    select(repId, extinct, temperature, slope_degrees, wind_kph, ht, ns, e, m, c)
+  
+  #Heating from plants
+  plant<-Plant%>%
+    left_join(ground)%>%
+    mutate(Angle = atan((y1-y0)/(x1-x0)),
+           Alpha = 1/(2*flameLength*(flameLength-length)),
+           C = 950*flameLength*exp(-Alpha*(flameLength-length)^2),
+           pAlpha = abs(C/(Test-temperature)),
+           Reach = pAlpha*cos(Angle),
+           El = Reach * tan((slope_degrees * pi)/180),
+           htP = (sin(Angle)*pAlpha + y0 - El) * extinct)%>%
+    select(repId, htP)%>%
+    group_by(repId) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
+    right_join(ground)
+  plant[is.na(plant)] <- 0
+  
+  #Find the corresponding number of each stratum
+  NS <- S[S$name == "near surface", ]
+  nNS <-ifelse(count(NS)==0, 0,as.numeric(as.character(NS$stratum)))
+  E <- S[S$name == "elevated", ]
+  nE <- ifelse(count(E)==0, 0,as.numeric(as.character(E$stratum)))
+  M <- S[S$name == "midstorey", ]
+  nM <-ifelse(count(M)==0, 0,as.numeric(as.character(M$stratum)))
+  C <- S[S$name == "canopy", ]
+  nC <- ifelse(count(C)==0, 0,as.numeric(as.character(C$stratum)))
+  
+  
+  #Final heating
+  Iso <- plant%>%
+    mutate(Height = pmax(ht, htP),
+           nsBase = if(count(NS)==0){0} else {S$base[which(S$name == "near surface")]},
+           eBase = if(count(E)==0) {0} else {S$base[which(S$name == "elevated")]},
+           mBase = if(count(M)==0) {0} else {S$base[which(S$name == "midstorey")]},
+           cBase = if(count(C)==0) {0} else {S$base[which(S$name == "canopy")]},
+           nsTop = if(count(NS)==0) {0} else {S$top[which(S$name == "near surface")]},
+           eTop = if(count(E)==0) {0} else {S$top[which(S$name == "elevated")]},
+           mTop = if(count(M)==0) {0} else {S$top[which(S$name == "midstorey")]},
+           cTop = if(count(C)==0) {0} else {S$top[which(S$name == "canopy")]},
+           #Calculate scorch and burn
+           b1 = ifelse(nsTop == 0, 0, round(pmin(100,pmax(0,100*(ns-nsBase)/(nsTop-nsBase))),0)),
+           b2 = ifelse(eTop == 0, 0, round(pmin(100,pmax(0,100*(e-eBase)/(eTop-eBase))),0)),
+           b3 = ifelse(mTop == 0, 0, round(pmin(100,pmax(0,100*(m-mBase)/(mTop-mBase))),0)),
+           b4 = ifelse(cTop == 0, 0, round(pmin(100,pmax(0,100*(c-cBase)/(cTop-cBase))),0)),
+           sc1 = ifelse(nsTop == 0, 0, round(pmin(100,pmax(0,100*(Height-nsBase)/(nsTop-nsBase))),0)),
+           sc2 = ifelse(eTop == 0, 0, round(pmin(100,pmax(0,100*(Height-eBase)/(eTop-eBase))),0)),
+           sc3 = ifelse(mTop == 0, 0, round(pmin(100,pmax(0,100*(Height-mBase)/(mTop-mBase))),0)),
+           sc4 = ifelse(cTop == 0, 0, round(pmin(100,pmax(0,100*(Height-cBase)/(cTop-cBase))),0)),
+           severity = case_when(b4 > 50 ~ 5,
+                                b4 > 0 ~ 4,
+                                sc4 > 0 ~ 3,
+                                b1+b2 > 50 ~ 2,
+                                b1+b2 > 0 ~ 1,
+                                TRUE ~ 0))%>%
+    select(repId, wind_kph, Height, ns, e, m, c, b1, b2, b3, b4, sc1, sc2, sc3, sc4, severity)
   
   return(Iso)
 }
