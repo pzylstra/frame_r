@@ -40,6 +40,8 @@ on the left grow directly beneath those in the stratum on the right. Acceptable 
 are t, f, or blank, where the outcome will be decided by the relative stratum heights.
 nsR, eR, mR, cR - maximum species richness recorded for each stratum}
 
+\item{Flora}{}
+
 \item{a}{A unique identifier for the record being run}
 
 \item{db.path}{Name of the exported database}

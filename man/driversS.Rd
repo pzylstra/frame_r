@@ -2,7 +2,8 @@
 % Please edit documentation in R/Ensembles.R
 \name{driversS}
 \alias{driversS}
-\title{Models fire behaviour across ranged variables using species specific details}
+\title{Models fire behaviour across ranged variables using species specific details
+Discontinued function}
 \usage{
 driversS(
   base.params,
@@ -54,4 +55,5 @@ Hr - Truncates plant height variability by +/- Hr * height}
 }
 \description{
 Models fire behaviour across ranged variables using species specific details
+Discontinued function
 }

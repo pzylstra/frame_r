@@ -988,16 +988,13 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
 #' @param updateProgress Progress bar for use in the dashboard
 #' @return dataframe
 #' @export
-#' @examples
-#' 
-#' ADD EXAMPLE
 
 
 probFire_Frame <- function(base.params, Structure, Flora, a, db.path = "out_mc.db",
                            slope, slopeSD, slopeRange, temp, tempSD, tempRange,
                            DFMC, DFMCSD, DFMCRange, wind, windSD, windRange, 
                            jitters = 50, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, 
-                           updateProgress = NULL) {
+                           updateProgress = NULL, testN = 10) {
   
   pbar <- txtProgressBar(max = jitters, style = 3)
   
@@ -1039,7 +1036,7 @@ probFire_Frame <- function(base.params, Structure, Flora, a, db.path = "out_mc.d
       TBL <- plantVarFrame(tbl, Strata, Species, Flora, a, l = l,
                            Ms = Ms, Pm = Pm, Mr = Mr)
       # Run the model
-      ffm_run(TBL, db.path, db.recreate = db.recreate)
+      ffm_run_robust(TBL, db.path, db.recreate = db.recreate, testN = testN, Strata, Species, Flora, Structure)
       
       Sys.sleep(0.25)
       ####UpdateProgress
@@ -1146,6 +1143,8 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
 
 
 #' Models fire behaviour across ranged variables using species specific details
+#' Discontinued function
+#' 
 #' @param base.params Input parameter file
 #' @param a A unique identifier for the record being run
 #' @param db.path Name of the exported database
@@ -1164,7 +1163,7 @@ drivers <- function(base.params, db.path = "out_mc.db", jitters, windMin, windRe
 #' Hs - Standard deviation of plant height variations
 #' Hr - Truncates plant height variability by +/- Hr * height
 #' @param updateProgress Progress bar for use in the dashboard
-#' @export
+
 
 driversS <- function(base.params, a, db.path = "out_mc.db", jitters, windMin, windReps, windStep,
                      moistureMultiplier, moistureSD, moistureRange, Variation,
@@ -1305,6 +1304,89 @@ driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windM
   }
 }
 
+#' Models fire behaviour across ranged variables using species specific details
+#'
+#' @param a A unique identifier for the record being run
+#' @param db.path Name of the exported database
+#' @param slopes List of slope values for testing
+#' @param DFMCs List of DFMC values for testing
+#' @param moistureMultiplier Multiplies all LFMC values by this number
+#' @param moistureSD Standard deviation of moisture
+#' @param moistureRange Truncates variability by +/- mean * range
+#' @param leafVar Variation around input leaf dimensions, equivalent to l
+#' @param Flora 
+#' @param Structure 
+#' @param replicates 
+#' @param testN 
+#' @param updateProgress Progress bar for use in the dashboard
+#' @param default.species.params 
+#' @param tAir 
+#' @param winds 
+#'
+#' @export
+
+driversFrame <- function(Flora, Structure, default.species.params, a, db.path = "out_mc.db", replicates = 3, winds = seq(0, 60, 5),
+                         slopes, DFMCs, tAir, moistureMultiplier, moistureSD, moistureRange, leafVar, testN = 10, updateProgress = NULL) {
+  
+  # Collect original descriptors
+  base.params <- suppressWarnings(frame::buildParams(Flora, Structure, default.species.params, a,
+                                                     fLine = 100, slope = 0, temp = 30, dfmc = 0.1, wind = 10))
+  Strata <- strata(base.params)
+  Species <- species(base.params)
+  
+  #Range environmental values
+  winds <- seq(windMin, (windReps*windStep+windMin), windStep)
+  
+  #Dataframe of orthogonal combinations
+  if (is.null(slopes)){
+    dat <- expand.grid(DFMC = DFMCs, wind = winds)
+  } else {
+    dat <- expand.grid(slope = slopes, DFMC = DFMCs, wind = winds)
+  }
+  Niter <- nrow(dat) * replicates
+  
+  #Set test temperature
+  base.params <- base.params %>%
+    ffm_set_site_param("temperature", temperature, "degC")
+  
+  #Loop through combinations
+  pbar <- txtProgressBar(max = Niter, style = 3)
+  for (i in 1:Niter) {
+    set <- ceiling(i / replicates)
+    db.recreate <- i == 1
+    if (!is.null(slopes)){
+      s <- dat[set, "slope"]}
+    d <- dat[set, "DFMC"]
+    w <- dat[set, "wind"]
+    
+    #Update environmental parameters if on a new row
+    if (set > ceiling((i-1) / replicates)) {
+      if (!is.null(slopes)){
+        base.params <- base.params %>%
+          ffm_set_site_param("slope", s, "deg")}
+      base.params <- base.params %>%
+        ffm_set_site_param("deadFuelMoistureProp", d) %>%
+        ffm_set_site_param("windSpeed", w)
+    }
+    
+    #Randomise plant parameters
+    base.params <- frame::specPoint(base.params, Structure, a)
+    tbl <- plantVarFrame(base.params, Strata, Species, Flora, a, l = leafVar,
+                         Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
+    ffm_run_robust(base.params=tbl, db.path, db.recreate, testN,
+                   Strata = Strata, Species = Species, Flora = Flora, Structure = Structure, a = a, l = leafVar,
+                   Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
+    Sys.sleep(0.25)
+    
+    ####UpdateProgress
+    if (is.function(updateProgress)) {
+      text <- paste0("Number of remaining steps is ", Niter - i)
+      updateProgress(detail = text)
+    }
+    setTxtProgressBar(pbar, i)
+  }
+}
+
 
 #' Updates parameter files with weather from a dataset,
 #' then models fire from non-deterministic plant parameters
@@ -1332,7 +1414,9 @@ driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windM
 #' on the left grow directly beneath those in the stratum on the right. Acceptable values
 #' are t, f, or blank, where the outcome will be decided by the relative stratum heights.
 #' nsR, eR, mR, cR - maximum species richness recorded for each stratum
+#' @param Flora 
 #' @param updateProgress Progress bar for use in the dashboard
+#'
 #' @return dataframe
 #' @export
 

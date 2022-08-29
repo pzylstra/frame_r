@@ -27,7 +27,8 @@ probFire_Frame(
   Ms = 0.01,
   Pm = 1,
   Mr = 1.001,
-  updateProgress = NULL
+  updateProgress = NULL,
+  testN = 10
 )
 }
 \arguments{
@@ -95,8 +96,4 @@ dataframe
 }
 \description{
 Models probabilistic fire behaviour using species-specific variability from FRaME tables
-}
-\examples{
-
-ADD EXAMPLE
 }
