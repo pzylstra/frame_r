@@ -449,3 +449,91 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
            cgStrikes = 2.708*10^-46*exp(3.863*wetBulb))
   return(out)
 }
+
+
+
+#' Internal function for climDynamics
+#'
+#' @param a 
+#'
+#' @return dataframe
+#' @export
+#'
+
+parClim <- function(a) {
+  
+  FloraA <- filter(Flora, record == a)
+  StructureA <- filter(Structure, record == a)
+  base.params <- suppressWarnings(frame::buildParams(StructureA, FloraA, default.species.params, a,
+                                                     fLine = 1, slope = 0, temp = 30, dfmc = 0.05, wind = 10))
+  
+  hCan <- max(FloraA$top, na.rm = TRUE)
+  LAI <- LAIcomm(base.params, yu = hCan, yl = 0)
+  WRF <- windReduction(base.params, test = 1.2)
+  litterW <- max(FloraA$weight, na.rm = TRUE)
+  
+  out <- frame::frameWeather(clim = clim, m, LAI, WRF, hCan, rholitter, litterW,
+                             lat, slope, slopeSD, rangeDir, cardinal) %>%
+    mutate(Record = a,
+           site = StructureA$site[1])
+  
+  return(out)
+}
+
+
+#' Models input weather parameters from a climate dataset,
+#' each age is modelled on a separate core
+#'
+#' @param fireDat 
+#' @param clim 
+#' @param m 
+#' @param slope 
+#' @param slopeSD 
+#' @param rholitter 
+#' @param litterW 
+#' @param lat 
+#' @param slope 
+#' @param slopeSD 
+#' @param rangeDir 
+#' @param cardinal 
+#' @param freeCores 
+#'
+#' @return dataframe
+#' @export
+#'
+
+climDynamics <- function(fireDat, clim, m = 0.15, slope = 5, slopeSD = 2, rholitter = 550,
+                         lat = -34.95, rangeDir = 270, cardinal = TRUE, freeCores = 1){
+  
+  # 1. Compile inputs
+  Flora <- fireDat[[1]]
+  Structure <- fireDat[[2]]
+  default.species.params <- fireDat[[3]]
+  r <- unique(Flora$record)
+  Out <- data.frame()
+  
+  # 2. Create a cluster of cores with replicated R on each
+  nCores <- max(parallel::detectCores() - freeCores,1)
+  cl <- parallel::makeCluster(nCores)
+  # 3. Load the packages
+  parallel::clusterEvalQ(cl,
+                         { library(dplyr)
+                           library(tidyr)
+                           library(frame)
+                           library(assertthat)
+                           library(extraDistr)})
+  # 4. Load the inputs
+  parallel::clusterExport(cl,varlist=c('Flora', 'Structure', 'default.species.params', 'clim', 'm',
+                                       'slope', 'slopeSD', 'rholitter', 'lat', 'rangeDir', 'cardinal'), environment())
+  
+  # 5. Send each rep to a different core to be processed
+  system.time(out <- parallel::parLapply(cl, r, parClim))
+  parallel::stopCluster(cl)
+  
+  for (n in 1:length(r)) {
+    Na <- as.data.frame(out[[n]])
+    Out <- rbind(Out, Na)
+  }
+  
+  return(Out)
+}
