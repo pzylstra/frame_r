@@ -1921,11 +1921,14 @@ stratTest <- function(clust) {
 #' @param base Name of the field with the base height
 #' @param top Name of the field with the top height
 #' @param he Name of the field with dimension he
+#' @param mStrat Maximum number of strata
+#' @param sepSig p value to define significant stratum separation
 #' @param ht Name of the field with dimension ht
+#'
 #' @return Dataframe
 #' @export
 
-frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht", mStrat = 4)
+frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht", mStrat = 4, sepSig = 0.001)
 {
   
   veg <- datClean(veg = veg,  base = "base", top = "top", he = "he", ht = "ht")
@@ -1956,8 +1959,8 @@ frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", to
         sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[3]]+testa
       }
     }
-    if (length(which(sig < 0.001)) > 0) {
-      nstrat <- as.numeric(max(which(sig < 0.001)))
+    if (length(which(sig < sepSig)) > 0) {
+      nstrat <- as.numeric(max(which(sig < sepSig)))
     } else {
       if (length(sig[!is.na(sig)])>0) {
         nstrat <- as.numeric(min(which(sig == min(sig, na.rm = TRUE))))

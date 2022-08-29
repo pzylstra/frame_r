@@ -12,7 +12,8 @@ frameStratify(
   top = "top",
   he = "he",
   ht = "ht",
-  mStrat = 4
+  mStrat = 4,
+  sepSig = 0.001
 )
 }
 \arguments{
@@ -29,6 +30,10 @@ frameStratify(
 \item{he}{Name of the field with dimension he}
 
 \item{ht}{Name of the field with dimension ht}
+
+\item{mStrat}{Maximum number of strata}
+
+\item{sepSig}{p value to define significant stratum separation}
 }
 \value{
 Dataframe
