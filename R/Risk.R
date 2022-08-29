@@ -1023,276 +1023,6 @@ plantRisk <- function(dynDat, a, ignitions = 1, hourStep = 3, Area = 10, weather
 
 
 
-#' Find likelihood and consequence of death for canopy trees
-#'
-#' @param Flora 
-#' @param Structure 
-#' @param default.species.params 
-#' @param a 
-#' @param weather 
-#' @param lightning 
-#' @param smoulder 
-#' @param Extinction 
-#' @param hourStep 
-#' @param studyArea 
-#' @param slopeM 
-#' @param slopeSD 
-#' @param slopeLength 
-#' @param rangeDir 
-#' @param mRiver 
-#' @param lRiver 
-#' @param l 
-#' @param Ms 
-#' @param Pm 
-#' @param Mr 
-#' @param Test 
-#' @param sensitive 
-#' @param girdleH 
-#' @param woodDensity 
-#' @param phloem 
-#' @param moisture 
-#' @param barkDensity 
-#' @param bark 
-#' @param comBark 
-#' @param resBark 
-#' @param bMoisture 
-#' @param distance 
-#' @param trail 
-#' @param var 
-#' @param Altitude 
-#' @param necT 
-#' @param surfDecl 
-#' @param vAir500 
-#' @param minR 
-#' @param targSp 
-#' @param testN 
-#'
-#' @return list
-#' 
-#'
-
-frameRiskX <- function(Flora, Structure, default.species.params, a = a, weather, lightning = 0.05,
-                       smoulder = 24, Extinction = 0.15, hourStep = 3, studyArea = 100,
-                       slopeM = 6.7, slopeSD = 4.9, slopeLength = 391, rangeDir = 270, mRiver = 0.38, lRiver = 0.06, 
-                       l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5, Test = 80, sensitive = 1, 
-                       girdleH = c(), woodDensity = 1000, phloem = 0.01, moisture = 0.6, vAir500 = 2,
-                       barkDensity = 300, bark = 0.04, comBark = 700, resBark = 0,  bMoisture = 0.5,
-                       distance = 0.1,  trail = 10,  var = 10, Altitude = 200, necT = 60, surfDecl = 10, minR = 0.001, 
-                       targSp = "a", testN = 5) {
-  
-  # Starting values
-  studyAreaM <- studyArea * 1000000
-  tArea <- studyAreaM
-  event <- data.frame()
-  fGrowth <- data.frame()
-  riskTab <- data.frame(matrix(nrow = 1, ncol = 4))
-  colnames(riskTab) <- c('Age', 'Likelihood', 'Consequence', 'Risk')
-  gird <- data.frame()
-  
-  fireN <- 1
-  #  for (fireN in 1:round(lightning*studyArea,0)) 
-  while (fireN <= round(lightning*studyArea,0)) {
-    cat("Running fire", fireN, "of", round(lightning*studyArea,0),"\r")
-    incident <- burnPrint(Flora, Structure, default.species.params, a = a, weather, smoulder = smoulder, Extinction = Extinction, hourStep = hourStep, tArea = tArea,
-                          slopeM = slopeM, slopeSD = slopeSD, slopeLength = slopeLength, rangeDir = rangeDir, mRiver = mRiver, lRiver = lRiver, 
-                          l = l, Ms = Ms, Pm = Pm, Mr = Mr, Test = Test, sensitive = sensitive, fireN = fireN,
-                          girdleH = girdleH, woodDensity = woodDensity, phloem = phloem, moisture = moisture, vAir500 = vAir500,
-                          barkDensity = barkDensity, bark = bark, comBark = comBark, resBark = resBark,  bMoisture = bMoisture,
-                          distance = distance,  trail = trail,  var = var, Altitude = Altitude, necT = necT, surfDecl = surfDecl, minR = minR, 
-                          targSp = targSp, testN = testN)
-    # Cancel the function if there is an error
-    if (is.error(incident)) {
-      out <- list(riskTab, event, fGrowth, gird)
-      return(out)
-      stop()
-    } 
-    fireN <- fireN+1
-    tArea <- max(tArea - incident[[1]][nrow(incident[[1]]), 2],0) # Partial solution. Lack of spatial relationship assumes that each fire can pick out available unburned veg
-    
-    # End loop if study area all burnt
-    if (tArea == 0) {
-      fireN <- round(lightning*studyArea,0)
-    }
-    
-    # Collate outputs
-    event <- rbind(event,incident[[1]]) 
-    fGrowth <- rbind(fGrowth,incident[[2]])
-    gird  <- rbind(gird,incident[[3]])
-  }
-  
-  fGrowth$Mortality <- fGrowth$travDist*pmax(fGrowth$ScorchDeath,fGrowth$Girdling, na.rm = TRUE)
-  fGrowth$wMortality <- fGrowth$Mortality * fGrowth$travDist
-  event$fAge <- fGrowth$fAge[1]
-  for (step in 1:nrow(event)) {
-    if (step == 1) {
-      event$growth[step] <- event$Area[step]
-    } else {
-      if (event$fire[step] == event$fire[step-1]) {
-        event$growth[step] <- event$Area[step] - event$Area[step-1]
-      } else {
-        event$growth[step] <- event$Area[step]
-      }
-    }
-  }
-  
-  event$cumHa <- round(cumsum(event$growth)/10000,1)
-  riskTab$Age <- fGrowth$fAge[1]
-  riskTab$Likelihood <- event$cumHa[nrow(event)]/(studyArea*100)
-  riskTab$Consequence <- round((sum(fGrowth$wMortality, na.rm = TRUE)/sum(fGrowth$travDist, na.rm = TRUE))/100,4)
-  riskTab$Risk <- round(riskTab$Likelihood * riskTab$Consequence,4)
-  
-  out <- list(riskTab, event, fGrowth, gird)
-  return(out)
-}
-
-#' Internal function for riskDynamics
-#'
-#' @param a 
-#'
-#' @return list
-
-parRiskX <- function(a) {
-  FloraA <- filter(Flora, record == a)
-  StructureA <- filter(Structure, record == a)
-  base.params <- suppressWarnings(frame::buildParams(StructureA, FloraA, default.species.params, a,
-                                                     fLine = 1, slopeM, temp = 30, dfmc = 0.05, wind = 10))
-  
-  hCan <- max(FloraA$top, na.rm = TRUE)
-  LAI <- LAIcomm(base.params, yu = hCan, yl = 0)
-  WRF <- windReduction(base.params, test = 1.2)
-  litterW <- max(FloraA$weight, na.rm = TRUE)
-  
-  weather <- frame::frameWeather(clim = clim, m, LAI, WRF, hCan, rholitter, litterW,
-                                 lat, slope = slopeM, slopeSD, rangeDir, cardinal)
-  
-  res <- frame::frameRisk(Flora = FloraA, Structure = StructureA, default.species.params, a, weather, lightning,
-                          smoulder, Extinction, hourStep, studyArea, 
-                          slopeM, slopeSD, slopeLength, rangeDir, mRiver, lRiver, 
-                          l, Ms, Pm, Mr, Test, sensitive, girdleH, woodDensity, phloem, moisture, vAir500,  
-                          barkDensity, bark, comBark, resBark,  bMoisture,
-                          distance,  trail,  var, Altitude, necT, surfDecl, minR, targSp, testN)
-  
-  nA <- paste0("ARa",a)
-  nB <- paste0("ARb",a)
-  nC <- paste0("ARc",a)
-  nD <- paste0("ARd",a)
-  
-  nA <- res[[1]]
-  nB <- res[[2]]
-  nC <- res[[3]]
-  nD <- res[[4]]
-  
-  out <- list(nA, nB, nC, nD)
-  return(out)
-}
-
-
-#' Calculates forest risk parameters over a growth series
-#' using parallel ports
-#'
-#' @param fireDat List of three dataframes: Flora, Structure & default.species.params
-#' @param clim Formatted AM & PM weather conditions over a time sequence
-#' @param lightning Number of lightning strikes per km2
-#' @param lat Latitude (degrees)
-#' @param Altitude Altitude (m.a.s.l.)
-#' @param slopeM Mean slope (degrees)
-#' @param slopeSD Standard deviation of slope (degrees)
-#' @param slopeLength Distance from ridge to gully (m)
-#' @param rangeDir 
-#' @param mRiver 
-#' @param lRiver 
-#' @param cardinal 
-#' @param smoulder 
-#' @param Extinction 
-#' @param m 
-#' @param rholitter 
-#' @param hourStep 
-#' @param studyArea 
-#' @param l 
-#' @param Ms 
-#' @param Pm 
-#' @param Mr 
-#' @param Test 
-#' @param sensitive 
-#' @param girdleH 
-#' @param phloem 
-#' @param moisture 
-#' @param barkDensity 
-#' @param bark 
-#' @param comBark 
-#' @param resBark 
-#' @param bMoisture 
-#' @param distance 
-#' @param trail 
-#' @param var 
-#' @param necT 
-#' @param surfDecl 
-#' @param freeCores 
-#' @param minR 
-#' @param tr 
-#' @param vAir500 
-#' @param testN 
-#'
-#' @return list
-#' 
-#'
-
-riskDynamicsX <- function(fireDat, tr, clim, lightning = 0.05, 
-                         lat = -42.48, Altitude = 200, slopeM = 6.7, slopeSD = 4.9, slopeLength = 391, rangeDir = 270, mRiver = 0.38, lRiver = 0.06,   
-                         cardinal = TRUE, smoulder = 24, Extinction = 0.15, m = 0.15, rholitter = 550, hourStep = 3, studyArea = 100,
-                         l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5, Test = 80, sensitive = 1, girdleH = c(), phloem = 0.01, moisture = 0.6,  
-                         barkDensity = 300, bark = 0.04, comBark = 700, resBark = 0,  bMoisture = 0.5, vAir500 = 2, testN = 5,
-                         distance = 2,  trail = 1000,  var = 10, necT = 60, surfDecl = 10, minR = 0.001, freeCores = 1){
-  
-  ages <- max(fireDat[[2]]$record)
-  Flora <- fireDat[[1]]
-  Structure <- fireDat[[2]]
-  default.species.params <- fireDat[[3]]
-  
-  # Collect inputs
-  woodDensity <- tr$rho[tr$hmat == max(tr$hmat)]
-  targSp <- Flora$species[which(Flora$top == max(Flora$top, na.rm = TRUE))]
-  
-  # Create a cluster of cores with replicated R on each
-  nCores <- max(parallel::detectCores() - freeCores,1)
-  cl <- parallel::makeCluster(nCores)
-  # Load the packages
-  parallel::clusterEvalQ(cl,
-                         { library(dplyr)
-                           library(tidyr)
-                           library(frame)
-                           library(assertthat)
-                           library(extraDistr)})
-  # Load the inputs
-  parallel::clusterExport(cl,varlist=c('Flora', 'Structure', 'default.species.params', 'clim', 'm', 'rholitter',
-                                       'Altitude','lat', 'slopeM', 'slopeSD','slopeLength', 'rangeDir', 'mRiver', 'lRiver', 'cardinal', 'lightning',
-                                       'smoulder', 'Extinction', 'hourStep', 'studyArea', 'vAir500', 'testN',
-                                       'l', 'Ms', 'Pm', 'Mr', 'Test', 'sensitive', 'girdleH', 'woodDensity', 'phloem', 'moisture', 'barkDensity', 'bark', 'comBark', 'resBark',  'bMoisture',
-                                       'distance',  'trail',  'var', 'necT', 'surfDecl', 'minR', 'targSp'), environment())
-  
-  system.time(parT <- parallel::parLapply(cl, 1:ages, parRisk))
-  parallel::stopCluster(cl)
-  
-  # Risk table
-  riskDyn <- data.frame()
-  event <- data.frame()
-  fGrowth <- data.frame()
-  gird <- data.frame()
-  for (n in 1:ages) {
-    Na <- as.data.frame(parT[[n]][1])
-    Nb <- as.data.frame(parT[[n]][2])
-    Nc <- as.data.frame(parT[[n]][3])
-    Nd <- as.data.frame(parT[[n]][4])
-    riskDyn <- rbind(riskDyn,Na)
-    event <- rbind(event,Nb)
-    fGrowth <- rbind(fGrowth,Nc)
-    gird <- rbind(gird,Nd)
-  }
-  out <- list(riskDyn, event, fGrowth, gird)
-  return(out)
-}
-
-
 #' Calculates spotting distance
 #'
 #' @param flameHeight Flame height (m)
@@ -1317,4 +1047,144 @@ spotFire <- function(flameHeight, slope, FPC, windExposure, vAir, vAir500 = 2, f
   spG <- 11.98*flameHeight^2.19
   
   return(min(spMax, spG))
+}
+
+
+#' Internal function for fireDynamics
+#'
+#' @param a 
+#'
+#' @return list
+#' @export
+#'
+
+parBurn <- function(n) {
+  
+  f <- filter(Flora, record == n)
+  s <- filter(Structure, record == n)
+  base.params <- suppressWarnings(frame::buildParams(Structure = s, Flora = f, default.species.params, a = n,
+                                                     fLine = fLine, slope = slope, temp = temp, dfmc = DFMC, wind = wind))
+  
+  Strata <- strata(base.params)
+  db.path <- paste("age",n,".db", sep = "")
+  
+  # Find foliage projective cover
+  for (st in 1:nrow(Strata)) {
+    if (st == 1) {
+      FPC <- Strata$cover[st]
+    } else {
+      FPC <- FPC + ((1-FPC) * Strata$cover[st])
+    }
+  }
+  
+  probFire_Frame(base.params, Structure = s, Flora = f, a = n, db.path = db.path,
+                 slope = slope, slopeSD = slopeSD, slopeRange = slopeRange, 
+                 temp = temp, tempSD = tempSD, tempRange = tempRange,
+                 DFMC = DFMC, DFMCSD = DFMCSD, DFMCRange = DFMCRange, 
+                 wind = wind, windSD = windSD, windRange = windRange,
+                 jitters = reps, l = leafVar, 
+                 Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange, 
+                 updateProgress = updateProgress)
+  
+  #SUMMARISE BEHAVIOUR
+  res<-ffm_db_load(db.path)
+  runs <- suppressMessages(frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)%>%
+                             mutate(site = f$site[1],
+                                    FPC = FPC,
+                                    Spotting = spotFire(flameHeight = fh, slope = slope_degrees, FPC, windExposure = 1, vAir = wind_kph, vAir500, fireArea = ros_kph*(fLine/1000)),
+                                    fReach = max(lengthPlant * cos(flameAngle), lengthSurface * cos(angleSurface), Spotting)))
+  IP <- frame::repFlame(res$IgnitionPaths) %>%
+    mutate(site = f$site[1])
+  scorch <- suppressMessages(frame::flora(runs, IP, Param = base.params, Test = 80)) %>%
+    select(!wind_kph)
+  outa <- suppressMessages(left_join(runs,scorch, by = "repId") )
+  
+  return(list(outa, IP))
+  
+}
+
+
+#' Models probabilistic fire behaviour across multiple ages on parallel cores
+#'
+#' @param fireDat 
+#' @param reps 
+#' @param slope 
+#' @param slopeSD 
+#' @param slopeRange 
+#' @param temp 
+#' @param tempSD 
+#' @param tempRange 
+#' @param DFMC 
+#' @param DFMCSD 
+#' @param DFMCRange 
+#' @param wind 
+#' @param windSD 
+#' @param windRange 
+#' @param moistureMultiplier 
+#' @param moistureSD 
+#' @param moistureRange 
+#' @param fLine 
+#' @param updateProgress 
+#' @param freeCores 
+#' @param l 
+#' @param Ms 
+#' @param Pm 
+#' @param Mr 
+#' @param vAir500 
+#'
+#' @return list
+#' @export
+#'
+
+fireDynamics <- function(fireDat, slope = 5, slopeSD = 2, slopeRange = 5, 
+                         temp = 30, tempSD = 5, tempRange = 3,
+                         DFMC = 0.1, DFMCSD = 0.01, DFMCRange = 2, 
+                         wind = 10, windSD = 5, windRange = 5, fLine = 1000,
+                         moistureMultiplier = 1, moistureSD = 0.01, moistureRange = 1.5,
+                         reps = 5, leafVar = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5, vAir500 = 2, 
+                         testN = 5, updateProgress = NULL, freeCores = 1){
+  
+  cat("Modelling risk", "\n", "\n")
+  
+  # 1. Compile inputs
+  Flora <- fireDat[[1]]
+  Structure <- fireDat[[2]]
+  default.species.params <- fireDat[[3]]
+  r <- unique(Flora$record)
+  
+  # 2. Create a cluster of cores with replicated R on each
+  nCores <- max(parallel::detectCores() - freeCores,1)
+  cl <- parallel::makeCluster(nCores)
+  # 3. Load the packages
+  parallel::clusterEvalQ(cl,
+                         { library(dplyr)
+                           library(tidyr)
+                           library(frame)
+                           library(assertthat)
+                           library(extraDistr)})
+  # 4. Load the inputs
+  parallel::clusterExport(cl,varlist=c('Flora', 'Structure', 'default.species.params', 
+                                       'slope', 'slopeSD', 'slopeRange', 
+                                       'temp', 'tempSD', 'tempRange',
+                                       'DFMC', 'DFMCSD', 'DFMCRange', 
+                                       'wind', 'windSD', 'windRange', 'fLine',
+                                       'moistureMultiplier', 'moistureSD', 'moistureRange',
+                                       'reps', 'leafVar', 'Ms', 'Pm', 'Mr', 'vAir500', 
+                                       'updateProgress'), environment())
+  
+  # 5. Send each rep to a different core to be processed
+  system.time(parT <- parallel::parLapply(cl, r, parBurn))
+  parallel::stopCluster(cl)
+  
+  # 6. Summarise and export results
+  runs <- data.frame()
+  IP <- data.frame()
+  for (n in 1:length(r)) {
+    Na <- as.data.frame(parT[[n]][1])
+    Nb <- as.data.frame(parT[[n]][2])
+    runs <- rbind(runs,Na)
+    IP <- rbind(IP,Nb)
+  }
+  out <- list(runs, IP)
+  return(out)
 }
