@@ -22,9 +22,7 @@ frameTables(
   G.C_rat = 3,
   C.C_rat = 0.1,
   deltaL = 0.46,
-  lat = -35,
-  map = 1000,
-  mat = 20,
+  hw = 0,
   sLitter = 15,
   diameter = 0.005
 )
@@ -62,11 +60,7 @@ frameTables(
 
 \item{deltaL}{Leaf density (g/cm3)}
 
-\item{lat}{Latitude (degrees)}
-
-\item{map}{Mean annual precipitation (mm)}
-
-\item{mat}{Mean annual temperature (degC)}
+\item{hw}{}
 
 \item{sLitter}{Weight of surface litter (t/ha)}
 

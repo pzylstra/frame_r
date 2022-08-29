@@ -180,7 +180,7 @@ buildTraitsP <- function(comm, propDead = 0, leafForm = "Flat", lwRat = 3, leafA
     flo$name[sp] <- as.character(sp)
     flo$propDead[sp]  <- 0
     flo$leafForm[sp]  <- "Flat"
-    flo$leafThickness[sp]  <- lma[sp]/(deltaL*10000)
+    flo$leafThickness[sp]  <- lma[sp]/(deltaL*1000) # For LMA kg/m2
     flo$leafLength[sp]  <- sqrt(2*leafA*lwRat)
     flo$leafWidth[sp]  <- flo$leafLength[sp] / lwRat
     flo$leafSeparation[sp]  <- summ$lSep[sp]
@@ -223,15 +223,6 @@ collectTraitsP <- function(comm, tr,
   comm <- left_join(as.data.frame(comm), tr, by = c("species" = "Species"))%>%
     mutate(species = name)
   
-  # Add missing fields
-  #  traitList <- c("name", "leafForm", "moisture", "propDead", "ignitionTemp", "lwRat", "leaf_area", "bark_density", "G.C_rat", "C.C_rat", "stemOrder", "leaf_thickness")
-  
-  #  for (n in traitList) {
-  #    if (!(n %in% names(comm))) {
-  #      comm[n] <- NA
-  #    }
-  #  }
-  
   # Join to plant traits and clean empty data
   comm["leafForm"][is.na(comm["leafForm"])] <- leafForm
   comm["moisture"][is.na(comm["moisture"])] <- moist
@@ -243,7 +234,7 @@ collectTraitsP <- function(comm, tr,
   comm["G.C_rat"][is.na(comm["G.C_rat"])] <- G.C_rat
   comm["C.C_rat"][is.na(comm["C.C_rat"])] <- C.C_rat
   comm["stemOrder"][is.na(comm["stemOrder"])] <- ram
-  comm[["leaf_thickness"]][is.na(comm[["leaf_thickness"]])] <- comm$lma/(deltaL*10000)
+  comm[["leaf_thickness"]][is.na(comm[["leaf_thickness"]])] <- comm$lma/(deltaL*1000)
   comm[["name"]][is.na(comm[["name"]])] <- comm$species
   
   comm <- comm %>%
@@ -252,7 +243,7 @@ collectTraitsP <- function(comm, tr,
            branchA = frontalArea * C.C_rat,
            branchV = 4/3*sqrt(branchA/pi)*branchA,
            nClumps = (c_vol/(1+G.C_rat))/branchV,
-           leavesClump = nLeaves/nClumps,
+           leavesClump = max(nLeaves/nClumps,1),
            clumpD = 2*sqrt(branchA/pi),
            lSep = ((clumpD*stemOrder)/((leavesClump/0.88)^(1/1.18)))/100)
   
@@ -309,14 +300,12 @@ collectTraitsP <- function(comm, tr,
 #' @param moist Leaf moisture (ratio moisture weight to dry weight)
 #' @param G.C_rat Ratio of gaps to clumps of leaves
 #' @param C.C_rat Ratio of clump to canopy size
-#' @param lat Latitude (degrees)
-#' @param map Mean annual precipitation (mm)
-#' @param mat Mean annual temperature (degC)
 #' @param deltaL Leaf density (g/cm3)
 #' @param sLitter Weight of surface litter (t/ha)
 #' @param diameter Mean diameter of surface litter pieces (m)
 #' @param lwRat 
 #' @param ram 
+#' @param hw 
 #'
 #' @export
 #'
@@ -324,10 +313,9 @@ collectTraitsP <- function(comm, tr,
 frameTables <- function(dat, tr, age, rec = 1, propSamp = 0.5, transects = 10, propDead = 0, 
                         leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, 
-                        deltaL = 0.46, lat = -35, map = 1000, mat = 20,
-                        sLitter = 15, diameter = 0.005) {
+                        deltaL = 0.46, hw = 0, sLitter = 15, diameter = 0.005) {
   
-  comm <- suppressMessages(stratify_community(dat, tr, age, lat, map, mat, propSamp, transects))
+  comm <- suppressMessages(stratify_community(dat, tr, age, hw, propSamp, transects))
   Structure <- suppressMessages(buildStructureP(comm, age, rec))
   Flora <- buildFloraP(comm, tr, age, rec, moist, sLitter, diameter)
   Traits <- collectTraitsP(comm, tr)
@@ -370,18 +358,19 @@ updateSpecies <- function(comm, tr){
 #' @param moist Leaf moisture (ratio moisture weight to dry weight)
 #' @param G.C_rat Ratio of gaps to clumps of leaves
 #' @param C.C_rat Ratio of clump to canopy size
-#' @param lat Latitude (degrees)
-#' @param map Mean annual precipitation (mm)
-#' @param mat Mean annual temperature (degC)
 #' @param deltaL Leaf density (g/cm3)
 #' @param diameter Mean diameter of surface litter pieces (m)
 #' @param lwRat 
 #' @param ram 
+#' @param hw 
 #'
 #' @export
 
 frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), propSamp = 1, transects = 1, propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
-                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, lat = -35, map = 1000, mat = 20, diameter = 0.005) {
+                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, hw = 0, mat = 17, diameter = 0.005) {
+  
+  cat("Collecting parameters for modelling fire behaviour", "\n")
+  
   Flora <- data.frame()
   Structure <- data.frame()
   Tr <- data.frame()
@@ -404,7 +393,7 @@ frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), pr
   for (age in steps) {
     sLitter <- frame::litter(negEx = 1, max, rate, a = 1, b = 1, age)
     tabs <- frameTables(dat, tr, age, rec, propSamp, transects, propDead, leafForm, lwRat, leafA, ram,
-                        ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, lat, map, mat, sLitter, diameter)
+                        ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, hw, sLitter, diameter)
     Flora <- rbind(Flora,tabs[[1]])
     Structure <- rbind(Structure,tabs[[2]])
     Tr <- rbind(Tr,tabs[[3]])
@@ -447,29 +436,39 @@ frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), pr
 #'
 #' @export
 
-
 firePlant <- function(dat, db.path = "out.plant.db", reps = 5,
                       slope = 0, slopeSD = 2, slopeRange = 5, 
                       temp = 30, tempSD = 5, tempRange = 3,
                       DFMC = 0.1, DFMCSD = 0.01, DFMCRange = 2, 
-                      wind = 5, windSD = 1, windRange = 2,
+                      wind = 5, windSD = 1, windRange = 2, vAir500 = 2,
                       moistureMultiplier = 1, moistureSD = 0.01, moistureRange = 1.5,
-                      fLine = 100, leafVar = 0.1, updateProgress = NULL) {
+                      fLine = 1000, leafVar = 0.1, updateProgress = NULL) {
   
   Flora <- dat[[1]]
   Structure <- dat[[2]]
   default.species.params <- dat[[3]]
   r <- unique(Flora$record)
-  out <-data.frame()
+  RUNS <-data.frame()
+  PATHS <- data.frame()
+  Ages <- unique(Flora$site)
   
   for (n in r) {
-    print(n)
+    cat("Modelling age", Ages[n], "\n")
     f <- filter(Flora, record == n)
     s <- filter(Structure, record == n)
     base.params <- suppressWarnings(frame::buildParams(Structure = s, Flora = f, default.species.params, a = n,
                                                        fLine = fLine, slope = slope, temp = temp, dfmc = DFMC, wind = wind))
-    heightSD <- mean(f$Hs, na.rm = TRUE)
-    heightRange <- mean(f$Hr, na.rm = TRUE)
+    
+    Strata <- strata(base.params)
+    
+    # Find foliage projective cover
+    for (st in 1:nrow(Strata)) {
+      if (st == 1) {
+        FPC <- Strata$cover[st]
+      } else {
+        FPC <- FPC + ((1-FPC) * Strata$cover[st])
+      }
+    }
     
     probFire_Frame(base.params, Structure = s, Flora = f, a = n, db.path = db.path,
                    slope = slope, slopeSD = slopeSD, slopeRange = slopeRange, 
@@ -481,14 +480,20 @@ firePlant <- function(dat, db.path = "out.plant.db", reps = 5,
                    updateProgress = updateProgress)
     
     #SUMMARISE BEHAVIOUR
-    res<-ffm_db_load("out.plant.db")
-    runs <- frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)
-    IP <- frame::repFlame(res$IgnitionPaths)
-    scorch <- frame::flora(runs, IP, Param = base.params, Test = 80)
-    outa <- left_join(runs,scorch, by = "repId") %>%
-      mutate(step = n)
-    out <- rbind(out, outa)
+    res<-ffm_db_load(db.path)
+    runs <- suppressMessages(frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)%>%
+                               mutate(site = f$site[1],
+                                      FPC = FPC,
+                                      Spotting = spotFire(flameHeight = fh, slope = slope_degrees, FPC, windExposure = 1, vAir = wind_kph, vAir500, fireArea = ros_kph*(fLine/1000)),
+                                      fReach = max(lengthPlant * cos(flameAngle), lengthSurface * cos(angleSurface), Spotting)))
+    IP <- frame::repFlame(res$IgnitionPaths) %>%
+      mutate(site = f$site[1])
+    scorch <- suppressMessages(frame::flora(runs, IP, Param = base.params, Test = 80)) %>%
+      select(!wind_kph)
+    outa <- suppressMessages(left_join(runs,scorch, by = "repId") )
+    RUNS <- rbind(RUNS, outa)
+    PATHS <- rbind(PATHS, IP)
     
   }
-  return(out)
+  return(list(RUNS, PATHS))
 }
