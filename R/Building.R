@@ -607,7 +607,7 @@ buildParams <- function(Structure, Flora, default.species.params, a,
   Flora <- Flora[which(Flora$species == "Litter" | Flora$comp != 0), ]
   
   # Construct component tables
-  site.meta <- buildSiteMeta(Structure, Flora, a, fLine = fLine, slope = slope,
+  site.meta <- buildSiteMeta(Structure = Structure, Flora = Flora, a = a, fLine = fLine, slope = slope,
                              temp = temp, dfmc = dfmc, wind = wind)
   strata.meta <- buildStrataMeta(Structure, a)
   species.values <- buildSpeciesValues(Flora, default.species.params, a)
