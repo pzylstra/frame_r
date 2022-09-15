@@ -97,13 +97,38 @@ river <- function(lRiver, mRiver){
 #' @param targSp 
 #' @param testN 
 #' @param Strata 
-#' @param Species 
-#' @param Flora 
+#' @param Species Species descriptor table output by the function 'species'
+#' @param Flora  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - A name for the site
+#' species - the name of the species, which will call trait data from 
+#' 'default.species.params'
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - Percent composition of that species in the stratum. 
+#'    If absent, all species will be considered equally.
+#' base - base height of plant crowns (m)
+#' he - he height of plant crowns (m)
+#' ht - ht height of plant crowns (m)
+#' top - top height of plant crowns (m)
+#' w - width of plant crowns (m)
+#' Hs - standard deviation of the top height of plant crowns (m)
+#' Hr - range of the top height of plant crowns (m)
+#' weight - weight in t/ha of fine dead organic material forming 
+#'    the surface and suspNS layers
+#' diameter - mean diameter of surface and suspNS litter in m
+#' @param Structure  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. 
+#'    Acceptable values are TRUE, FALSE, or blank, where the outcome 
+#'    will be decided by the relative stratum heights.
+#' nsR, eR, mR, cR. Species richness (number of species) in each stratum
 #' @param l 
 #' @param Ms 
 #' @param Pm 
 #' @param Mr 
-#' @param Structure 
 #' @param strikeTime 
 #'
 #' @return dataframe
@@ -335,9 +360,34 @@ frameSpread <- function (base.params, weather, a, igLoc = -1, t = 1, hourStep = 
 
 #' Finds the area burned and effects of a fire
 #'
-#' @param Flora 
-#' @param Structure 
-#' @param default.species.params 
+#' @param Flora  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - A name for the site
+#' species - the name of the species, which will call trait data from 
+#' 'default.species.params'
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - Percent composition of that species in the stratum. 
+#'    If absent, all species will be considered equally.
+#' base - base height of plant crowns (m)
+#' he - he height of plant crowns (m)
+#' ht - ht height of plant crowns (m)
+#' top - top height of plant crowns (m)
+#' w - width of plant crowns (m)
+#' Hs - standard deviation of the top height of plant crowns (m)
+#' Hr - range of the top height of plant crowns (m)
+#' weight - weight in t/ha of fine dead organic material forming 
+#'    the surface and suspNS layers
+#' diameter - mean diameter of surface and suspNS litter in m
+#' @param Structure  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. 
+#'    Acceptable values are TRUE, FALSE, or blank, where the outcome 
+#'    will be decided by the relative stratum heights.
+#' nsR, eR, mR, cR. Species richness (number of species) in each stratum
+#' @param default.species.params Plant traits database
 #' @param a 
 #' @param weather 
 #' @param smoulder 
@@ -695,9 +745,34 @@ burnPrint <- function(Flora, Structure, default.species.params, a, weather, smou
 
 #' Find likelihood and consequence of death for canopy trees
 #'
-#' @param Flora 
-#' @param Structure 
-#' @param default.species.params 
+#' @param Flora  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - A name for the site
+#' species - the name of the species, which will call trait data from 
+#' 'default.species.params'
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - Percent composition of that species in the stratum. 
+#'    If absent, all species will be considered equally.
+#' base - base height of plant crowns (m)
+#' he - he height of plant crowns (m)
+#' ht - ht height of plant crowns (m)
+#' top - top height of plant crowns (m)
+#' w - width of plant crowns (m)
+#' Hs - standard deviation of the top height of plant crowns (m)
+#' Hr - range of the top height of plant crowns (m)
+#' weight - weight in t/ha of fine dead organic material forming 
+#'    the surface and suspNS layers
+#' diameter - mean diameter of surface and suspNS litter in m
+#' @param Structure  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. 
+#'    Acceptable values are TRUE, FALSE, or blank, where the outcome 
+#'    will be decided by the relative stratum heights.
+#' nsR, eR, mR, cR. Species richness (number of species) in each stratum
+#' @param default.species.params Plant traits database
 #' @param a 
 #' @param weather 
 #' @param lightning 

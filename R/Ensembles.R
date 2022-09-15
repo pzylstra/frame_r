@@ -481,7 +481,15 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
 #' @param a A unique identifier for the record being run
 #' @param Strata Strata descriptor table output by the function 'strata'
 #' @param Species Species descriptor table output by the function 'species'
-#' @param Flora Table output from the function buildFlora
+#' @param Flora  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' species - the name of the species, which will call trait data from 'default.species.params'
+#' moisture - the moisture content of the species in whole numbers (eg 1 for 100% ODW)
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - % composition or count of that species in the stratum. If absent, all species will be considered equally
+#' hc, he, ht, hp & w - canopy dimensions for that species (m)
+#' clump - mean ratio of clump diameter to crown diameter
+#' openness - proportion of plant canopy occupied by gaps between clumps
 #' @param l Variation around input leaf dimensions
 #' @param Ms Standard deviation of LFMC
 #' @param Pm Multiplier of mean LFMC
@@ -1314,8 +1322,22 @@ driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windM
 #' @param moistureSD Standard deviation of moisture
 #' @param moistureRange Truncates variability by +/- mean * range
 #' @param leafVar Variation around input leaf dimensions, equivalent to l
-#' @param Flora 
-#' @param Structure 
+#' @param Flora  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' species - the name of the species, which will call trait data from 'default.species.params'
+#' moisture - the moisture content of the species in whole numbers (eg 1 for 100% ODW)
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - % composition or count of that species in the stratum. If absent, all species will be considered equally
+#' hc, he, ht, hp & w - canopy dimensions for that species (m)
+#' clump - mean ratio of clump diameter to crown diameter
+#' openness - proportion of plant canopy occupied by gaps between clumps
+#' @param Structure A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. Acceptable values
+#' are t, f, or blank, where the outcome will be decided by the relative stratum heights.
 #' @param replicates 
 #' @param testN 
 #' @param updateProgress Progress bar for use in the dashboard
@@ -1414,7 +1436,15 @@ driversFrame <- function(Flora, Structure, default.species.params, a, db.path = 
 #' on the left grow directly beneath those in the stratum on the right. Acceptable values
 #' are t, f, or blank, where the outcome will be decided by the relative stratum heights.
 #' nsR, eR, mR, cR - maximum species richness recorded for each stratum
-#' @param Flora 
+#' @param Flora  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' species - the name of the species, which will call trait data from 'default.species.params'
+#' moisture - the moisture content of the species in whole numbers (eg 1 for 100% ODW)
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - % composition or count of that species in the stratum. If absent, all species will be considered equally
+#' hc, he, ht, hp & w - canopy dimensions for that species (m)
+#' clump - mean ratio of clump diameter to crown diameter
+#' openness - proportion of plant canopy occupied by gaps between clumps
 #' @param updateProgress Progress bar for use in the dashboard
 #'
 #' @return dataframe
@@ -1473,15 +1503,29 @@ weatherSet_Frame <- function(base.params, weather, Structure, Flora, a, db.path 
 #' @param db.path 
 #' @param db.recreate 
 #' @param testN Number of replicates to allow
-#' @param Strata 
-#' @param Species 
-#' @param Flora 
-#' @param a 
+#' @param Strata Strata descriptor table output by the function 'strata'
+#' @param Species Species descriptor table output by the function 'species'
+#' @param Flora  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' species - the name of the species, which will call trait data from 'default.species.params'
+#' moisture - the moisture content of the species in whole numbers (eg 1 for 100% ODW)
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - % composition or count of that species in the stratum. If absent, all species will be considered equally
+#' hc, he, ht, hp & w - canopy dimensions for that species (m)
+#' clump - mean ratio of clump diameter to crown diameter
+#' openness - proportion of plant canopy occupied by gaps between clumps
+#' @param Structure A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. Acceptable values
+#' are t, f, or blank, where the outcome will be decided by the relative stratum heights.
+#' @param a A unique identifier for the record being run
 #' @param l 
 #' @param Ms 
 #' @param Pm 
 #' @param Mr 
-#' @param Structure 
 #'
 #' @return \code{TRUE} if the run completed and results were written to
 #'   the output database successfully; \code{FALSE} otherwise.

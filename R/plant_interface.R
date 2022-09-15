@@ -144,8 +144,8 @@ buildFloraP <- function(comm, tr, age, rec = 1, moist = 1, sLitter = 15, diamete
 #' @param moist Leaf moisture (ratio moisture weight to dry weight)
 #' @param G.C_rat Ratio of gaps to clumps of leaves
 #' @param C.C_rat Ratio of clump to canopy size
-#' @param lwRat 
-#' @param ram 
+#' @param lwRat Ratio of leaf length to width
+#' @param ram Stem ramification
 #' @param deltaL Leaf density (g/cm3)
 #'
 #' @export
@@ -301,9 +301,9 @@ collectTraitsP <- function(comm, tr,
 #' @param deltaL Leaf density (g/cm3)
 #' @param sLitter Weight of surface litter (t/ha)
 #' @param diameter Mean diameter of surface litter pieces (m)
-#' @param lwRat 
-#' @param ram 
-#' @param hw 
+#' @param lwRat Ratio of leaf length to width
+#' @param ram Stem ramification
+#' @param hw Environmental difference in plant height: width ratio
 #'
 #' @export
 #'
@@ -356,10 +356,10 @@ updateSpecies <- function(comm, tr){
 #' @param C.C_rat Ratio of clump to canopy size
 #' @param deltaL Leaf density (g/cm3)
 #' @param diameter Mean diameter of surface litter pieces (m)
-#' @param lwRat 
-#' @param ram 
-#' @param hw 
-#' @param mat 
+#' @param lwRat Ratio of leaf length to width
+#' @param ram Stem ramification
+#' @param hw Environmental difference in plant height: width ratio
+#' @param mat Mean annual temperature (deg C)
 #' @param propSamp Values closer to 0 have more accurate ratios of components but miss some cohorts
 #' @param transects More transects ensure more cohorts 
 #' @param sepSig 
@@ -429,7 +429,7 @@ frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), pr
 #' @param moistureMultiplier 
 #' @param moistureSD 
 #' @param moistureRange 
-#' @param fLine 
+#' @param fLine Length of the active fire front (m)
 #' @param leafVar 
 #' @param updateProgress 
 #' @param dat The results of frameDynTab
