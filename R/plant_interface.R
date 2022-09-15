@@ -290,8 +290,6 @@ collectTraitsP <- function(comm, tr,
 #' @param tr Table of input traits
 #' @param age Years since disturbance
 #' @param rec Number of the record
-#' @param propSamp Proportion of cohorts to test (0-1)
-#' @param transects Number of repeats for each sample
 #' @param diameter Mean diameter of surface litter pieces (m)
 #' @param propDead Proportion of foliage dead
 #' @param leafForm Flat or Round
@@ -310,12 +308,12 @@ collectTraitsP <- function(comm, tr,
 #' @export
 #'
 
-frameTables <- function(dat, tr, age, rec = 1, propSamp = 0.5, transects = 10, propDead = 0, 
+frameTables <- function(dat, tr, age, propSamp = 0.75, transects = 10, sepSig = 0.1, rec = 1, propDead = 0, 
                         leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, 
                         deltaL = 0.46, hw = 0, sLitter = 15, diameter = 0.005) {
   
-  comm <- suppressMessages(stratify_community(dat, tr, age, hw, propSamp, transects))
+  comm <- suppressMessages(stratify_community(dat, tr, age, hw, propSamp = propSamp, transects = transects, sepSig = sepSig))
   Structure <- suppressMessages(buildStructureP(comm, age, rec))
   Flora <- buildFloraP(comm, tr, age, rec, moist, sLitter, diameter)
   Traits <- collectTraitsP(comm, tr)
@@ -346,9 +344,7 @@ updateSpecies <- function(comm, tr){
 #' @param dat The results of run_scm_collect
 #' @param tr An optional table of input traits
 #' @param interval List of sampling intervals, length 3.
-#' @param breaks List of time periods for each sampling interval, length 3.
-#' @param propSamp Proportion of cohorts to test (0-1)
-#' @param transects Number of repeats for each sample
+#' @param breaks List of time periods for each sampling interval, length 3
 #' @param moist Leaf moisture (ratio moisture weight to dry weight)
 #' @param diameter Mean diameter of surface litter pieces (m)
 #' @param propDead Proportion of foliage dead
@@ -363,11 +359,15 @@ updateSpecies <- function(comm, tr){
 #' @param lwRat 
 #' @param ram 
 #' @param hw 
+#' @param mat 
+#' @param propSamp Values closer to 0 have more accurate ratios of components but miss some cohorts
+#' @param transects More transects ensure more cohorts 
+#' @param sepSig 
 #'
 #' @export
 
-frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), propSamp = 1, transects = 1, propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
-                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, hw = 0, mat = 17, diameter = 0.005) {
+frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
+                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, hw = 0, mat = 17, diameter = 0.005, propSamp = 0.75, transects = 10, sepSig = 0.1) {
   
   cat("Collecting parameters for modelling fire behaviour", "\n")
   
@@ -392,7 +392,7 @@ frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), pr
   rec <- 1
   for (age in steps) {
     sLitter <- frame::litter(negEx = 1, max, rate, a = 1, b = 1, age)
-    tabs <- frameTables(dat, tr, age, rec, propSamp, transects, propDead, leafForm, lwRat, leafA, ram,
+    tabs <- frameTables(dat, tr, age, propSamp, transects, sepSig, rec, propDead, leafForm, lwRat, leafA, ram,
                         ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, hw, sLitter, diameter)
     Flora <- rbind(Flora,tabs[[1]])
     Structure <- rbind(Structure,tabs[[2]])

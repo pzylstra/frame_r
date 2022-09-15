@@ -9,9 +9,10 @@ frameTables(
   dat,
   tr,
   age,
-  rec = 1,
-  propSamp = 0.5,
+  propSamp = 0.75,
   transects = 10,
+  sepSig = 0.1,
+  rec = 1,
   propDead = 0,
   leafForm = "Flat",
   lwRat = 3,
@@ -35,10 +36,6 @@ frameTables(
 \item{age}{Years since disturbance}
 
 \item{rec}{Number of the record}
-
-\item{propSamp}{Proportion of cohorts to test (0-1)}
-
-\item{transects}{Number of repeats for each sample}
 
 \item{propDead}{Proportion of foliage dead}
 

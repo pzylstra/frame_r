@@ -10,8 +10,6 @@ frameDynTab(
   tr,
   breaks = c(20, 50, 200),
   interval = c(2, 5, 10),
-  propSamp = 1,
-  transects = 1,
   propDead = 0,
   leafForm = "Flat",
   lwRat = 3,
@@ -24,7 +22,10 @@ frameDynTab(
   deltaL = 0.46,
   hw = 0,
   mat = 17,
-  diameter = 0.005
+  diameter = 0.005,
+  propSamp = 0.75,
+  transects = 10,
+  sepSig = 0.1
 )
 }
 \arguments{
@@ -32,13 +33,9 @@ frameDynTab(
 
 \item{tr}{An optional table of input traits}
 
-\item{breaks}{List of time periods for each sampling interval, length 3.}
+\item{breaks}{List of time periods for each sampling interval, length 3}
 
 \item{interval}{List of sampling intervals, length 3.}
-
-\item{propSamp}{Proportion of cohorts to test (0-1)}
-
-\item{transects}{Number of repeats for each sample}
 
 \item{propDead}{Proportion of foliage dead}
 
@@ -62,7 +59,15 @@ frameDynTab(
 
 \item{hw}{}
 
+\item{mat}{}
+
 \item{diameter}{Mean diameter of surface litter pieces (m)}
+
+\item{propSamp}{Values closer to 0 have more accurate ratios of components but miss some cohorts}
+
+\item{transects}{More transects ensure more cohorts}
+
+\item{sepSig}{}
 }
 \description{
 Constructs an age sequence of parameter files 
