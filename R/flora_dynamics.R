@@ -2615,7 +2615,7 @@ transectLong <- function(alldata){
 frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                         wid = "width", rec = "Site", sN = "SiteName", negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = NA, 
                         surf = 10, density = 300, nsH = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA, 
-                        thin = TRUE, sLit  = TRUE, dec = TRUE) {
+                        thin = TRUE, sLit  = TRUE, dec = TRUE, sepSig = 0.001) {
   
   # Find missing data
   entries <- which(is.na(dat[top]))
@@ -2665,9 +2665,9 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
     }
     
     Struct <- buildStructure(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
-                             rec = "Site", sN = "SiteName")
+                             rec = "Site", sN = "SiteName", sepSig = sepSig)
     Flor <- buildFlora(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
-                       wid = "width", rec = "Site", sN = "SiteName", surf = surf)
+                       wid = "width", rec = "Site", sN = "SiteName", surf = surf, sepSig = sepSig)
     
     # Add suspended litter
     tabs <- if (cover != 0) {

@@ -33,7 +33,8 @@ frameSurvey(
   rateNS = NA,
   thin = TRUE,
   sLit = TRUE,
-  dec = TRUE
+  dec = TRUE,
+  sepSig = 0.001
 )
 }
 \arguments{
