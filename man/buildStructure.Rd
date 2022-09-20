@@ -13,7 +13,8 @@ buildStructure(
   he = "he",
   ht = "ht",
   rec = "Site",
-  sN = "SiteName"
+  sN = "SiteName",
+  sepSig = 0.001
 )
 }
 \arguments{

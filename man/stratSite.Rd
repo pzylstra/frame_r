@@ -13,7 +13,8 @@ stratSite(
   base = "base",
   top = "top",
   he = "he",
-  ht = "ht"
+  ht = "ht",
+  sepSig = 0.001
 )
 }
 \arguments{

@@ -2061,7 +2061,7 @@ rich <- function(dat, thres = 5, pnts = 10) {
 
 richS <- function(dat, thres = 0, pnts = 10, 
                   pN ="Point",  spName ="Species",  base = "base", 
-                  top = "top", he = "he", ht = "ht") {
+                  top = "top", he = "he", ht = "ht", sepSig = 0.001) {
   
   spCov <- frame::specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
@@ -2070,7 +2070,7 @@ richS <- function(dat, thres = 0, pnts = 10,
     mutate(Species = replace(Species, which(Cover < thres), "Minor Species"))
   
   datS <- frame::frameStratify(veg = dat, pN = pN, spName = spName, base = base,
-                          top = top, he = he, ht = ht)
+                          top = top, he = he, ht = ht, sepSig = sepSig)
   
   out <- suppressMessages(datS %>%
                             group_by(Stratum) %>%
@@ -2107,12 +2107,12 @@ richS <- function(dat, thres = 0, pnts = 10,
 #' @export
 #' 
 stratSite <- function(dat, thres = 0, pN ="Point",  spName ="Species",  base = "base", 
-                      top = "top", he = "he", ht = "ht")  {
+                      top = "top", he = "he", ht = "ht", sepSig = 0.001)  {
   pnts <- nrow(dat)
   strataDet <- data.frame(Stratum = numeric(0), Cover = numeric(0), 
                           Base = numeric(0), Top = numeric(0), stringsAsFactors = F)
   strat <- frame::frameStratify(veg = dat, pN = pN, spName = spName, base = base,
-                                top = top, he = he, ht = ht)
+                                top = top, he = he, ht = ht, sepSig = sepSig)
   for (st in 1:as.numeric(max(strat$Stratum))) {
     stratSub <- strat %>% filter(Stratum == st)
     spnts <- unique(stratSub$Point, incomparables = FALSE)
@@ -2222,10 +2222,10 @@ stratRich <- function(dat, thres = 5, pnts = 10,
 #'
 
 buildFlora <- function(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
-                       wid = "width", rec = "Site", sN = "SiteName", surf = 20) {
+                       wid = "width", rec = "Site", sN = "SiteName", surf = 20, sepSig = 0.001) {
 
   vegA <- frame::frameStratify(veg = veg, pN = pN, spName = spName,
-                          base = base, top = top, he = he, ht = ht)
+                          base = base, top = top, he = he, ht = ht, sepSig = sepSig)
   
   # Summarise species
   spCount <- vegA %>%
@@ -2318,11 +2318,11 @@ buildFlora <- function(veg, pN ="Point",  spName ="Species", base = "base", top 
 #'
 
 buildStructure <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
-                           he = "he", ht = "ht", rec = "Site", sN = "SiteName") {
+                           he = "he", ht = "ht", rec = "Site", sN = "SiteName", sepSig = 0.001) {
   
   # 1. Horizontal relationships  
   vegA <- frame::frameStratify(veg = veg, pN = pN, spName = spName, base = base,
-                          top = top, he = he, ht = ht)
+                          top = top, he = he, ht = ht, sepSig = sepSig)
   suppressMessages(StratC <- vegA %>%
                      select(Point, Stratum)%>%
                      group_by(Stratum, Point) %>%
