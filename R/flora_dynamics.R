@@ -153,7 +153,7 @@ coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 
     }
     
     #Quadratic
-    init4 <- c(a = 1, b = 2, c = 0)
+    init4 <- c(a = -1, b = 2, c = 0)
     if (!berryFunctions::is.error(nls(y ~ a*x^2 + b*x + c, data = studySpecies, 
                                       start = init4, trace = T, control = control))) {
       q <- nls(y ~ a*x^2 + b*x + c, data = studySpecies, start = init4, 
@@ -163,9 +163,10 @@ coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 
       qb <- qSum$coefficients[2]
       qc <- qSum$coefficients[3]
       
-      #Added control for Quadratic
+      # Added control for Quadratic
+      # Also prevents quadratic increases
       f <- function(x){qa*x^2 + qb*x + qc}
-      if (bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective) {
+      if ((bTest * (sd(y, na.rm = TRUE) + mean(y, na.rm = TRUE)) < (optimize(f = f, interval=c(0, 150), maximum=TRUE))$objective)||qa > 0) {
         qRSE <- 100
         qRsq <- 0
         qp <- 1
@@ -1124,7 +1125,20 @@ wDyn <- function(dat, width = "width", top = "top",
 #' @param thres The minimum percent cover (0-100) of a Species that will be analysed
 #' @param pnts The number of points measured in a transect
 #' @param p The maximum allowable p value for a model
+#' @param bTest 
+#' @param cTest 
+#' @param Sr Rate of increase for surface litter in a negative exponential curve
+#' @param Sk Asymptote for surface litter in a negative exponential curve
+#' @param Sa 
+#' @param Sb 
+#' @param Sc 
+#' @param NSr Rate of increase for NS fuels in a negative exponential curve
+#' @param NSk Asymptote for NS fuels in a negative exponential curve
+#' @param NSa 
+#' @param NSb 
+#' @param NSc 
 #' @param maxiter The maximum number of iterations for model fitting
+#'
 #' @return dataframe
 #' @export
 
@@ -2439,72 +2453,44 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", base = "base", t
 }
 
 
-#' Adds parameters for suspended litter to tables Flora & Structure
+#' Finds the height of near-surface litter
 #' 
-#' @param Structure A dataframe with the fields:
-#' record - a unique, consecutively numbered identifier per site
-#' site - a unique identifier per site
-#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
-#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
-#' on the left grow directly beneath those in the stratum on the right. 
-#'    Acceptable values are TRUE, FALSE, or blank, where the outcome 
-#'    will be decided by the relative stratum heights.
-#' nsR, eR, mR, cR. Species richness (number of species) in each stratum
-#' @param Flora A dataframe with the fields:
-#' record - a unique, consecutively numbered identifier per site
-#' site - A name for the site
-#' species - the name of the species, which will call trait data from 
-#' 'default.species.params'
-#' stratum - numeric value from 1 to 4, counting from lowest stratum
-#' comp - Percent composition of that species in the stratum. 
-#'    If absent, all species will be considered equally.
-#' base - base height of plant crowns (m)
-#' he - he height of plant crowns (m)
-#' ht - ht height of plant crowns (m)
-#' top - top height of plant crowns (m)
-#' w - width of plant crowns (m)
-#' Hs - standard deviation of the top height of plant crowns (m)
-#' Hr - range of the top height of plant crowns (m)
-#' weight - weight in t/ha of fine dead organic material forming 
-#'    the surface and suspNS layers
-#' diameter - mean diameter of surface and suspNS litter in m 
 #' @param default.species.params Plant traits database
 #' @param density Wood density (kg.m-3)
-#' @param top Top height of suspended layer
 #' @param cover Percent cover of suspended layer
-#' @param pnts Number of surveyed points
+#' @param wNS Width of NS patches (m)
 #' @param age Years since last fire
 #' @param aQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
 #' @param bQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
 #' @param cQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
-#' @param max Parameter for a negative exponential trend; leave as NA if trend is quadratic
-#' @param rate Parameter for a negative exponential trend; leave as NA if trend is quadratic
-#' @param dec Logical - TRUE allows for Burr model to decline as vegetation thins,
-#' otherwise suspNS remains at the highest point it has reached by that age
+#' @param dec Logical - TRUE allows for quadratic model to decline as vegetation thins,
+#' @param maxNS Asymptote for negative exponential increase in NS
+#' @param rateNS Rate for negative exponential increase in NS
+#'
 #' @return List
 #' @export
 
-susp <- function(Flora, Structure, default.species.params, density = 300, top = 0.5, cover = 0.8, pnts = 10,
-                 age = 10, aQ = NA, bQ = NA, cQ = NA, max = NA, rate = NA, dec = TRUE)
+susp <- function(default.species.params, density = 300, cover = 0.8,
+                 age = 10, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA, dec = TRUE)
 {
-  T <- filter(default.species.params, name == "suspNS")
+  suspDat <- filter(default.species.params, name == "suspNS")
   
   # Model packing
   if (dec == TRUE) {
-    suspNS <- if (!is.na(max)) {
-      max*(1-exp(-rate*age))
+    suspNS <- if (!is.na(maxNS)) {
+      maxNS*(1-exp(-rateNS*age))
     } else if (!is.na(aQ)) {
-      pmax(0.1,(aQ * age^2 + bQ * age + cQ))
+      pmax(0,(aQ * age^2 + bQ * age + cQ))
     } else {
       0.1
     }
   } else {
     preLit <- vector()
     for (x in 1:age) {
-      preLit[x] <- if (!is.na(max)) {
-        max*(1-exp(-rate*x))
+      preLit[x] <- if (!is.na(maxNS)) {
+        maxNS*(1-exp(-rateNS*x))
       } else if (!is.na(aQ)) {
-        pmax(0.1,(aQ * x^2 + bQ * x + cQ))
+        pmax(0,(aQ * x^2 + bQ * x + cQ))
       } else {
         0.1
       }
@@ -2512,19 +2498,12 @@ susp <- function(Flora, Structure, default.species.params, density = 300, top = 
     suspNS <- max(preLit)
   }
   
-  lengthS <- (0.6*((0.1 * suspNS) / (top * density))) / (pi * (T$leafThickness[1]/2)^2)
-  sepS <- mean(sqrt(sqrt(top/lengthS)^2*2),sqrt(top/lengthS))
-  wNS <- as.numeric(max(filter(Flora, stratum == 1)$w, na.rm = TRUE))
-  sepNS <- sqrt(wNS^2/cover)
+  nSticks <- (0.1*suspNS/cover)/(pi*(suspDat$leafThickness/2)^2*density) #Number of sticks
+  top <- max(0.1,floor(nSticks*suspDat$leafSeparation) - 1) * suspDat$leafSeparation # Sets the lowest layer on the ground, finds height as separation * number of layers
   
-  #Update tables
-  row <- length(Flora$species)+1
-  ns <- c(as.numeric(Flora$record[row-1]), Flora$site[row-1], "suspNS", 1, cover * pnts, 0, 0, top, top, max(1,Flora$w, na.rm = TRUE), 1.1, 1.1, suspNS, 0.015)
-  Flora <- rbind(Flora, ns)
-  Structure$NS[1] <- min(Structure$NS[1], sepNS)
-  
-  return(list(Flora, Structure))
+  return(list(top, suspNS))
 }
+
 
 #' Models the weight of surface litter from time since fire 
 #' using either an Olson negative exponential function or a Burr curve
@@ -2595,7 +2574,6 @@ transectLong <- function(alldata){
 #' @param age Optional field with site age 
 #' @param surf Weight of surface litter in t/ha
 #' @param density Wood density (kg.m-3)
-#' @param nsH Top height of suspended layer
 #' @param cover Percent cover of suspended layer
 #' @param aQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
 #' @param bQ Parameter for a quadratic trend; leave as NA if trend is negative exponential
@@ -2607,6 +2585,11 @@ transectLong <- function(alldata){
 #' @param sLit Logical - TRUE allows surface litter to decline if the model does so, otherwise
 #' the maximum value to that age is maintained
 #' @param dec Logical - TRUE allows near surface surface litter to decline if the model does so, otherwise
+#' @param negEx 
+#' @param a 
+#' @param b 
+#' @param wNS Width of near surface patches (m)
+#' @param sepSig 
 #' the maximum value to that age is maintained
 #' @return list
 #' @export
@@ -2614,7 +2597,7 @@ transectLong <- function(alldata){
 
 frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                         wid = "width", rec = "Site", sN = "SiteName", negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = NA, 
-                        surf = 10, density = 300, nsH = 0.5, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA, 
+                        surf = 10, density = 300, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA, wNS = 1,
                         thin = TRUE, sLit  = TRUE, dec = TRUE, sepSig = 0.001) {
   
   # Find missing data
@@ -2647,7 +2630,7 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
   for (rec in silist) {
     veg <- filter(dat, Site == rec)
     print(rec)
-    # Find surface fuels
+    # Find surface litter
     if (!is.na(age)) {
       AGE <- veg[1,age]
       
@@ -2661,30 +2644,42 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
         }
         surf <- max(preLit)
       })
-      
+    }
+    
+    # Add suspended litter
+    if (cover != 0) {
+      if (thin == TRUE && dec == TRUE) {
+        decline <- TRUE
+      } else {
+        decline <- FALSE
+      }
+      suspNS <- susp(default.species.params, density = density, cover = cover,
+           age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, maxNS = maxNS, rate = rateNS, dec = decline)
+      top <- suspNS[[1]]
+      #Update tables
+      if (top > 0) {
+        row <- nrow(veg)
+        rows <- round(cover*length(unique(veg$Point)),0)
+        for (r in 1:rows) {
+          veg[row+r,1] <- AGE
+          veg[row+r,2] <- "suspNS"
+          veg[row+r,3] <- 0
+          veg[row+r,4] <- top
+          veg[row+r,5] <- 0
+          veg[row+r,6] <- top
+          veg[row+r,7] <- wNS
+          veg[row+r,8] <- AGE
+          veg[row+r,9] <- rec
+        }
+      }
     }
     
     Struct <- buildStructure(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
                              rec = "Site", sN = "SiteName", sepSig = sepSig)
     Flor <- buildFlora(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
                        wid = "width", rec = "Site", sN = "SiteName", surf = surf, sepSig = sepSig)
-    
-    # Add suspended litter
-    tabs <- if (cover != 0) {
-      
-      if (thin == TRUE && dec == TRUE) {
-        decline <- TRUE
-      } else {
-        decline <- FALSE
-      }
-      pnts <- as.numeric(n_distinct(dat[pN]))
-      susp(Flora = Flor, Structure = Struct, default.species.params, density = density, top = nsH, cover = cover, pnts = pnts,
-           age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, max = maxNS, rate = rateNS, dec = decline)
-    } else {
-      tabs <- list(Flor, Struct)
-    }
-    Structure <- rbind(Structure, tabs[[2]])
-    Flora <- rbind(Flora, tabs[[1]])
+    Structure <- rbind(Structure, Struct)
+    Flora <- rbind(Flora, Flor)
   }
   
   return(list(Flora, Structure))
@@ -2814,7 +2809,8 @@ pseudoTransect <- function(Dynamics, pointRich, default.species.params,
     return(xRow)
   }
   # Potential species
-  spList <- growPlants(Dynamics, Age = Age, growth = growth, thin = thin, prune = prune)
+  spList <- growPlants(Dynamics, Age = Age, growth = growth, thin = thin, prune = prune) %>%
+    mutate(Cover = 100-(pmin(1,5/top)*(100-Cover))) # Weight cover by height above 5m to reflect angle to canopy
   
   out <- data.frame('Point' = numeric(0), 'Species' = character(0), 'base' = numeric(0),
                     'top' = numeric(0), 'he' = numeric(0), 'ht' = numeric(0), 'width' = numeric(0),
