@@ -90,7 +90,7 @@ river <- function(lRiver, mRiver){
 #' @param necT 
 #' @param surfDecl 
 #' @param minR 
-#' @param a 
+#' @param a A unique identifier for the record being run
 #' @param fireArea 
 #' @param FPC 
 #' @param vAir500 
@@ -388,7 +388,7 @@ frameSpread <- function (base.params, weather, a, igLoc = -1, t = 1, hourStep = 
 #'    will be decided by the relative stratum heights.
 #' nsR, eR, mR, cR. Species richness (number of species) in each stratum
 #' @param default.species.params Plant traits database
-#' @param a 
+#' @param a A unique identifier for the record being run
 #' @param weather 
 #' @param smoulder 
 #' @param Extinction 
@@ -773,7 +773,7 @@ burnPrint <- function(Flora, Structure, default.species.params, a, weather, smou
 #'    will be decided by the relative stratum heights.
 #' nsR, eR, mR, cR. Species richness (number of species) in each stratum
 #' @param default.species.params Plant traits database
-#' @param a 
+#' @param a A unique identifier for the record being run
 #' @param weather 
 #' @param lightning 
 #' @param smoulder 
@@ -892,7 +892,7 @@ frameRisk <- function(Flora, Structure, default.species.params, a = a, weather, 
 
 #' Internal function for riskDynamics
 #'
-#' @param a 
+#' @param a A unique identifier for the record being run
 #'
 #' @return list
 
@@ -1043,7 +1043,7 @@ riskDynamics <- function(fireDat, tr, clim, lightning = 0.05, fires = 5, lat = -
 #' Calculates risk (likelihood & consequence) for plants in a given climate & terrain
 #'
 #' @param dynDat 
-#' @param a 
+#' @param a A unique identifier for the record being run
 #' @param ignitions 
 #' @param hourStep 
 #' @param Area 
@@ -1127,7 +1127,7 @@ spotFire <- function(flameHeight, slope, FPC, windExposure, vAir, vAir500 = 2, f
 
 #' Internal function for fireDynamics
 #'
-#' @param a 
+#' @param a A unique identifier for the record being run
 #'
 #' @return list
 #' @export
