@@ -7,7 +7,7 @@
 repFlame(IP)
 }
 \arguments{
-\item{IP}{The dataframe $IP}
+\item{IP}{The dataframe $IgnitionPaths}
 }
 \value{
 dataframe

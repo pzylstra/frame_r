@@ -27,7 +27,7 @@ plantRisk(
 \arguments{
 \item{dynDat}{}
 
-\item{a}{}
+\item{a}{A unique identifier for the record being run}
 
 \item{ignitions}{}
 

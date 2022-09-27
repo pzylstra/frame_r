@@ -7,7 +7,7 @@
 parBurn(n)
 }
 \arguments{
-\item{a}{}
+\item{a}{A unique identifier for the record being run}
 }
 \value{
 list

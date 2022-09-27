@@ -41,11 +41,11 @@ frameDynTab(
 
 \item{leafForm}{Flat or Round}
 
-\item{lwRat}{}
+\item{lwRat}{Ratio of leaf length to width}
 
 \item{leafA}{Area of a leaf in m2}
 
-\item{ram}{}
+\item{ram}{Stem ramification}
 
 \item{ignitionTemp}{Temperature of the endotherm (degC)}
 
@@ -57,9 +57,9 @@ frameDynTab(
 
 \item{deltaL}{Leaf density (g/cm3)}
 
-\item{hw}{}
+\item{hw}{Environmental difference in plant height: width ratio}
 
-\item{mat}{}
+\item{mat}{Mean annual temperature (deg C)}
 
 \item{diameter}{Mean diameter of surface litter pieces (m)}
 

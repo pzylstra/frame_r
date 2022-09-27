@@ -67,7 +67,7 @@ firePlant(
 
 \item{moistureRange}{}
 
-\item{fLine}{}
+\item{fLine}{Length of the active fire front (m)}
 
 \item{leafVar}{}
 

@@ -25,11 +25,11 @@ buildTraitsP(
 
 \item{leafForm}{Flat or Round}
 
-\item{lwRat}{}
+\item{lwRat}{Ratio of leaf length to width}
 
 \item{leafA}{Area of a leaf in m2}
 
-\item{ram}{}
+\item{ram}{Stem ramification}
 
 \item{ignitionTemp}{Temperature of the endotherm (degC)}
 
