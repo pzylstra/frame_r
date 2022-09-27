@@ -24,13 +24,13 @@ frameSurvey(
   age = NA,
   surf = 10,
   density = 300,
-  nsH = 0.5,
   cover = 0.8,
   aQ = NA,
   bQ = NA,
   cQ = NA,
   maxNS = NA,
   rateNS = NA,
+  wNS = 1,
   thin = TRUE,
   sLit = TRUE,
   dec = TRUE,
@@ -60,17 +60,21 @@ frameSurvey(
 
 \item{sN}{Optional field with a site name}
 
+\item{negEx}{}
+
 \item{max}{Maximum weight of surface litter (t/ha)}
 
 \item{rate}{Growth rate for surface litter in a negative exponential function}
+
+\item{a}{}
+
+\item{b}{}
 
 \item{age}{Optional field with site age}
 
 \item{surf}{Weight of surface litter in t/ha}
 
 \item{density}{Wood density (kg.m-3)}
-
-\item{nsH}{Top height of suspended layer}
 
 \item{cover}{Percent cover of suspended layer}
 
@@ -84,14 +88,17 @@ frameSurvey(
 
 \item{rateNS}{Parameter for a negative exponential trend; leave as NA if trend is quadratic}
 
+\item{wNS}{Width of near surface patches (m)}
+
 \item{thin}{Logical - TRUE uses plant self-thinning models in Dynamics,
 otherwise plant cover remains at the highest point it has reached by that age}
 
 \item{sLit}{Logical - TRUE allows surface litter to decline if the model does so, otherwise
 the maximum value to that age is maintained}
 
-\item{dec}{Logical - TRUE allows near surface surface litter to decline if the model does so, otherwise
-the maximum value to that age is maintained}
+\item{dec}{Logical - TRUE allows near surface surface litter to decline if the model does so, otherwise}
+
+\item{sepSig}{the maximum value to that age is maintained}
 }
 \value{
 list
