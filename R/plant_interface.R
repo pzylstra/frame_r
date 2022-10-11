@@ -369,7 +369,7 @@ updateSpecies <- function(comm, tr){
 frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, hw = 0, mat = 17, diameter = 0.005, propSamp = 0.75, transects = 10, sepSig = 0.1) {
   
-  cat("Collecting parameters for modelling fire behaviour", "\n")
+  cat("Collecting FRaME parameters", "\n")
   
   Flora <- data.frame()
   Structure <- data.frame()
