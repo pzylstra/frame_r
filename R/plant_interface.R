@@ -311,9 +311,9 @@ collectTraitsP <- function(comm, tr,
 frameTables <- function(dat, tr, age, propSamp = 0.75, transects = 10, sepSig = 0.1, rec = 1, propDead = 0, 
                         leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, 
-                        deltaL = 0.46, hw = 0, sLitter = 15, diameter = 0.005) {
+                        deltaL = 0.46, hw = 0, sLitter = 15, diameter = 0.005, minCov = 0.0001) {
   
-  comm <- suppressMessages(stratify_community(dat, tr, age, hw, propSamp = propSamp, transects = transects, sepSig = sepSig))
+  comm <- suppressMessages(stratify_community(dat, tr, age, hw, propSamp = propSamp, transects = transects, sepSig = sepSig, minCov = minCov))
   Structure <- suppressMessages(buildStructureP(comm, age, rec))
   Flora <- buildFloraP(comm, tr, age, rec, moist, sLitter, diameter)
   Traits <- collectTraitsP(comm, tr)
@@ -367,7 +367,8 @@ updateSpecies <- function(comm, tr){
 #' @export
 
 frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), propDead = 0, leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5,
-                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, hw = 0, mat = 17, diameter = 0.005, propSamp = 0.75, transects = 10, sepSig = 0.1) {
+                        ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46, hw = 0, mat = 17, diameter = 0.005, propSamp = 0.75, 
+                        transects = 10, sepSig = 0.1, minCov = 0.0001) {
   
   cat("Collecting FRaME parameters", "\n")
   
@@ -393,7 +394,7 @@ frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), pr
   for (age in steps) {
     sLitter <- frame::litter(negEx = 1, max, rate, a = 1, b = 1, age)
     tabs <- frameTables(dat, tr, age, propSamp, transects, sepSig, rec, propDead, leafForm, lwRat, leafA, ram,
-                        ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, hw, sLitter, diameter)
+                        ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, hw, sLitter, diameter, minCov = minCov)
     Flora <- rbind(Flora,tabs[[1]])
     Structure <- rbind(Structure,tabs[[2]])
     Tr <- rbind(Tr,tabs[[3]])

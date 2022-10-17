@@ -25,7 +25,8 @@ frameTables(
   deltaL = 0.46,
   hw = 0,
   sLitter = 15,
-  diameter = 0.005
+  diameter = 0.005,
+  minCov = 1e-04
 )
 }
 \arguments{
