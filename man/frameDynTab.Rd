@@ -25,7 +25,8 @@ frameDynTab(
   diameter = 0.005,
   propSamp = 0.75,
   transects = 10,
-  sepSig = 0.1
+  sepSig = 0.1,
+  minCov = 1e-04
 )
 }
 \arguments{
