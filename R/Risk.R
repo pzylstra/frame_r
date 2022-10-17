@@ -1252,6 +1252,7 @@ fireDynamics <- function(fireDat, slope = 5, slopeSD = 2, slopeRange = 5,
   parallel::stopCluster(cl)
   
   # 6. Summarise and export results
+  cat("Summarising results", "\n", "\n")
   runs <- data.frame()
   IP <- data.frame()
   for (n in 1:length(r)) {
