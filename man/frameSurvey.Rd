@@ -60,7 +60,7 @@ frameSurvey(
 
 \item{sN}{Optional field with a site name}
 
-\item{negEx}{}
+\item{negEx}{Value determining the model used. 1 = olson, 2 = Burr}
 
 \item{max}{Maximum weight of surface litter (t/ha)}
 
