@@ -2,7 +2,8 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{stratTest}
 \alias{stratTest}
-\title{Stratum test}
+\title{Stratum test
+FAULTY, DON'T USE}
 \usage{
 stratTest(clust)
 }
@@ -11,4 +12,5 @@ stratTest(clust)
 }
 \description{
 Stratum test
+FAULTY, DON'T USE
 }
