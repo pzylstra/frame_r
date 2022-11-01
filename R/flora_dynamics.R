@@ -1741,6 +1741,9 @@ floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 2, cTest
 #' 
 pCover <- function(mods, sp, Age = 10){
   n <- as.numeric(which(mods$Species == sp))
+  if (length(n)>1) {
+    cat("There is more than one entry for a species", "\n")
+  }
   if (mods$Cover[n] == "NegExp") {
     c <- as.numeric(mods$C_a[n]) * (1 - exp(-as.numeric(mods$C_b[n]) * Age))
   } else if (mods$Cover[n] == "Burr") {
@@ -1752,7 +1755,7 @@ pCover <- function(mods, sp, Age = 10){
   } else if (mods$Cover[n] == "Quadratic") {
     c <- as.numeric(mods$C_a[n])*Age^2 + as.numeric(mods$C_b[n])*Age + as.numeric(mods$C_c[n])
   } else if (mods$Cover[n] == "Mean") {
-    c <- as.numeric(mods$C_b[n])
+    c <- as.numeric(mods$meanCover[n])
   }
   c <- min(max(0,c),100)
   return(c)
@@ -1769,6 +1772,9 @@ pCover <- function(mods, sp, Age = 10){
 #' 
 pTop <- function(mods, sp, Age = 10){
   n <- as.numeric(which(mods$Species == sp))
+  if (length(n)>1) {
+    cat("There is more than one entry for a species", "\n")
+  }
   if (mods$Top[n] == "NegExp") {
     c <- as.numeric(mods$T_a[n]) * (1 - exp(-as.numeric(mods$T_b[n]) * Age))
   } else if (mods$Top[n] == "Burr") {
@@ -1780,7 +1786,7 @@ pTop <- function(mods, sp, Age = 10){
   } else if (mods$Top[n] == "Quadratic") {
     c <- as.numeric(mods$T_a[n])*Age^2 + as.numeric(mods$T_b[n])*Age + as.numeric(mods$T_c[n])
   } else if (mods$Top[n] == "Mean") {
-    c <- as.numeric(mods$T_b[n])
+    c <- as.numeric(mods$meanTop[n])
   }
   c <- max(0,c)
   return(c)
@@ -1797,6 +1803,9 @@ pTop <- function(mods, sp, Age = 10){
 #' 
 pBase <- function(mods, sp, Age = 10){
   n <- as.numeric(which(mods$Species == sp))
+  if (length(n)>1) {
+    cat("There is more than one entry for a species", "\n")
+  }
   if (mods$Base[n] == "NegExp") {
     c <- as.numeric(mods$B_a[n]) * (1 - exp(-as.numeric(mods$B_b[n]) * Age))
   } else if (mods$Base[n] == "Burr") {
@@ -1808,7 +1817,7 @@ pBase <- function(mods, sp, Age = 10){
   } else if (mods$Base[n] == "Quadratic") {
     c <- as.numeric(mods$B_a[n])*Age^2 + as.numeric(mods$B_b[n])*Age + as.numeric(mods$B_c[n])
   } else if (mods$Base[n] == "Mean") {
-    c <- as.numeric(mods$B_b[n])
+    c <- as.numeric(mods$meanBase[n])
   }
   c <- min(max(0,c),1)
   return(c)
@@ -1825,6 +1834,9 @@ pBase <- function(mods, sp, Age = 10){
 #' 
 pHe <- function(mods, sp, Age = 10){
   n <- as.numeric(which(mods$Species == sp))
+  if (length(n)>1) {
+    cat("There is more than one entry for a species", "\n")
+  }
   if (mods$He[n] == "NegExp") {
     c <- as.numeric(mods$He_a[n]) * (1 - exp(-as.numeric(mods$He_b[n]) * Age))
   } else if (mods$He[n] == "Burr") {
@@ -1836,7 +1848,7 @@ pHe <- function(mods, sp, Age = 10){
   } else if (mods$He[n] == "Quadratic") {
     c <- as.numeric(mods$He_a[n])*Age^2 + as.numeric(mods$He_b[n])*Age + as.numeric(mods$He_c[n])
   } else if (mods$He[n] == "Mean") {
-    c <- as.numeric(mods$He_b[n])
+    c <- as.numeric(mods$meanHe[n])
   }
   c <- max(0,c)
   return(c)
@@ -1853,6 +1865,9 @@ pHe <- function(mods, sp, Age = 10){
 #' 
 pHt <- function(mods, sp, Age = 10){
   n <- as.numeric(which(mods$Species == sp))
+  if (length(n)>1) {
+    cat("There is more than one entry for a species", "\n")
+  }
   if (mods$Ht[n] == "NegExp") {
     c <- as.numeric(mods$Ht_a[n]) * (1 - exp(-as.numeric(mods$Ht_b[n]) * Age))
   } else if (mods$Ht[n] == "Burr") {
@@ -1864,7 +1879,7 @@ pHt <- function(mods, sp, Age = 10){
   } else if (mods$Ht[n] == "Quadratic") {
     c <- as.numeric(mods$Ht_a[n])*Age^2 + as.numeric(mods$Ht_b[n])*Age + as.numeric(mods$Ht_c[n])
   } else if (mods$Ht[n] == "Mean") {
-    c <- as.numeric(mods$Ht_b[n])
+    c <- as.numeric(mods$meanHt[n])
   }
   c <- max(0,c)
   return(c)
@@ -1881,6 +1896,9 @@ pHt <- function(mods, sp, Age = 10){
 #' 
 pWidth <- function(mods, sp, Age = 10){
   n <- as.numeric(which(mods$Species == sp))
+  if (length(n)>1) {
+    cat("There is more than one entry for a species", "\n")
+  }
   if (mods$Width[n] == "NegExp") {
     c <- as.numeric(mods$w_a[n]) * (1 - exp(-as.numeric(mods$w_b[n]) * Age))
   } else if (mods$Width[n] == "Burr") {
@@ -1892,13 +1910,14 @@ pWidth <- function(mods, sp, Age = 10){
   } else if (mods$Width[n] == "Quadratic") {
     c <- as.numeric(mods$w_a[n])*Age^2 + as.numeric(mods$w_b[n])*Age + as.numeric(mods$w_c[n])
   } else if (mods$Width[n] == "Mean") {
-    c <- as.numeric(mods$w_b[n])
+    c <- as.numeric(mods$meanW[n])
   }
   c <- max(0,c)
   return(c)
 }
 
 #' Stratum test
+#' FAULTY, DON'T USE
 #'
 #' @param clust 
 
@@ -1913,7 +1932,7 @@ stratTest <- function(clust) {
   
   o$test <- 0
   for (n in 2:nrow(o)) {
-    o$test[n] <- as.numeric(o$mid[n]<sum(o$top[1]:o$top[n-1]))
+    o$test[n] <- as.numeric(o$mid[n]<sum(o$top[1]:o$top[n-1])) # Using a sequence of this form adds numbers in increments of 1
   }
   
   out <- sum(o$test)
@@ -1945,7 +1964,7 @@ stratTest <- function(clust) {
 frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht", mStrat = 4, sepSig = 0.001)
 {
   
-  veg <- datClean(veg = veg,  base = "base", top = "top", he = "he", ht = "ht")
+  veg <- datClean(veg = veg, base, top, he, ht)
   veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, base, top, he, ht)))
   veg_subset <- veg_subset[complete.cases(veg_subset), ] # Omit NAs in relevant columns
   veg_subset <- veg_subset %>% #log-scale dimensions for stratification
@@ -1968,7 +1987,8 @@ frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", to
       if (!is.error(kmeans(df, centers = nstrat, nstart = 25))){
         km.res <- kmeans(df, centers = nstrat, nstart = 25)
         clust <- cbind(veg_subset, cluster = km.res$cluster)
-        testa <- stratTest(clust)
+        #testa <- frame:::stratTest(clust) Test is faulty
+        testa <- 0
         test <- aov(cluster ~ base * top * he * ht, data = clust)
         sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[3]]+testa
       }
@@ -2500,6 +2520,9 @@ susp <- function(default.species.params, density = 300, cover = 0.8,
   
   nSticks <- (0.1*suspNS/cover)/(pi*(suspDat$leafThickness/2)^2*density) #Number of sticks
   top <- max(0.1,floor(nSticks*suspDat$leafSeparation) - 1) * suspDat$leafSeparation # Sets the lowest layer on the ground, finds height as separation * number of layers
+  if (length(top) == 0) {
+    top <- 0
+  }
   
   return(list(top, suspNS))
 }
@@ -2585,7 +2608,7 @@ transectLong <- function(alldata){
 #' @param sLit Logical - TRUE allows surface litter to decline if the model does so, otherwise
 #' the maximum value to that age is maintained
 #' @param dec Logical - TRUE allows near surface surface litter to decline if the model does so, otherwise
-#' @param negEx 
+#' @param negEx Value determining the model used. 1 = olson, 2 = Burr 
 #' @param a 
 #' @param b 
 #' @param wNS Width of near surface patches (m)
@@ -2789,18 +2812,18 @@ pseudoTransect <- function(Dynamics, pointRich, default.species.params,
                            pnts = 10, Age = 10, growth = TRUE, thin = TRUE, prune = TRUE) 
 {
   # Build species choice function
-  chooseSp <- function(L, spList, nSpecies) {
+  chooseSp <- function(L, spList, drops) {
     temp <- L
     xRow <- data.frame()
     Lentry <- as.numeric(nrow(xRow))
     tot <- sum(temp)
     while (Lentry == 0 & tot >= nSpecies) {
       entry <-
-        spList[which(temp == Rfast::nth(temp, nSpecies, descending = TRUE)),]
-      if (Rfast::nth(temp, nSpecies, descending = TRUE) > 100 * runif(1)) {
+        spList[which(temp == Rfast::nth(temp, 1, descending = TRUE)),]
+      if (Rfast::nth(temp, 1, descending = TRUE) > 100 * runif(1)*(drops>0)) {
         xRow <- rbind(xRow, entry)
       } else {
-        temp[which(temp == Rfast::nth(temp, nSpecies, descending = TRUE))] <-
+        temp[which(temp == Rfast::nth(temp, 1, descending = TRUE))] <-
           0
       }
       Lentry <- as.numeric(nrow(xRow))
@@ -2832,9 +2855,10 @@ pseudoTransect <- function(Dynamics, pointRich, default.species.params,
     }
     
     # Choose species and record dimensions
+    drops <- length(spList$Species) - spN
     for (nSpecies in 1:spN) {
       count <- nrow(out)+1
-      entry <- chooseSp(L, spList, nSpecies)
+      entry <- chooseSp(L, spList, drops)
       if (nrow(entry) > 0) {
         # Remove chosen species from next option
         L[which(spList$Species == entry$Species)] <- 0
@@ -2849,6 +2873,8 @@ pseudoTransect <- function(Dynamics, pointRich, default.species.params,
         out[count, 8] <- Age
         out[count, 9] <- Age
         out[count, 10] <- Age
+      } else {
+        drops <- drops - 1
       }
     }
   }
