@@ -509,9 +509,10 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
   #Filter variation table to record
   varRec <- Flora[Flora$record==a & Flora$species!="Litter",]
   varRec$Hs[is.na(varRec$Hs)]<-0.001
-  varRec$Hr[varRec$Hr==0]<-0.001 
+#  varRec$Hr[varRec$Hr==0]<-0.001 
+  varRec$Hr<-pmin(2,varRec$Hr+1) 
   varRec$Hs[varRec$Hs==0]<-0.001 
-  varRec$Hr<-as.numeric(varRec$Hr)+1 
+#  varRec$Hr<-as.numeric(varRec$Hr)+1 
   varRec <- varRec %>% 
     mutate(name = species,
            st = as.double(stratum)) %>%
@@ -529,7 +530,7 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
     # Where the random number is > stratum cover, all species are marked with liveLeafMoisture == 100.
     # Otherwise, species are varied by Ms & Mr, and multiplied by Pm
     
-    if (runif(1) <= Strata$cover[str] | dCount == StN - 2) {
+    if (runif(1) <= Strata$cover[str] | dCount == StN - 1) {
       for (t in 1:Strata$speciesN[str]) {
         Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
                              sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] * Mr)
@@ -564,6 +565,40 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
   
   # Remove marked species and tidy params file
   tbl <- speciesDrop(tbl)
+  
+  # Check and correct for stratum overlaps
+  Strata <- strata(tbl)
+  Species <- species(tbl)
+  for (row in as.numeric(Strata$stratum)) {
+    if (row > 1) {
+      # Check for overlap between base of stratum and top of lower stratum
+      if (Strata$base[row] < Strata$top[row-1]) {
+        # Check that the lower stratum is not as tall as the upper stratum
+        if (Strata$top[row-1] < Strata$top[row]) {
+          # Correct overlapping strata to average of heights
+          newV <- (Strata$base[row]+Strata$top[row-1])/2
+          # Make sure the new heights don't make the heights of the lower stratum conflict
+          if (newV > max(Species$hc[Species$st==row-1])) {
+            Species$hc[Species$st == row] <- newV
+            Species$he[Species$st == row] <- newV
+            Species$hp[Species$st == row-1] <- newV
+            Species$ht[Species$st == row-1] <- newV
+          } else {
+            cat("The base of stratum", row, "is too low to correct.", "\n")
+          }
+          # Loop through and update species in each stratum
+          for (sp in unique(Species$sp)) {
+            tbl$value[tbl$param == "hc" & tbl$species == sp] <- Species$hc[sp]
+            tbl$value[tbl$param == "he" & tbl$species == sp] <- Species$he[sp]
+            tbl$value[tbl$param == "ht" & tbl$species == sp] <- Species$ht[sp]
+            tbl$value[tbl$param == "hp" & tbl$species == sp] <- Species$hp[sp]
+          }
+        } else {
+          cat("Stratum", row, "is as tall as the next stratum")
+        }
+      }
+    }
+  }
   
   return(tbl)
 }
@@ -837,13 +872,23 @@ speciesDrop <- function(base.params) {
         select(!"new")
     }
     
-    # Set NS & C
+    # Set stratum names
     M <- as.integer(max(base.params$stratum, na.rm = TRUE))
     base.params[which(base.params$stratum == M & base.params$param == "levelName"),]$value <- "canopy"
     
     if (nrow(stNew) > 1) {
       m <- as.integer(min(base.params$stratum, na.rm = TRUE))
       base.params[which(base.params$stratum == m & base.params$param == "levelName"),]$value <- "near surface"
+    }
+    
+    if (nrow(stNew) > 2) {
+      m <- sort(as.integer(unique(base.params$stratum[!is.na(base.params$stratum)])))[2]
+      base.params[which(base.params$stratum == m & base.params$param == "levelName"),]$value <- "elevated"
+    }
+    
+    if (nrow(stNew) > 3) {
+      m <- sort(as.integer(unique(base.params$stratum[!is.na(base.params$stratum)])))[3]
+      base.params[which(base.params$stratum == m & base.params$param == "levelName"),]$value <- "midstorey"
     }
     
     # Restore site data and reorder
