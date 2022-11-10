@@ -615,7 +615,8 @@ ffm_set_species_param <- function(tbl, stratum.id, species.id,
          std.param,
          " (", section, ") ",
          "for stratum=", stratum.id,
-         ", species=", species.id)
+         ", species=", species.id,
+         ". This species is not present.")
   
   tbl[rows, "value"] <- as.character(value)
   if ( !(is.na(units) | is.null(units)) ) tbl[rows, "units"] <- units
