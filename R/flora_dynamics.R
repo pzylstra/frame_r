@@ -1921,7 +1921,7 @@ pWidth <- function(mods, sp, Age = 10){
 #'
 #' @param clust 
 
-stratTest <- function(clust) {
+stratTestX <- function(clust) {
   
   clust <- clust %>%
     mutate(mid = (base+top+he+ht)/4)
@@ -1933,6 +1933,29 @@ stratTest <- function(clust) {
   o$test <- 0
   for (n in 2:nrow(o)) {
     o$test[n] <- as.numeric(o$mid[n]<sum(o$top[1]:o$top[n-1])) # Using a sequence of this form adds numbers in increments of 1
+  }
+  
+  out <- sum(o$test)
+  return(out)
+}
+
+#' Stratum test
+#'
+#' @param clust 
+
+stratTest <- function(clust) {
+  
+  clust <- clust %>%
+    mutate(low = (base+he)/2,
+           high = (top + ht)/2)
+  sTab <- clust %>%
+    group_by(cluster)%>%
+    summarise_if(is.numeric, mean)
+  o<- sTab[wrapr::orderv(sTab[,11]),]
+  
+  o$test <- 0
+  for (n in 2:nrow(o)) {
+    o$test[n] <- as.numeric(o$low[n]<= o$high[n-1])
   }
   
   out <- sum(o$test)
@@ -1980,6 +2003,7 @@ frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", to
   
   # Find the best division of strata
   sig <- vector()
+  sig[1] <- sepSig
   set.seed(123)
   if (!is.error(kmeans(df, centers = 2, nstart = 25))) {
     for (nstrat in 2:mStrat) {
@@ -1987,8 +2011,8 @@ frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", to
       if (!is.error(kmeans(df, centers = nstrat, nstart = 25))){
         km.res <- kmeans(df, centers = nstrat, nstart = 25)
         clust <- cbind(veg_subset, cluster = km.res$cluster)
-        #testa <- frame:::stratTest(clust) Test is faulty
-        testa <- 0
+        testa <- frame:::stratTest(clust) 
+#        testa <- 0
         test <- aov(cluster ~ base * top * he * ht, data = clust)
         sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[3]]+testa
       }
