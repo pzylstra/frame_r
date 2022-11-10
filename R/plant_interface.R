@@ -1,13 +1,13 @@
 #' Creates an 'F_structure' table for FRaME from plant modelling
+#' Discontinued
 #'
 #' @param dat The output from stratify_community
 #' @param age Years since disturbance
 #' @param rec Number of the record
-#' 
-#' @export
+#'
 #'
 
-buildStructureP <- function(dat, age, rec = 1) {
+buildStructurePP <- function(dat, age, rec = 1) {
   # Summarise strata
   datW <- dat %>%
     group_by(Stratum) %>%
@@ -59,6 +59,79 @@ buildStructureP <- function(dat, age, rec = 1) {
 }
 
 
+
+#' Creates an 'F_structure' table for FRaME from plant modelling
+#'
+#' @param dat The output from stratify_community
+#' @param age Years since disturbance
+#' @param rec Number of the record
+#'
+#' @return
+#' @export
+#'
+buildStructureP <- function(dat, age, rec = 1) {
+  # Summarise strata
+  datW <- dat %>%
+    group_by(Stratum) %>%
+    summarise_if(is.numeric, mean) %>%
+    select(Stratum, w)
+  strata <- dat %>%
+    group_by(Stratum) %>%
+    summarise_if(is.numeric, sum) %>%
+    mutate(di = sqrt(2/d),
+           cr = sqrt(1/d),
+           sep = (di+cr)/2) %>%
+    select(Stratum, sep)
+  strata <- left_join(strata, datW) %>%
+    mutate(sep = pmax(sep,w)) %>%
+    select(Stratum, sep)
+  
+  # Create structure table
+  struct <- data.frame(matrix(ncol = 15, nrow = 1))
+  colnames(struct) <- c("record", "site", "NS", "El", "Mid", "Can", "ns_e", "ns_m", "e_m", "e_c", "m_c", "nsR", "eR", "mR", "cR")
+  struct$record <- rec
+  struct$site <- age
+  if (nrow(strata) == 4) {
+    ns <- filter(dat, dat$Stratum == 1)
+    struct$nsR <- length(unique(ns$species))
+    struct$NS <- signif(strata$sep[1],digits = 3)
+    E <- filter(dat, dat$Stratum == 2)
+    struct$eR <- length(unique(E$species))
+    struct$El <- signif(strata$sep[2],digits = 3)
+    M <- filter(dat, dat$Stratum == 3)
+    struct$mR <- length(unique(M$species))
+    struct$Mid <- signif(strata$sep[3],digits = 3)
+    C <- filter(dat, dat$Stratum == 4)
+    struct$cR <- length(unique(C$species))
+    struct$Can <- signif(strata$sep[4],digits = 3)
+    
+  } else if (nrow(strata) == 3) {
+    ns <- filter(dat, dat$Stratum == 1)
+    struct$nsR <- length(unique(ns$species))
+    struct$NS <- signif(strata$sep[1],digits = 3)
+    E <- filter(dat, dat$Stratum == 2)
+    struct$eR <- length(unique(E$species))
+    struct$El <- signif(strata$sep[2],digits = 3)
+    C <- filter(dat, dat$Stratum == 3)
+    struct$cR <- length(unique(C$species))
+    struct$Can <- signif(strata$sep[3],digits = 3)
+    
+  } else if (nrow(strata) == 2) {
+    ns <- filter(dat, dat$Stratum == 1)
+    struct$nsR <- length(unique(ns$species))
+    struct$NS <- signif(strata$sep[1],digits = 3)
+    C <- filter(dat, dat$Stratum == 2)
+    struct$cR <- length(unique(C$species))
+    struct$Can <- signif(strata$sep[2],digits = 3)
+  } else {
+    C <- filter(dat, dat$Stratum == 1)
+    struct$cR <- length(unique(C$species))
+    struct$Can <- signif(strata$sep[1],digits = 3)
+  }
+  return(struct)
+}
+
+
 #' Creates an 'F_flora' table for FRaME from plant modelling
 #'
 #' @param comm The output from stratify_community
@@ -79,8 +152,21 @@ buildFloraP <- function(comm, tr, age, rec = 1, moist = 1, sLitter = 15, diamete
   # Summarise strata
   strata <- comm %>%
     group_by(Stratum, species) %>%
-    summarise_if(is.numeric, mean) %>%
+    summarise(heightM = weighted.mean(height, cover),
+              baseM = weighted.mean(base, cover),
+              heM = weighted.mean(he, cover),
+              htM = weighted.mean(ht, cover),
+              wM = weighted.mean(w, cover)) %>% 
+    mutate(height = heightM,
+           base = baseM,
+           he = heM,
+           ht = htM,
+           w = wM)%>%
     select(species, Stratum, height, base, he, ht, w)
+  #  strata <- comm %>%
+  #    group_by(Stratum, species) %>%
+  #    summarise_if(is.numeric, mean) %>%
+  #    select(species, Stratum, height, base, he, ht, w))
   sdStrat <- comm %>%
     group_by(Stratum, species) %>%
     summarise_if(is.numeric, sd) %>%
