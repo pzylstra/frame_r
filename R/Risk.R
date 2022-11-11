@@ -197,8 +197,9 @@ frameSpread <- function (base.params, weather, a, igLoc = -1, t = 1, hourStep = 
           ffm_set_site_param("deadFuelMoistureProp", asp) %>% 
           ffm_set_site_param("fireLineLength", as.numeric(firelineW)) %>% 
           ffm_set_site_param("slope", slopeLand * wHeading * fEdge)
-        runTest <- ffm_run_robust(base.params=TBL, db.path = dbH, db.recreate = recreate, testN = testN,
-                               Strata = Strata, Species = Species, Flora = Flora, Structure = Structure, a = a, l = l, Ms = Ms, Pm = Pm, Mr = Mr)
+#        runTest <- ffm_run_robust(base.params=TBL, db.path = dbH, db.recreate = recreate, testN = testN,
+#                               Strata = Strata, Species = Species, Flora = Flora, Structure = Structure, a = a, l = l, Ms = Ms, Pm = Pm, Mr = Mr)
+        runTest <- ffm_run(TBL, db.path = dbH, db.recreate = recreate)
         if (runTest) {
           res <- ffm_db_load(dbH)
           R[landStep] <- max(res$ROS$ros) * 1000

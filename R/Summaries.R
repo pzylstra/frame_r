@@ -315,8 +315,8 @@ species <- function(base.params)
                                 'st'=as.numeric(sp$stratum), 'sp'=as.numeric(sp$species),
                                 'comp'=as.numeric(Comp$value))) %>%
     mutate(htR = ht/hp,
-           hcR = hc/hp,
-           heR = he/hp,
+           hcR = pmin(hc/hp,0.9),
+           heR = pmin(he/hp,htR),
            wR = w/hp)
   cov <- species%>%
     group_by(st) %>%

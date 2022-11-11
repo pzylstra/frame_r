@@ -13,6 +13,9 @@ buildStructureP(dat, age, rec = 1)
 
 \item{rec}{Number of the record}
 }
+\value{
+dataframe
+}
 \description{
 Creates an 'F_structure' table for FRaME from plant modelling
 }

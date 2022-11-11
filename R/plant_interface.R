@@ -66,7 +66,7 @@ buildStructurePP <- function(dat, age, rec = 1) {
 #' @param age Years since disturbance
 #' @param rec Number of the record
 #'
-#' @return
+#' @return dataframe
 #' @export
 #'
 buildStructureP <- function(dat, age, rec = 1) {

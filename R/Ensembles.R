@@ -524,24 +524,24 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
   StN <- as.numeric(count(Strata))
   dCount <- 0
   
-  for (str in 1:StN) {
+  for (st in 1:StN) {
     
     # Vary leaf moisture to randomly place points in the community and decide which plants will be present.
     # Where the random number is > stratum cover, all species are marked with liveLeafMoisture == 100.
     # Otherwise, species are varied by Ms & Mr, and multiplied by Pm
     
-    if (runif(1) <= Strata$cover[str] | dCount == StN - 1) {
-      for (t in 1:Strata$speciesN[str]) {
+    if (runif(1) <= Strata$cover[st] | dCount == StN - 1) {
+      for (t in 1:Strata$speciesN[st]) {
         Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
                              sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] * Mr)
-        tbl <- ffm_set_species_param(tbl, str, SpeciesN,
+        tbl <- ffm_set_species_param(tbl, st, SpeciesN,
                                      "liveLeafMoisture", Mrand)
         (SpeciesN <- SpeciesN + 1)
       }
     } else {
       dCount <- dCount+1
-      for (f in 1:Strata$speciesN[str]) {
-        tbl <- tbl %>% ffm_set_species_param(str, SpeciesN,
+      for (f in 1:Strata$speciesN[st]) {
+        tbl <- tbl %>% ffm_set_species_param(st, SpeciesN,
                                              "liveLeafMoisture", 100)
         SpeciesN <- SpeciesN + 1
       }
@@ -549,16 +549,22 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
     
     # Modify plant dimensions for each species within the stratum
     
-    for (p in 1:Strata$speciesN[str]) {
+    for (p in 1:Strata$speciesN[st]) {
       Hr <- as.numeric(varRec$Hr[SpeciesP])
       peak <- rtnorm(n = 1, mean = Species$hp[SpeciesP],
                      sd = as.numeric(varRec$Hs[SpeciesP]), a = Species$hp[SpeciesP]/Hr, b = Species$hp[SpeciesP]*Hr)
+      
+      # APPROXIMATE FIX ADDED TO DEAL WITH SCALA CODE FAILING
+      # https://github.com/pzylstra/frame_scala/blob/master/forest/src/main/scala/ffm/forest/DefaultVegetationWindModel.scala#L50
+      if (st == max(Species$st)) {
+        peak <- max(peak, 1)
+      }
       tbl <- tbl %>%
-        ffm_set_species_param(str, SpeciesP, "hp", peak) %>%
-        ffm_set_species_param(str, SpeciesP, "ht", peak * Species$htR[SpeciesP]) %>%
-        ffm_set_species_param(str, SpeciesP, "he", peak * Species$heR[SpeciesP]) %>%
-        ffm_set_species_param(str, SpeciesP, "hc", peak *Species$hcR[SpeciesP]) %>%
-        ffm_set_species_param(str, SpeciesP, "w", peak * Species$wR[SpeciesP])
+        ffm_set_species_param(st, SpeciesP, "hp", peak) %>%
+        ffm_set_species_param(st, SpeciesP, "ht", peak * Species$htR[SpeciesP]) %>%
+        ffm_set_species_param(st, SpeciesP, "he", min((peak * Species$heR[SpeciesP]),(peak * Species$htR[SpeciesP]))) %>%
+        ffm_set_species_param(st, SpeciesP, "hc", min(0.9*peak, peak * Species$hcR[SpeciesP])) %>%
+        ffm_set_species_param(st, SpeciesP, "w", peak * Species$wR[SpeciesP])
       SpeciesP = SpeciesP + 1
     }
   }
@@ -1074,22 +1080,24 @@ probFire_Frame <- function(base.params, Structure, Flora, a, db.path = "out_mc.d
         ffm_set_site_param("windSpeed", w)
       
       # Select species for a random point in the forest and import the weather parameters
-      tbl <- specPoint(base.params, Structure, a) %>%
-        ffm_set_site_param("windSpeed", w, "km/h") %>%
-        ffm_set_site_param("temperature", t, "degc") %>%
-        ffm_set_site_param("deadFuelMoistureProp", d)
+#      tbl <- specPoint(base.params, Structure, a) %>%
+#        ffm_set_site_param("windSpeed", w, "km/h") %>%
+#        ffm_set_site_param("temperature", t, "degc") %>%
+#        ffm_set_site_param("deadFuelMoistureProp", d)
       
-      Strata <- strata(tbl)
-      Species <- species(tbl)
+#      Strata <- strata(tbl)
+#      Species <- species(tbl)
       
       # Recreate database on first run, then add following runs to this
-      db.recreate <- j == 1
+#      db.recreate <- j == 1
       
-      # Choose random point and vary plant traits for each species within their range
-      TBL <- plantVarFrame(tbl, Strata, Species, Flora, a, l = l,
-                           Ms = Ms, Pm = Pm, Mr = Mr)
+#      TBL <- plantVarFrame(tbl, Strata, Species, Flora, a, l = l,
+#                           Ms = Ms, Pm = Pm, Mr = Mr)
+      
+      # Choose random point and species, and vary plant traits for each species within their range
+      TBL <- canopyCheck(base.params, testN = testN, Flora, Structure, a = a, l = l, Ms = Ms, Pm = Pm, Mr = Mr)
       # Run the model
-      ffm_run_robust(TBL, db.path, db.recreate = db.recreate, testN = testN, Strata, Species, Flora, Structure)
+      ffm_run(TBL, db.path = db.path, db.recreate = db.recreate)
       
       Sys.sleep(0.25)
       ####UpdateProgress
@@ -1398,8 +1406,6 @@ driversFrame <- function(Flora, Structure, default.species.params, a, db.path = 
   # Collect original descriptors
   base.params <- suppressWarnings(frame::buildParams(Flora, Structure, default.species.params, a,
                                                      fLine = 100, slope = 0, temp = 30, dfmc = 0.1, wind = 10))
-  Strata <- strata(base.params)
-  Species <- species(base.params)
   
   #Range environmental values
   winds <- seq(windMin, (windReps*windStep+windMin), windStep)
@@ -1437,12 +1443,19 @@ driversFrame <- function(Flora, Structure, default.species.params, a, db.path = 
     }
     
     #Randomise plant parameters
-    base.params <- frame::specPoint(base.params, Structure, a)
-    tbl <- plantVarFrame(base.params, Strata, Species, Flora, a, l = leafVar,
-                         Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
-    ffm_run_robust(base.params=tbl, db.path, db.recreate, testN,
-                   Strata = Strata, Species = Species, Flora = Flora, Structure = Structure, a = a, l = leafVar,
-                   Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
+#    base.params <- frame::specPoint(base.params, Structure, a)
+#    Strata <- strata(base.params)
+#    Species <- species(base.params)
+#    tbl <- plantVarFrame(base.params, Strata, Species, Flora, a, l = leafVar,
+#                         Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
+#    ffm_run_robust(base.params=tbl, db.path, db.recreate, testN,
+#                   Flora = Flora, Structure = Structure, a = a, l = leafVar,
+#                   Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
+    
+    # Choose random point and species, and vary plant traits for each species within their range
+    TBL <- canopyCheck(base.params, testN = testN, Flora, Structure, a = a, l = l, Ms = Ms, Pm = Pm, Mr = Mr)
+    # Run the model
+    ffm_run(TBL, db.path = db.path, db.recreate = db.recreate)
     Sys.sleep(0.25)
     
     ####UpdateProgress
@@ -1543,13 +1556,12 @@ weatherSet_Frame <- function(base.params, weather, Structure, Flora, a, db.path 
 
 
 #' Modifies inputs until model runs
+#' Discontinued
 #'
 #' @param base.params 
 #' @param db.path 
 #' @param db.recreate 
 #' @param testN Number of replicates to allow
-#' @param Strata Strata descriptor table output by the function 'strata'
-#' @param Species Species descriptor table output by the function 'species'
 #' @param Flora  A dataframe with the fields:
 #' record - a unique, consecutively numbered identifier per site
 #' species - the name of the species, which will call trait data from 'default.species.params'
@@ -1574,19 +1586,16 @@ weatherSet_Frame <- function(base.params, weather, Structure, Flora, a, db.path 
 #'
 #' @return \code{TRUE} if the run completed and results were written to
 #'   the output database successfully; \code{FALSE} otherwise.
-#' @export
 #'
 
 ffm_run_robust <- function(base.params, db.path, db.recreate = TRUE, testN = 5,
-                           Strata, Species, Flora, Structure, a = 1, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5){
+                           Flora, Structure, a = 1, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5){
   rep<-1
   while (rep < testN) {
     if (!ffm_run(base.params, db.path = db.path, db.recreate = db.recreate)) {
-      base.params <- frame::specPoint(base.params, Structure, a)
-      base.params <- frame::plantVarFrame(base.params, Strata, Species, Flora, a, l,
-                                          Ms = Ms, Pm = Pm, Mr = Mr)
+      base.params <- canopyCheck(base.params, testN = testN, Flora, Structure, a = a, l = l, Ms = Ms, Pm = Pm, Mr = Mr)
       rep <- rep+1
-      if (rep <- testN) {
+      if (rep >= testN) {
         print("Parameter file is faulty")
         test <- FALSE
       }
@@ -1597,3 +1606,58 @@ ffm_run_robust <- function(base.params, db.path, db.recreate = TRUE, testN = 5,
   }
   return(test)
 }
+
+
+#' Modifies inputs until params file fits criteria
+#'
+#' @param base.params 
+#' @param testN Number of replicates to allow
+#' @param Flora  A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' species - the name of the species, which will call trait data from 'default.species.params'
+#' moisture - the moisture content of the species in whole numbers (eg 1 for 100% ODW)
+#' stratum - numeric value from 1 to 4, counting from lowest stratum
+#' comp - % composition or count of that species in the stratum. If absent, all species will be considered equally
+#' hc, he, ht, hp & w - canopy dimensions for that species (m)
+#' clump - mean ratio of clump diameter to crown diameter
+#' openness - proportion of plant canopy occupied by gaps between clumps
+#' @param Structure A dataframe with the fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' NS, El, Mid & Can - the mean separation between plants (m) per stratum
+#' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+#' on the left grow directly beneath those in the stratum on the right. Acceptable values
+#' are t, f, or blank, where the outcome will be decided by the relative stratum heights.
+#' @param a A unique identifier for the record being run
+#' @param l 
+#' @param Ms 
+#' @param Pm 
+#' @param Mr 
+#'
+#' @return Dataframe
+#' @export
+#'
+canopyCheck <- function(base.params, testN = 5, Flora, Structure, a = 1, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5) {
+  
+  rep<-1
+  while (rep < testN) {
+    
+    canopyStratum <- base.params$stratum[base.params$value == "canopy"][which(!is.na(base.params$stratum[base.params$value == "canopy"]))]
+    
+    if (mean(as.numeric(base.params$value[which((base.params$param == "hp" | base.params$param == "ht") & base.params$stratum == canopyStratum)])) < 1) {
+      base.params <- frame::specPoint(base.params, Structure, a)
+      Strata <- strata(base.params)
+      Species <- species(base.params)
+      base.params <- frame::plantVarFrame(base.params, Strata, Species, Flora, a, l,
+                                          Ms = Ms, Pm = Pm, Mr = Mr)
+      rep <- rep+1  
+      if (rep >= testN) {
+        stop("Vegetation is too low to model accurately")
+      }
+    } else {
+      rep <- testN
+    }
+  }
+  return(base.params)
+}
+
