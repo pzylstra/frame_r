@@ -304,7 +304,7 @@ buildTraitsP <- function(comm, propDead = 0, leafForm = "Flat", lwRat = 3, leafA
 
 collectTraitsP <- function(comm, tr, 
                            leafForm = "Flat", lwRat = 3, leafA = 0.002547, ram = 5, propDead = 0,
-                           ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, deltaL = 0.46,
+                           ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.01, deltaL = 0.46,
                            bark_density = 200) {
   comm <- left_join(as.data.frame(comm), tr, by = c("species" = "Species"))%>%
     mutate(species = name)
@@ -318,7 +318,7 @@ collectTraitsP <- function(comm, tr,
   comm["leaf_area"][is.na(comm["leaf_area"])] <- leafA
   comm["bark_density"][is.na(comm["bark_density"])] <- bark_density
   comm["G.C_rat"][is.na(comm["G.C_rat"])] <- G.C_rat
-  comm["C.C_rat"][is.na(comm["C.C_rat"])] <- C.C_rat
+  comm["C.C_rat"][is.na(comm["C.C_rat"])] <- max(C.C_rat, leafA/frontalArea)
   comm["stemOrder"][is.na(comm["stemOrder"])] <- ram
   comm[["leaf_thickness"]][is.na(comm[["leaf_thickness"]])] <- comm$lma/(deltaL*1000)
   comm[["name"]][is.na(comm[["name"]])] <- comm$species
@@ -399,6 +399,8 @@ frameTables <- function(dat, tr, age, propSamp = 0.75, transects = 10, sepSig = 
                         ignitionTemp = 260, moist = 1, G.C_rat = 3, C.C_rat = 0.1, 
                         deltaL = 0.46, hw = 0, sLitter = 15, diameter = 0.005, minCov = 0.0001) {
   
+  # Check for faults, then create tables
+  veg <- datClean(veg = veg, base, top, he, ht)
   comm <- suppressMessages(stratify_community(dat, tr, age, hw, propSamp = propSamp, transects = transects, sepSig = sepSig, minCov = minCov))
   Structure <- suppressMessages(buildStructureP(comm, age, rec))
   Flora <- buildFloraP(comm, tr, age, rec, moist, sLitter, diameter)
