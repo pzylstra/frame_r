@@ -38,7 +38,6 @@ mRSE <- function(dat){
 
 coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000) {
   
-  dat <- datClean(veg = dat,  base = "base", top = "top", he = "he", ht = "ht")
   spCov <- specCover(dat = dat, thres = thres, pnts = pnts)
   priorList <- unique(spCov$Species, incomparables = FALSE)
   
@@ -234,7 +233,6 @@ coverDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 
 topDyn <- function(dat, base = "base", top = "top", he = "he", ht = "ht", 
                    thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000) {
   
-  dat <- datClean(veg = dat,  base = "base", top = "top", he = "he", ht = "ht")
   spCov <- specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
@@ -469,7 +467,6 @@ topDyn <- function(dat, base = "base", top = "top", he = "he", ht = "ht",
 baseDyn <- function(dat, base = "base", top = "top", he = "he", ht = "ht", 
                     thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000) {
   
-  dat <- datClean(veg = dat,  base = "base", top = "top", he = "he", ht = "ht")
   spCov <- specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
@@ -702,7 +699,6 @@ baseDyn <- function(dat, base = "base", top = "top", he = "he", ht = "ht",
 heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05, 
                   base = "base", top = "top", he = "he", ht = "ht") {
   
-  dat <- datClean(veg = dat,  base = "base", top = "top", he = "he", ht = "ht")
   spCov <- specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
@@ -793,7 +789,6 @@ heDyn <- function(dat, thres = 5, pnts = 10, p = 0.05,
 
 htDyn <- function(dat, thres = 5, pnts = 10, p = 0.05) {
   
-  dat <- datClean(veg = dat,  base = "base", top = "top", he = "he", ht = "ht")
   spCov <- specCover(dat = dat, thres = 0, pnts = pnts)%>%
     group_by(Species)%>%
     summarise_if(is.numeric, mean)
@@ -899,7 +894,7 @@ wDyn <- function(dat, width = "width", top = "top",
   # Find missing data
   entries <- which(is.na(dat[width]))
   if (length(entries)>0) {
-    cat(" datClean removed these rows as they were missing crown widths", "\n", entries, "\n", "\n")
+    cat(" Removed these rows as they were missing crown widths", "\n", entries, "\n", "\n")
     dat <- dat[-entries,] 
   }
   
@@ -1146,6 +1141,8 @@ floraDynamics <- function(dat, thres = 5, pnts = 10, p = 0.01, bTest  = 2, cTest
                           Sr = 0, Sk = 0, Sa = 0, Sb = 0, Sc = 0, 
                           NSr = 0, NSk = 0, NSa = 0, NSb = 0, NSc = 0){
   
+  # Check for faults, then create tables
+  dat <- datClean(veg = dat, base, top, he, ht)
   coverChange <- coverDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = cTest, maxiter = maxiter)
   topChange <- topDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = bTest, maxiter = maxiter)
   baseChange <- baseDyn(dat, thres = thres, pnts = pnts, p = p, bTest  = bTest, maxiter = maxiter)
@@ -1947,7 +1944,7 @@ stratTest <- function(clust) {
   
   clust <- clust %>%
     mutate(low = (base+he)/2,
-           high = (top + ht)/2)
+           high = (top + ht + base + he)/4)
   sTab <- clust %>%
     group_by(cluster)%>%
     summarise_if(is.numeric, mean)
@@ -1987,7 +1984,6 @@ stratTest <- function(clust) {
 frameStratify <- function(veg, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht", mStrat = 4, sepSig = 0.001)
 {
   
-  veg <- datClean(veg = veg, base, top, he, ht)
   veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, base, top, he, ht)))
   veg_subset <- veg_subset[complete.cases(veg_subset), ] # Omit NAs in relevant columns
   veg_subset <- veg_subset %>% #log-scale dimensions for stratification
@@ -2329,13 +2325,13 @@ buildFlora <- function(veg, pN ="Point",  spName ="Species", base = "base", top 
   ns <- vegA %>% dplyr::select(all_of(c(rec, sN)))
   record <- matrix(nrow = length(spMin$Species))
   florTab <- data.frame(record)
-  if (hasArg(rec)) {
+  if (!missing(rec)) {
     florTab$record <- ns$Site[1]
   } else {
     print("record field has not been named")
   }
   
-  if (hasArg(sN)) {
+  if (!missing(sN)) {
     florTab$site <- ns$SiteName[1]
   } else {
     florTab$site <- NA
@@ -2351,7 +2347,7 @@ buildFlora <- function(veg, pN ="Point",  spName ="Species", base = "base", top 
   florTab$top <- round(spM$top,2)
   florTab$w <- round(spM$width,2)
   florTab$Hs <- round(spSD$top,2)
-  florTab$Hr <- round(spMax$top - spMin$top,2)
+  florTab$Hr <- max(0.001,round(spMax$top - spMin$top,2))
   florTab$weight <- NA
   florTab$diameter <- NA
   s <- c(florTab$record[1], florTab$site[1], "Litter", NA, NA, NA, NA, NA, NA, NA, NA, NA, surf, 0.005)
@@ -2380,7 +2376,7 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", base = "base", t
   
   # 1. Horizontal relationships  
   vegA <- frame::frameStratify(veg = veg, pN = pN, spName = spName, base = base,
-                          top = top, he = he, ht = ht, sepSig = sepSig)
+                               top = top, he = he, ht = ht, sepSig = sepSig)
   suppressMessages(StratC <- vegA %>%
                      select(Point, Stratum)%>%
                      group_by(Stratum, Point) %>%
@@ -2429,13 +2425,13 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", base = "base", t
   ns <- vegA %>% dplyr::select(all_of(c(rec, sN)))
   record <- matrix(nrow = 1)
   strucTab <- data.frame(record)
-  if (hasArg(rec)) {
+  if (!missing(rec)) {
     strucTab$record <- ns$Site[1]
   } else {
     print("record field has not been named")
   }
   
-  if (hasArg(sN)) {
+  if (!missing(sN)) {
     strucTab$site <- ns$SiteName[1]
   } else {
     strucTab$site <- NA
@@ -2446,18 +2442,18 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", base = "base", t
   strucTab$El <- NA
   strucTab$Mid <- NA
   strucTab$Can <- NA
-  strucTab$NS <- round(sep[1],2)
-  if (max(StratC$Stratum) > 2) {
-    strucTab$El <- round(sep[2],2)
-    if (max(StratC$Stratum) == 4) {
-      strucTab$Mid <- round(sep[3],2)
-      strucTab$Can <- round(sep[4],2)
-    } else {
-      strucTab$Can <- round(sep[3],2)
+  strucTab$Can <- round(sep[length(sep)],2)
+  
+  if (max(StratC$Stratum) > 1) {
+    strucTab$NS <- round(sep[1],2) 
+    if (max(StratC$Stratum) > 2) {
+      strucTab$El <- round(sep[2],2)
+      if (max(StratC$Stratum) > 3) {
+        strucTab$Mid <- round(sep[3],2)
+      }
     }
-  } else {
-    strucTab$Can <- round(sep[2],2)
   }
+  
   ## Overlap
   strucTab$ns_e <- NA
   strucTab$ns_m <- NA
@@ -2475,22 +2471,21 @@ buildStructure <- function(veg, pN ="Point", spName ="Species", base = "base", t
       strucTab$e_c <- sum(e_c)>=as.numeric(pnts/2)
     }
   } 
+  
   ## Richness
   strucTab$nsR <- NA
   strucTab$eR <- NA
   strucTab$mR <- NA
-  strucTab$cR <- NA
-  strucTab$nsR <- StratR$Species[1]
-  if (max(StratC$Stratum) > 2) {
-    strucTab$eR <- StratR$Species[2]
-    if (max(StratC$Stratum) == 4) {
-      strucTab$mR <- StratR$Species[3]
-      strucTab$cR <- StratR$Species[4]
-    } else {
-      strucTab$cR <- StratR$Species[3]
+  strucTab$cR <- StratR$Species[length(sep)]
+  
+  if (max(StratC$Stratum) > 1) {
+    strucTab$nsR <- StratR$Species[1] 
+    if (max(StratC$Stratum) > 2) {
+      strucTab$eR <- StratR$Species[2]
+      if (max(StratC$Stratum) > 3) {
+        strucTab$mR <- StratR$Species[3]
+      }
     }
-  } else {
-    strucTab$cR <- StratR$Species[2]
   }
   
   return(strucTab)
@@ -2702,25 +2697,26 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
       }
       suspNS <- susp(default.species.params, density = density, cover = cover,
            age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, maxNS = maxNS, rate = rateNS, dec = decline)
-      top <- suspNS[[1]]
+      topNS <- suspNS[[1]]
       #Update tables
-      if (top > 0) {
+      if (topNS > 0) {
         row <- nrow(veg)
         rows <- round(cover*length(unique(veg$Point)),0)
         for (r in 1:rows) {
           veg[row+r,1] <- AGE
           veg[row+r,2] <- "suspNS"
           veg[row+r,3] <- 0
-          veg[row+r,4] <- top
+          veg[row+r,4] <- topNS
           veg[row+r,5] <- 0
-          veg[row+r,6] <- top
+          veg[row+r,6] <- topNS
           veg[row+r,7] <- wNS
           veg[row+r,8] <- AGE
           veg[row+r,9] <- rec
         }
       }
     }
-    
+    # Check for faults, then create tables
+    veg <- datClean(veg = veg, base, top, he, ht)
     Struct <- buildStructure(veg, pN ="Point", spName ="Species", base = "base", top = "top", 
                              rec = "Site", sN = "SiteName", sepSig = sepSig)
     Flor <- buildFlora(veg, pN ="Point",  spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
