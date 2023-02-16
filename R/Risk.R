@@ -1115,7 +1115,7 @@ plantRisk <- function(dynDat, a, ignitions = 1, hourStep = 3, Area = 10, weather
 
 spotFire <- function(flameHeight, slope, FPC, windExposure, vAir, vAir500 = 2, fireArea){
   
-  # Max distance from Storey et al (2020)
+  # Max distance in m from Storey et al (2020)
   spMax <- exp(-2.762602963 + 0.013923896*slope + 0.014596962*FPC + 3.439632761*windExposure +
                    0.032052944*vAir + 0.005534678*vAir500*vAir + 0.423010927*log(fireArea))
   
@@ -1158,17 +1158,21 @@ parBurn <- function(n) {
                  temp = temp, tempSD = tempSD, tempRange = tempRange,
                  DFMC = DFMC, DFMCSD = DFMCSD, DFMCRange = DFMCRange, 
                  wind = wind, windSD = windSD, windRange = windRange,
-                 jitters = reps, l = leafVar, 
-                 Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange, 
-                 updateProgress = updateProgress)
+                 jitters = reps, l = leafVar, Ms = moistureSD, 
+                 Pm = moistureMultiplier, Mr = moistureRange, 
+                 updateProgress = updateProgress, testN = testN, threshold = threshold)
   
   #SUMMARISE BEHAVIOUR
   res<-ffm_db_load(db.path)
   runs <- suppressMessages(frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)%>%
                              mutate(site = f$site[1],
-                                    FPC = FPC,
-                                    Spotting = spotFire(flameHeight = fh, slope = slope_degrees, FPC, windExposure = 1, vAir = wind_kph, vAir500, fireArea = ros_kph*(fLine/1000)),
-                                    fReach = max(lengthPlant * cos(flameAngle), lengthSurface * cos(angleSurface), Spotting)))
+                                    FPC = FPC))
+  runs$Spotting <- NA
+  runs$fReach <- NA
+  for (x in 1:nrow(runs)) {
+    runs$Spotting[x] <- spotFire(flameHeight = runs$fh[x], slope = runs$slope_degrees[x], runs$FPC[x], windExposure = 1, vAir = runs$wind_kph[x], vAir500, fireArea = runs$ros_kph[x]*(fLine/10))
+    runs$fReach[x] = max(runs$lengthPlant[x] * cos(runs$flameAngle[x]), runs$lengthSurface[x] * cos(runs$angleSurface[x]), runs$Spotting[x])
+  }
   IP <- frame::repFlame(res$IgnitionPaths) %>%
     mutate(site = f$site[1])
   scorch <- suppressMessages(frame::flora(runs, IP, Param = base.params, Test = 80)) %>%
@@ -1199,7 +1203,7 @@ parBurn <- function(n) {
 #' @param moistureMultiplier 
 #' @param moistureSD 
 #' @param moistureRange 
-#' @param fLine 
+#' @param fLine Fireline length (m)
 #' @param updateProgress 
 #' @param freeCores 
 #' @param l 
@@ -1218,7 +1222,7 @@ fireDynamics <- function(fireDat, slope = 5, slopeSD = 2, slopeRange = 5,
                          wind = 10, windSD = 5, windRange = 5, fLine = 1000,
                          moistureMultiplier = 1, moistureSD = 0.01, moistureRange = 1.5,
                          reps = 5, leafVar = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5, vAir500 = 2, 
-                         testN = 5, updateProgress = NULL, freeCores = 1){
+                         testN = 5, updateProgress = NULL, threshold = 1, freeCores = 1){
   
   cat("Modelling risk", "\n", "\n")
   
@@ -1246,7 +1250,7 @@ fireDynamics <- function(fireDat, slope = 5, slopeSD = 2, slopeRange = 5,
                                        'wind', 'windSD', 'windRange', 'fLine',
                                        'moistureMultiplier', 'moistureSD', 'moistureRange',
                                        'reps', 'leafVar', 'Ms', 'Pm', 'Mr', 'vAir500', 
-                                       'updateProgress'), environment())
+                                       'updateProgress', 'testN', 'threshold'), environment())
   
   # 5. Send each rep to a different core to be processed
   system.time(parT <- parallel::parLapply(cl, r, parBurn))
