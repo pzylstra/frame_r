@@ -298,7 +298,7 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
   out$MSLP <- MSLP
   out$RHA <- (sRH / frame:::QSat(out$TempA, out$MSLP))*100
   out$RH <- (sRH / frame:::QSat(out$Temp, out$MSLP))*100
-  out$Wind <- Wind
+  out$Wind <- Wind / WRF
   out$Cloud <- Cloud
   
   # Add rain
@@ -360,14 +360,15 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
            ShadeB = 1-exp(-(2/(pi*tan(pmax(0.01,1.570796-ZenithB))))*LAI),
            ShadeC = 1-exp(-(2/(pi*tan(pmax(0.01,1.570796-ZenithC))))*LAI),
            ShadeD = 1-exp(-(2/(pi*tan(pmax(0.01,1.570796-ZenithD))))*LAI),
-           InsolationA = pmax(0,((1-ShadeA)*(1-Cloud)*1000*cos(ZenithA))),
-           InsolationB = pmax(0,((1-ShadeB)*(1-Cloud)*1000*cos(ZenithB))),
-           InsolationC = pmax(0,((1-ShadeC)*(1-Cloud)*1000*cos(ZenithC))),
-           InsolationD = pmax(0,((1-ShadeD)*(1-Cloud)*1000*cos(ZenithD))),
+           InsolationA = pmax(0,((1-ShadeA-Cloud)*1000*cos(ZenithA))),
+           InsolationB = pmax(0,((1-ShadeB-Cloud)*1000*cos(ZenithB))),
+           InsolationC = pmax(0,((1-ShadeC-Cloud)*1000*cos(ZenithC))),
+           InsolationD = pmax(0,((1-ShadeD-Cloud)*1000*cos(ZenithD))),
            RainAdj = pmax(0,Rain-(0.001*(Rain/2)+0.08*LAI)),
            Wetting =((10*pmin(RainAdj,(0.01*RainAdj+0.36*(litterW/5))))/litterW),
+           # Leaf temperatures at the soil, uses function HeatingModel in Matthews spreadsheet, Eq. 3 in Matthews et al (2010)
            SoilA = Temp + (8.15 - 2.25 * exp(-0.6 * Wind) - 0.0312 * Temp + 
-                             (0.021 + (-0.04 + 0.0006 * Temp - 0.00000125 * Temp ^ 2) * exp(-0.6 * Wind)) * InsolationA) - 273.15,
+                             (0.021 + (-0.04 + 0.0006 * Temp - 0.00000125 * Temp ^ 2) * exp(-0.6 * Wind)) * InsolationA) - 273.15, #Equation from spreadsheet
            SoilB = Temp + (8.15 - 2.25 * exp(-0.6 * Wind) - 0.0312 * Temp + 
                              (0.021 + (-0.04 + 0.0006 * Temp - 0.00000125 * Temp ^ 2) * exp(-0.6 * Wind)) * InsolationB) - 273.15,
            SoilC = Temp + (8.15 - 2.25 * exp(-0.6 * Wind) - 0.0312 * Temp + 
@@ -387,7 +388,7 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
       mC <- out$moistureC[t-1]
       mD <- out$moistureD[t-1]
     } 
-    out$moistureA[t] <- pmax(0.01,pmin(mA,(frame::simplefmc(m = mA,
+    out$moistureA[t] <- pmax(0.01,(frame::simplefmc(m = mA,
                                                             tAir = out$Temp[t],
                                                             vAir = out$Wind[t],
                                                             pAir = out$MSLP[t],
@@ -399,8 +400,8 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
                                                             nelsonB = nelsonB,
                                                             conLitter = conLitter,
                                                             sigma = sigma,
-                                                            EPS = EPS)))) - max(0,0.5*(mA-1)) + out$Wetting[t]
-    out$moistureB[t] <- pmax(0.01,pmin(mB,(frame::simplefmc(m = mB,
+                                                            EPS = EPS))) - max(0,0.5*(mA-1)) + out$Wetting[t]
+    out$moistureB[t] <- pmax(0.01,(frame::simplefmc(m = mB,
                                                             tAir = out$Temp[t],
                                                             vAir = out$Wind[t],
                                                             pAir = out$MSLP[t],
@@ -412,8 +413,8 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
                                                             nelsonB = nelsonB,
                                                             conLitter = conLitter,
                                                             sigma = sigma,
-                                                            EPS = EPS)))) - max(0,0.5*(mB-1)) + out$Wetting[t]
-    out$moistureC[t] <- pmax(0.01,pmin(mC,(frame::simplefmc(m = mC,
+                                                            EPS = EPS))) - max(0,0.5*(mB-1)) + out$Wetting[t]
+    out$moistureC[t] <- pmax(0.01,(frame::simplefmc(m = mC,
                                                             tAir = out$Temp[t],
                                                             vAir = out$Wind[t],
                                                             pAir = out$MSLP[t],
@@ -425,8 +426,8 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
                                                             nelsonB = nelsonB,
                                                             conLitter = conLitter,
                                                             sigma = sigma,
-                                                            EPS = EPS)))) - max(0,0.5*(mC-1)) + out$Wetting[t]
-    out$moistureD[t] <- pmax(0.01,pmin(mD,(frame::simplefmc(m = mD,
+                                                            EPS = EPS))) - max(0,0.5*(mC-1)) + out$Wetting[t]
+    out$moistureD[t] <- pmax(0.01,(frame::simplefmc(m = mD,
                                                             tAir = out$Temp[t],
                                                             vAir = out$Wind[t],
                                                             pAir = out$MSLP[t],
@@ -438,7 +439,7 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
                                                             nelsonB = nelsonB,
                                                             conLitter = conLitter,
                                                             sigma = sigma,
-                                                            EPS = EPS)))) - max(0,0.5*(mD-1)) + out$Wetting[t]
+                                                            EPS = EPS))) - max(0,0.5*(mD-1)) + out$Wetting[t]
   }
   out <- out %>%
     mutate(Temp = Temp - 273.15,
@@ -467,10 +468,10 @@ parClim <- function(a) {
   base.params <- suppressWarnings(frame::buildParams(StructureA, FloraA, default.species.params, a,
                                                      fLine = 1, slope = 0, temp = 30, dfmc = 0.05, wind = 10))
   
-  hCan <- max(FloraA$top, na.rm = TRUE)
+  hCan <- max(as.numeric(FloraA$top), na.rm = TRUE)
   LAI <- LAIcomm(base.params, yu = hCan, yl = 0)
   WRF <- windReduction(base.params, test = 1.2)
-  litterW <- max(FloraA$weight, na.rm = TRUE)
+  litterW <- as.numeric(max(FloraA$weight, na.rm = TRUE))
   
   out <- frame::frameWeather(clim = clim, m, LAI, WRF, hCan, rholitter, litterW,
                              lat, slope, slopeSD, rangeDir, cardinal) %>%
