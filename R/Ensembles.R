@@ -497,7 +497,7 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
 #' @return dataframe
 #' @export
 #' 
-plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001)
+plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, threshold = 0.5)
 {
   
   tbl <- base.params
@@ -509,10 +509,10 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
   #Filter variation table to record
   varRec <- Flora[Flora$record==a & Flora$species!="Litter",]
   varRec$Hs[is.na(varRec$Hs)]<-0.001
-#  varRec$Hr[varRec$Hr==0]<-0.001 
-  varRec$Hr<-pmin(2,varRec$Hr+1) 
+  #  varRec$Hr[varRec$Hr==0]<-0.001 
+  varRec$Hr<-pmin(2,as.numeric(varRec$Hr)+1.01) 
   varRec$Hs[varRec$Hs==0]<-0.001 
-#  varRec$Hr<-as.numeric(varRec$Hr)+1 
+  #  varRec$Hr<-as.numeric(varRec$Hr)+1 
   varRec <- varRec %>% 
     mutate(name = species,
            st = as.double(stratum)) %>%
@@ -557,7 +557,7 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
       # APPROXIMATE FIX ADDED TO DEAL WITH SCALA CODE FAILING
       # https://github.com/pzylstra/frame_scala/blob/master/forest/src/main/scala/ffm/forest/DefaultVegetationWindModel.scala#L50
       if (st == max(Species$st)) {
-        peak <- max(peak, 1)
+        peak <- max(peak, threshold)
       }
       tbl <- tbl %>%
         ffm_set_species_param(st, SpeciesP, "hp", peak) %>%
@@ -1008,6 +1008,7 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
 
 
 #' Models probabilistic fire behaviour using species-specific variability from FRaME tables
+#'
 #' @param base.params Input parameter file
 #' @param db.path Name of the exported database
 #' @param jitters Number of repetitions for each row in the weather table
@@ -1044,7 +1045,11 @@ probFire <- function(base.params, db.path = "out_mc.db", jitters,
 #' hc, he, ht, hp & w - canopy dimensions for that species (m)
 #' clump - mean ratio of clump diameter to crown diameter
 #' openness - proportion of plant canopy occupied by gaps between clumps
+#' @param a 
+#' @param testN 
+#' @param threshold Minimum allowable height for canopy (m)
 #' @param updateProgress Progress bar for use in the dashboard
+#'
 #' @return dataframe
 #' @export
 
@@ -1053,7 +1058,7 @@ probFire_Frame <- function(base.params, Structure, Flora, a, db.path = "out_mc.d
                            slope, slopeSD, slopeRange, temp, tempSD, tempRange,
                            DFMC, DFMCSD, DFMCRange, wind, windSD, windRange, 
                            jitters = 50, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, 
-                           updateProgress = NULL, testN = 10) {
+                           updateProgress = NULL, testN = 10, threshold = 1) {
   
   pbar <- txtProgressBar(max = jitters, style = 3)
   
@@ -1071,7 +1076,7 @@ probFire_Frame <- function(base.params, Structure, Flora, a, db.path = "out_mc.d
       d <- rtnorm(n = 1, mean = DFMC, sd = DFMCSD,
                   a = pmax(0.02, DFMC-(DFMCRange/2)), b = pmin(0.199,DFMC+(DFMCRange/2))) 
       w <- rtnorm(n = 1, mean = wind, sd = windSD,
-                  a = wind-(windRange/2), b = wind+(windRange/2))   
+                  a = pmax(0,wind-(windRange/2)), b = wind+(windRange/2))   
       
       base.params <- base.params %>%
         ffm_set_site_param("slope", s, "deg") %>%
@@ -1079,23 +1084,8 @@ probFire_Frame <- function(base.params, Structure, Flora, a, db.path = "out_mc.d
         ffm_set_site_param("deadFuelMoistureProp", d) %>%
         ffm_set_site_param("windSpeed", w)
       
-      # Select species for a random point in the forest and import the weather parameters
-#      tbl <- specPoint(base.params, Structure, a) %>%
-#        ffm_set_site_param("windSpeed", w, "km/h") %>%
-#        ffm_set_site_param("temperature", t, "degc") %>%
-#        ffm_set_site_param("deadFuelMoistureProp", d)
-      
-#      Strata <- strata(tbl)
-#      Species <- species(tbl)
-      
-      # Recreate database on first run, then add following runs to this
-#      db.recreate <- j == 1
-      
-#      TBL <- plantVarFrame(tbl, Strata, Species, Flora, a, l = l,
-#                           Ms = Ms, Pm = Pm, Mr = Mr)
-      
       # Choose random point and species, and vary plant traits for each species within their range
-      TBL <- canopyCheck(base.params, testN = testN, Flora, Structure, a = a, l = l, Ms = Ms, Pm = Pm, Mr = Mr)
+      TBL <- canopyCheck(base.params, testN = testN, Flora, Structure, a = a, l = l, Ms = Ms, Pm = Pm, Mr = Mr, threshold = threshold)
       # Run the model
       ffm_run(TBL, db.path = db.path, db.recreate = db.recreate)
       
@@ -1108,7 +1098,7 @@ probFire_Frame <- function(base.params, Structure, Flora, a, db.path = "out_mc.d
       setTxtProgressBar(pbar, j)
     }
   }  else  {
-    print("Probabilistic analysis requires a minimum of 3 replicates")
+    stop("Probabilistic analysis requires a minimum of 3 replicates")
   }
 }
 
@@ -1637,19 +1627,29 @@ ffm_run_robust <- function(base.params, db.path, db.recreate = TRUE, testN = 5,
 #' @return Dataframe
 #' @export
 #'
-canopyCheck <- function(base.params, testN = 5, Flora, Structure, a = 1, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5) {
+canopyCheck <- function(base.params, testN = 5, Flora, Structure, a = 1, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5, threshold = 1) {
   
   rep<-1
+  
+  # Create random point
+  tbl <- frame::specPoint(base.params, Structure, a)
+  Strata <- strata(tbl)
+  Species <- species(tbl)
+  TBL <- frame::plantVarFrame(tbl, Strata, Species, Flora, a, l,
+                              Ms = Ms, Pm = Pm, Mr = Mr, threshold = threshold)
+  canopyStratum <- TBL$stratum[TBL$value == "canopy"][which(!is.na(TBL$stratum[TBL$value == "canopy"]))]
+  
+  # Test canopy height
   while (rep < testN) {
     
-    canopyStratum <- base.params$stratum[base.params$value == "canopy"][which(!is.na(base.params$stratum[base.params$value == "canopy"]))]
-    
-    if (mean(as.numeric(base.params$value[which((base.params$param == "hp" | base.params$param == "ht") & base.params$stratum == canopyStratum)])) < 1) {
-      base.params <- frame::specPoint(base.params, Structure, a)
-      Strata <- strata(base.params)
-      Species <- species(base.params)
-      base.params <- frame::plantVarFrame(base.params, Strata, Species, Flora, a, l,
-                                          Ms = Ms, Pm = Pm, Mr = Mr)
+    if (mean(as.numeric(TBL$value[which((TBL$param == "hp" | TBL$param == "ht") & TBL$stratum == canopyStratum)])) < threshold) {
+      tbl <- frame::specPoint(base.params, Structure, a)
+      Strata <- strata(tbl)
+      Species <- species(tbl)
+      TBL <- frame::plantVarFrame(tbl, Strata, Species, Flora, a, l,
+                                  Ms = Ms, Pm = Pm, Mr = Mr, threshold = threshold)
+      canopyStratum <- TBL$stratum[TBL$value == "canopy"][which(!is.na(TBL$stratum[TBL$value == "canopy"]))]
+      
       rep <- rep+1  
       if (rep >= testN) {
         stop("Vegetation is too low to model accurately")
@@ -1658,6 +1658,6 @@ canopyCheck <- function(base.params, testN = 5, Flora, Structure, a = 1, l = 0.1
       rep <- testN
     }
   }
-  return(base.params)
+  return(TBL)
 }
 
