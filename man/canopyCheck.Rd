@@ -13,7 +13,8 @@ canopyCheck(
   l = 0.1,
   Ms = 0.01,
   Pm = 1,
-  Mr = 1.5
+  Mr = 1.5,
+  threshold = 1
 )
 }
 \arguments{
