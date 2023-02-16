@@ -30,6 +30,7 @@ fireDynamics(
   vAir500 = 2,
   testN = 5,
   updateProgress = NULL,
+  threshold = 1,
   freeCores = 1
 )
 }
@@ -60,7 +61,7 @@ fireDynamics(
 
 \item{windRange}{}
 
-\item{fLine}{}
+\item{fLine}{Fireline length (m)}
 
 \item{moistureMultiplier}{}
 

@@ -28,7 +28,8 @@ probFire_Frame(
   Pm = 1,
   Mr = 1.001,
   updateProgress = NULL,
-  testN = 10
+  testN = 10,
+  threshold = 1
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ comp - % composition or count of that species in the stratum. If absent, all spe
 hc, he, ht, hp & w - canopy dimensions for that species (m)
 clump - mean ratio of clump diameter to crown diameter
 openness - proportion of plant canopy occupied by gaps between clumps}
+
+\item{a}{}
 
 \item{db.path}{Name of the exported database}
 
@@ -90,6 +93,10 @@ openness - proportion of plant canopy occupied by gaps between clumps}
 \item{Mr}{Truncates LFMC variability by +/- Mr * LFMC}
 
 \item{updateProgress}{Progress bar for use in the dashboard}
+
+\item{testN}{}
+
+\item{threshold}{Minimum allowable height for canopy (m)}
 }
 \value{
 dataframe

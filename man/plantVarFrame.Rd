@@ -13,7 +13,8 @@ plantVarFrame(
   l = 0.1,
   Ms = 0.01,
   Pm = 1,
-  Mr = 1.001
+  Mr = 1.001,
+  threshold = 0.5
 )
 }
 \arguments{

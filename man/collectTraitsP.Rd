@@ -15,7 +15,7 @@ collectTraitsP(
   ignitionTemp = 260,
   moist = 1,
   G.C_rat = 3,
-  C.C_rat = 0.1,
+  C.C_rat = 0.01,
   deltaL = 0.46,
   bark_density = 200
 )
