@@ -509,8 +509,14 @@ buildSpeciesValues <- function(Flora, default.species.params, a)
   # Collect subsets for site
   fl <- Flora[Flora$record==a & Flora$species != "Litter",] %>%
     mutate("name" = species) %>%
-    left_join(default.species.params, by = "name") %>%
-    select(species, stratum, comp, base, top, he, ht, w, moisture, C.C_rat, G.C_rat)
+    left_join(default.species.params, by = "name") 
+  if (exists("maxW", where = as.environment(fl))) {
+    fl <- fl %>%
+      select(species, stratum, comp, base, top, he, ht, w, moisture, C.C_rat, G.C_rat, maxW)
+  } else {
+    fl <- fl %>%
+      select(species, stratum, comp, base, top, he, ht, w, moisture, C.C_rat, G.C_rat)
+  }
   
   # CREATE species.values
   ro <- as.numeric(nrow(fl))
@@ -528,7 +534,13 @@ buildSpeciesValues <- function(Flora, default.species.params, a)
   species.values$he <- fl$he
   species.values$ht <- fl$ht
   species.values$w <- fl$w
-  species.values$clumpDiameter <- pmin((as.numeric(fl$top)-as.numeric(fl$base)),as.numeric(fl$w))*fl$C.C_rat
+  if (exists("maxW", where = as.environment(fl))) {
+    species.values$clumpDiameter <- pmin(pmin((as.numeric(fl$top)-as.numeric(fl$base)), as.numeric(fl$w))*fl$C.C_rat, as.numeric(fl$maxW))
+  } else {
+    species.values$clumpDiameter <- pmin((as.numeric(fl$top)-as.numeric(fl$base)), as.numeric(fl$w))*fl$C.C_rat
+  }
+  
+  
   species.values$clumpSeparation <- fl$G.C_rat*species.values$clumpDiameter
   species.values$composition <- as.numeric(fl$comp)
   
