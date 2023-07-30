@@ -26,13 +26,13 @@ ________________________________________________________________________________
 ## Supporting references
 
 FIRST-ORDER FIRE EFFECTS - FAUNA
-* Zylstra, P.J. (2022). Calculating direct impacts of fire on fauna. , In Review.
+* Zylstra PJ (2023) Quantifying the direct fire threat to a critically endangered arboreal marsupial using biophysical, mechanistic modelling. Austral Ecology 48, 266–288. doi:10.1111/aec.13264.
 
 FIRST-ORDER FIRE EFFECTS - PLANTS AND SOILS
 * Zylstra, P. J. (2021) Linking fire behaviour and its ecological effects to plant traits, using FRaME in R. Methods Ecol. Evol. 12. [online]. Available from: https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13615
 
 USING FIELD DATA TO MODEL FLAMMABILITY DYNAMICS
-* Zylstra, P. J.,  Wardell-Johnson, G. W., Falster, D. S., Howe, M., McQuoid, N., Neville, S. (2022) Disentangling ecological controls on flame height in forests. In Review.
+* Zylstra PJ, Wardell-Johnson GW, Falster DS, Howe M, McQuoid N, Neville S (2023) Mechanisms by which growth and succession limit the impact of fire in a south-western Australian forested ecosystem. Functional Ecology 37, 1350–1365. doi:10.1111/1365-2435.14305.
 
 FIRE BEHAVIOUR MODELLING AND VALIDATION
 * Zylstra P. J., Bradstock R. A., Bedward M. et al. (2016) Biophysical mechanistic modelling quantifies the effects of plant traits on fire severity: species, not surface fuel loads determine flame dimensions in eucalypt forests. PLoS One 11 , e0160715. [online]. Available from: http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0160715.
