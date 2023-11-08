@@ -1127,6 +1127,7 @@ spotFire <- function(flameHeight, slope, FPC, windExposure, vAir, vAir500 = 2, f
 
 
 #' Internal function for fireDynamics
+#' Calculate fire dynamics using weatherSet_Frame
 #'
 #' @param a A unique identifier for the record being run
 #'
@@ -1134,7 +1135,63 @@ spotFire <- function(flameHeight, slope, FPC, windExposure, vAir, vAir500 = 2, f
 #' @export
 #'
 
-parBurn <- function(n) {
+parBurnW <- function(n) {
+  
+  Wset <- filter(weather, record == n)
+  f <- filter(Flora, record == n)
+  s <- filter(Structure, record == n)
+  base.params <- suppressWarnings(frame::buildParams(Structure = s, Flora = f, default.species.params, a = n,
+                                                     fLine = fLine, slope = slope, temp = Wset$T[1], 
+                                                     dfmc = Wset$DFMC[1], wind = Wset$W[1]))
+  
+  Strata <- strata(base.params)
+  db.path <- paste("age",n,".db", sep = "")
+  
+  # Find foliage projective cover
+  for (st in 1:nrow(Strata)) {
+    if (st == 1) {
+      FPC <- Strata$cover[st]
+    } else {
+      FPC <- FPC + ((1-FPC) * Strata$cover[st])
+    }
+  }
+
+  weatherSet_Frame(base.params, weather = Wset, Structure = s, Flora = f, a = n, 
+                   db.path = db.path, jitters = reps, l = leafVar, Ms = moistureSD, 
+                   Pm = moistureMultiplier, Mr = moistureRange, updateProgress = updateProgress)
+  
+  #SUMMARISE BEHAVIOUR
+  res<-ffm_db_load(db.path)
+  runs <- suppressMessages(frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)%>%
+                             mutate(site = f$site[1],
+                                    FPC = FPC))
+  runs$Spotting <- NA
+  runs$fReach <- NA
+  for (x in 1:nrow(runs)) {
+    runs$Spotting[x] <- spotFire(flameHeight = runs$fh[x], slope = runs$slope_degrees[x], runs$FPC[x], windExposure = 1, vAir = runs$wind_kph[x], vAir500, fireArea = runs$ros_kph[x]*(fLine/10))
+    runs$fReach[x] = max(runs$lengthPlant[x] * cos(runs$flameAngle[x]), runs$lengthSurface[x] * cos(runs$angleSurface[x]), runs$Spotting[x])
+  }
+  IP <- frame::repFlame(res$IgnitionPaths) %>%
+    mutate(site = f$site[1])
+  scorch <- suppressMessages(frame::flora(runs, IP, Param = base.params, Test = 80)) %>%
+    select(!wind_kph)
+  outa <- suppressMessages(left_join(runs,scorch, by = "repId") )
+  
+  return(list(outa, IP))
+  
+}
+
+
+#' Internal function for fireDynamics
+#' Calculate fire dynamics using probFire_Frame
+#'
+#' @param a A unique identifier for the record being run
+#'
+#' @return list
+#' @export
+#'
+
+parBurnP <- function(n) {
   
   f <- filter(Flora, record == n)
   s <- filter(Structure, record == n)
@@ -1183,14 +1240,82 @@ parBurn <- function(n) {
   
 }
 
-
-#' Models probabilistic fire behaviour across multiple ages on parallel cores
+#' Internal function for fireDynamics
+#' Calculate fire dynamics using probFire_Frame from a weather dataset
 #'
-#' @param fireDat 
-#' @param reps 
-#' @param slope 
-#' @param slopeSD 
-#' @param slopeRange 
+#' @param a A unique identifier for the record being run
+#'
+#' @return list
+#' @export
+#'
+
+parBurnPW <- function(n) {
+  
+  Wset <- filter(weather, record == n)
+  f <- filter(Flora, record == n)
+  s <- filter(Structure, record == n)
+  base.params <- suppressWarnings(frame::buildParams(Structure = s, Flora = f, default.species.params, a = n,
+                                                     fLine = fLine, slope = slope, temp = Wset$T[1], 
+                                                     dfmc = Wset$DFMC[1], wind = Wset$W[1]))
+  
+  Strata <- strata(base.params)
+  db.path <- paste("age",n,".db", sep = "")
+  
+  # Find foliage projective cover
+  for (st in 1:nrow(Strata)) {
+    if (st == 1) {
+      FPC <- Strata$cover[st]
+    } else {
+      FPC <- FPC + ((1-FPC) * Strata$cover[st])
+    }
+  }
+  
+  probFire_Frame(base.params, Structure = s, Flora = f, a = n, db.path = db.path,
+                 slope = slope, slopeSD = slopeSD, slopeRange = slopeRange, 
+                 temp = mean(Wset$T), tempSD = sd(Wset$T), tempRange = max(Wset$T)-min(Wset$T),
+                 DFMC = mean(Wset$DFMC), DFMCSD = sd(Wset$DFMC), DFMCRange = max(0.02, max(Wset$DFMC) - min(Wset$DFMC)), 
+                 wind = mean(Wset$W), windSD = sd(Wset$W), windRange = (max(Wset$W) - min(Wset$W)),
+                 jitters = reps, l = leafVar, Ms = moistureSD, 
+                 Pm = moistureMultiplier, Mr = moistureRange, 
+                 updateProgress = updateProgress, testN = testN, threshold = threshold)
+  
+  #SUMMARISE BEHAVIOUR
+  res<-ffm_db_load(db.path)
+  runs <- suppressMessages(frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)%>%
+                             mutate(site = f$site[1],
+                                    FPC = FPC))
+  runs$Spotting <- NA
+  runs$fReach <- NA
+  for (x in 1:nrow(runs)) {
+    runs$Spotting[x] <- spotFire(flameHeight = runs$fh[x], slope = runs$slope_degrees[x], runs$FPC[x], windExposure = 1, vAir = runs$wind_kph[x], vAir500, fireArea = runs$ros_kph[x]*(fLine/10))
+    runs$fReach[x] = max(runs$lengthPlant[x] * cos(runs$flameAngle[x]), runs$lengthSurface[x] * cos(runs$angleSurface[x]), runs$Spotting[x])
+  }
+  IP <- frame::repFlame(res$IgnitionPaths) %>%
+    mutate(site = f$site[1])
+  scorch <- suppressMessages(frame::flora(runs, IP, Param = base.params, Test = 80)) %>%
+    select(!wind_kph)
+  outa <- suppressMessages(left_join(runs,scorch, by = "repId") )
+  
+  return(list(outa, IP))
+  
+}
+
+
+#' Models fire behaviour across multiple ages on parallel cores
+#' Uses either weatherSet_Frame or probFire_Frame
+#'
+#' @param fireDat A list containing the datasets Flora, Structure, and default.species.params
+#' @param analysis Type of analysis, either "Weather" to use weatherSet_Frame, or "Probabilistic" to use probFire_Frame
+#' @param weather A dataframe for use with weatherSet_Frame, with the five fields:
+#' tm - Sequential numbering of the records
+#' T - Air temperature (deg C)
+#' W - Wind velocity (km/h)
+#' DFMC - Dead fuel moisture content (proportion ODW)
+#' record - A unique number for each age corresponding to the same fields in fireDat
+#' @param reps Number of repetitions for each set of weather conditions
+#' @param slope Mean slope (degrees)
+#' @param slopeSD Standard deviation of the slope (degrees)
+#' @param slopeRange Range of slope (degrees)
 #' @param temp 
 #' @param tempSD 
 #' @param tempRange 
@@ -1204,19 +1329,22 @@ parBurn <- function(n) {
 #' @param moistureSD 
 #' @param moistureRange 
 #' @param fLine Fireline length (m)
-#' @param updateProgress 
-#' @param freeCores 
-#' @param l 
+#' @param freeCores Number of cores to leave free for other processes
 #' @param Ms 
 #' @param Pm 
 #' @param Mr 
-#' @param vAir500 
+#' @param vAir500 Multiplier of wind speed to estimate 500 hPA wind
+#' @param leafVar 
+#' @param testN 
+#' @param threshold Minimum allowable height for canopy (m)
+#' @param updateProgress  Progress bar for use in the dashboard
 #'
 #' @return list
 #' @export
 #'
 
-fireDynamics <- function(fireDat, slope = 5, slopeSD = 2, slopeRange = 5, 
+fireDynamics <- function(fireDat, analysis = "Probabilistic", weather, 
+                         slope = 5, slopeSD = 2, slopeRange = 5, 
                          temp = 30, tempSD = 5, tempRange = 3,
                          DFMC = 0.1, DFMCSD = 0.01, DFMCRange = 2, 
                          wind = 10, windSD = 5, windRange = 5, fLine = 1000,
@@ -1224,17 +1352,17 @@ fireDynamics <- function(fireDat, slope = 5, slopeSD = 2, slopeRange = 5,
                          reps = 5, leafVar = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5, vAir500 = 2, 
                          testN = 5, updateProgress = NULL, threshold = 1, freeCores = 1){
   
-  cat("Modelling risk", "\n", "\n")
+  cat("Modelling risk", "\n")
   
   # 1. Compile inputs
   Flora <- fireDat[[1]]
   Structure <- fireDat[[2]]
   default.species.params <- fireDat[[3]]
-  r <- unique(Flora$record)
   
   # 2. Create a cluster of cores with replicated R on each
   nCores <- max(parallel::detectCores() - freeCores,1)
   cl <- parallel::makeCluster(nCores)
+  
   # 3. Load the packages
   parallel::clusterEvalQ(cl,
                          { library(dplyr)
@@ -1242,18 +1370,52 @@ fireDynamics <- function(fireDat, slope = 5, slopeSD = 2, slopeRange = 5,
                            library(frame)
                            library(assertthat)
                            library(extraDistr)})
-  # 4. Load the inputs
-  parallel::clusterExport(cl,varlist=c('Flora', 'Structure', 'default.species.params', 
-                                       'slope', 'slopeSD', 'slopeRange', 
-                                       'temp', 'tempSD', 'tempRange',
-                                       'DFMC', 'DFMCSD', 'DFMCRange', 
-                                       'wind', 'windSD', 'windRange', 'fLine',
-                                       'moistureMultiplier', 'moistureSD', 'moistureRange',
-                                       'reps', 'leafVar', 'Ms', 'Pm', 'Mr', 'vAir500', 
-                                       'updateProgress', 'testN', 'threshold'), environment())
   
-  # 5. Send each rep to a different core to be processed
-  system.time(parT <- parallel::parLapply(cl, r, parBurn))
+  # 4. Load the inputs and set the analysis
+  # If no weather dataset is present, only a probabilistic analysis is possible
+  
+  if (missing(weather)) {
+    
+    # Check inputs
+    if (missing(temp) || missing(tempSD) || missing(tempRange) || 
+        missing(DFMC)|| missing(DFMCSD) || missing(DFMCRange) ||
+        missing(wind)|| missing(windSD) || missing(windRange)) {
+      stop("Some weather inputs are missing. You need a weather table, or individual statistics.")
+    }
+    
+    r <- unique(Flora$record)
+    
+    cat("Running", reps*length(as.numeric(r)), "probabilistic replicates", "\n")
+    parallel::clusterExport(cl,varlist=c('Flora', 'Structure', 'default.species.params', 
+                                         'slope', 'slopeSD', 'slopeRange', 
+                                         'temp', 'tempSD', 'tempRange',
+                                         'DFMC', 'DFMCSD', 'DFMCRange', 
+                                         'wind', 'windSD', 'windRange', 'fLine',
+                                         'moistureMultiplier', 'moistureSD', 'moistureRange',
+                                         'reps', 'leafVar', 'Ms', 'Pm', 'Mr', 'vAir500', 
+                                         'updateProgress', 'testN', 'threshold'), environment())
+    system.time(parT <- parallel::parLapply(cl, r, parBurnP))
+    
+  } else {
+    
+    r <- unique(weather$record)
+    
+    parallel::clusterExport(cl,varlist=c('Flora', 'Structure', 'default.species.params', 
+                                         'slope', 'slopeSD', 'slopeRange', 'fLine', 'weather',
+                                         'moistureMultiplier', 'moistureSD', 'moistureRange',
+                                         'reps', 'leafVar', 'Ms', 'Pm', 'Mr', 'vAir500', 
+                                         'updateProgress', 'testN', 'threshold'), environment())
+    if (analysis == "Probabilistic") {
+      cat("Running", reps*length(as.numeric(r)), "probabilistic replicates", "\n")
+      system.time(parT <- parallel::parLapply(cl, r, parBurnPW))
+      
+    } else {
+      cat("Running", nrow(weather)*length(as.numeric(r)), "replicates on a weather set", "\n")
+      system.time(parT <- parallel::parLapply(cl, r, parBurnW))
+      
+    }
+  }
+  
   parallel::stopCluster(cl)
   
   # 6. Summarise and export results
