@@ -29,7 +29,7 @@
   ok <- ok && ncol(tbl) %in% 4:5
   
   # must have mandatory columns correctly named
-  ok <- ok && c("stratum", "species", "param", "value") %in% colnames(tbl)
+  ok <- prod(as.numeric(c("stratum", "species", "param", "value") %in% colnames(tbl))) == 1
   
   # if there are 5 columns, one should be "units"
   ok <- ok && "units" %in% colnames(tbl)

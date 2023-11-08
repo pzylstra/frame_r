@@ -82,4 +82,7 @@ dataframe
 }
 \description{
 Assumes lee-side vortex at bole causes flame to lean backward to a distance 2.5*DBH
+Estimate taken from Malcolm Gill A 1974 
+Toward an understanding of fire scar formation: field observation and laboratory simulation 
+For. Sci. 20 198–205
 }
