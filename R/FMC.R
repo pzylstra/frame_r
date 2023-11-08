@@ -65,7 +65,7 @@ Ema <- function(m, nelsonA = 5.2, nelsonB = -19, conLitter = 0.0006, tAir = 293.
 #' @param rhAir Relative humidity (Percent)
 #' @param sigma Surface area: volume ratio of litter particles (m2/m3)
 #' @param rhoLitter Density of leaves (kg/m3)
-#' @param conLitter Litter conductance (m/s)
+#' @param conLitter Litter conductance (m/s). Using value from Matthews spreadsheet rather than paper
 #' @param dt Seconds per time step
 #' @param EPS Sensitivity of iteration
 #' @param insolation Solar energy at the soil surface (kW/m2)
@@ -73,7 +73,7 @@ Ema <- function(m, nelsonA = 5.2, nelsonB = -19, conLitter = 0.0006, tAir = 293.
 #' @export
 
 simplefmc <- function(m, tAir = 293.46, vAir = 3.52, pAir = 101180, rhAir = 58, dt = 3600, insolation = 150, rhoLitter = 550,
-                      nelsonA = 5.2, nelsonB = -19, conLitter = 0.0003, sigma = 3000, EPS = 0.01)
+                      nelsonA = 5.2, nelsonB = -19, conLitter = 0.0006, sigma = 3000, EPS = 0.01)
 {
   SpecHum <- rhAir/100 *QSat(tAir, pAir) # Specific humidity
   xStart <- m
@@ -244,7 +244,7 @@ tidyWeather <- function(clim) {
 #' @param nelsonA Constant from Nelson FMC model
 #' @param nelsonB Constant from Nelson FMC model
 #' @param sigma Surface area: volume ratio of litter particles (m2/m3)
-#' @param conLitter Litter conductance (m/s)
+#' @param conLitter Litter conductance (m/s). Using value from Matthews spreadsheet rather than paper
 #' @param dt Seconds per time step
 #' @param LAI Leaf area index of the vegetation
 #' @param WRF Wind reduction factor
@@ -263,10 +263,13 @@ tidyWeather <- function(clim) {
 
 frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter = 550, litterW = 10,
                          lat = -31.89, altitude = 8, slope = 6.7, slopeSD = 4.9, rangeDir = 270,  dt = 3600, 
-                         cardinal = FALSE, nelsonA = 5.2, nelsonB = -19, conLitter = 0.0003, sigma = 3000, EPS = 0.01) {
+                         cardinal = FALSE, nelsonA = 5.2, nelsonB = -19, conLitter = 0.0006, sigma = 3000, EPS = 0.01) {
   climDay <- tidyWeather(clim)
   Rain <- climDay[,c('Hour', 'Rain')]
   Direction <- climDay[,c('Hour', 'Direction')] 
+  if (slope != 0) {
+    cat("Slope set to zero until issues resolved")
+  }
   
   # Interpolate
   Hour <- seq(from = 1, to = max(climDay$Hour), by = 1)
@@ -345,13 +348,20 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
     mutate(RH = pmax(0, pmin(100, RH)),
            Wind = pmax(0, Wind),
            Cloud = pmax(0, pmin(1, Cloud)),
+           LAI = LAI,
+           WRF = WRF,
            Declination = hemisphere*23.45*cos((360*((Hour/24)-172)/365)*pi/180),
            hourAngle = abs(12-((Hour/24)-floor(Hour/24))*24)*15,
            solarAltitude = asin(cos(lat*pi/180)*cos(Declination*pi/180)*cos(hourAngle*pi/180)+sin(lat*pi/180)*sin(Declination*pi/180)),
-           TerrainA = (cos((hourAngle-(rangeDir+90))*pi/180)*slope)*pi/180,
-           TerrainB = (cos((hourAngle-(rangeDir-90))*pi/180)*slope)*pi/180,
-           TerrainC = (cos((hourAngle-(rangeDir-90))*pi/180)*(slope+slopeSD))*pi/180,
-           TerrainD = (cos((hourAngle-(rangeDir-90))*pi/180)*(slope+2*slopeSD))*pi/180,
+           #TerrainA = (cos((hourAngle-(rangeDir+90))*pi/180)*slope)*pi/180,
+           #TerrainB = (cos((hourAngle-(rangeDir-90))*pi/180)*slope)*pi/180,
+           #TerrainC = (cos((hourAngle-(rangeDir-90))*pi/180)*(slope+slopeSD))*pi/180,
+           #TerrainD = (cos((hourAngle-(rangeDir-90))*pi/180)*(slope+2*slopeSD))*pi/180,
+           # Set all terrain effects to 0 (flat) because model is drawing slopeSD from somewhere unknown
+           TerrainA = 0,
+           TerrainB = 0,
+           TerrainC = 0,
+           TerrainD = 0,
            ZenithA = acos(sin(lat*pi/180)*sin(Declination*pi/180)+cos(lat*pi/180)*cos(Declination*pi/180)*cos(hourAngle*pi/180))-TerrainA,
            ZenithB = acos(sin(lat*pi/180)*sin(Declination*pi/180)+cos(lat*pi/180)*cos(Declination*pi/180)*cos(hourAngle*pi/180))-TerrainB,
            ZenithC = acos(sin(lat*pi/180)*sin(Declination*pi/180)+cos(lat*pi/180)*cos(Declination*pi/180)*cos(hourAngle*pi/180))-TerrainC,
@@ -469,7 +479,7 @@ parClim <- function(a) {
                                                      fLine = 1, slope = 0, temp = 30, dfmc = 0.05, wind = 10))
   
   hCan <- max(as.numeric(FloraA$top), na.rm = TRUE)
-  LAI <- LAIcomm(base.params, yu = hCan, yl = 0)
+  LAI <- LAIcomm(base.params, yu = hCan, yl = 0) * as.numeric(lAngleAccounting) * ((as.numeric(!is.na(StructureA$NS))+as.numeric(!is.na(StructureA$E))+as.numeric(!is.na(StructureA$M))+as.numeric(!is.na(StructureA$C)))/4)
   WRF <- windReduction(base.params, test = 1.2)
   litterW <- as.numeric(max(FloraA$weight, na.rm = TRUE))
   
@@ -488,23 +498,21 @@ parClim <- function(a) {
 #' @param fireDat 
 #' @param clim 
 #' @param m 
-#' @param slope 
-#' @param slopeSD 
 #' @param rholitter 
-#' @param litterW 
-#' @param lat 
-#' @param slope 
-#' @param slopeSD 
-#' @param rangeDir 
+#' @param lat Latitude (degrees)
+#' @param slope (degrees)
+#' @param slopeSD  Standard deviation of the slope
+#' @param rangeDir Cardinal direction of the ridgelines - either Nth/Sth (0) or west/east (270)
 #' @param cardinal 
-#' @param freeCores 
+#' @param freeCores Number of cores to leave unused by the model
+#' @param lAngleAccounting Set to TRUE to automatically modify leaf angle by number of strata
 #'
 #' @return dataframe
 #' @export
 #'
 
-climDynamics <- function(fireDat, clim, m = 0.15, slope = 5, slopeSD = 2, rholitter = 550,
-                         lat = -34.95, rangeDir = 270, cardinal = TRUE, freeCores = 1){
+climDynamics <- function(fireDat, clim, m = 0.15, slope = 0, slopeSD = 0, rholitter = 550,
+                         lat = -34.95, lAngleAccounting = TRUE, rangeDir = 270, cardinal = TRUE, freeCores = 1){
   
   # 1. Compile inputs
   Flora <- fireDat[[1]]
@@ -525,7 +533,7 @@ climDynamics <- function(fireDat, clim, m = 0.15, slope = 5, slopeSD = 2, rholit
                            library(extraDistr)})
   # 4. Load the inputs
   parallel::clusterExport(cl,varlist=c('Flora', 'Structure', 'default.species.params', 'clim', 'm',
-                                       'slope', 'slopeSD', 'rholitter', 'lat', 'rangeDir', 'cardinal'), environment())
+                                       'slope', 'slopeSD', 'rholitter', 'lat', 'lAngleAccounting', 'rangeDir', 'cardinal'), environment())
   
   # 5. Send each rep to a different core to be processed
   system.time(out <- parallel::parLapply(cl, r, parClim))
