@@ -2,64 +2,27 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{susp}
 \alias{susp}
-\title{Adds parameters for suspended litter to tables Flora & Structure}
+\title{Finds the height of near-surface litter}
 \usage{
 susp(
-  Flora,
-  Structure,
   default.species.params,
   density = 300,
-  top = 0.5,
   cover = 0.8,
-  pnts = 10,
   age = 10,
   aQ = NA,
   bQ = NA,
   cQ = NA,
-  max = NA,
-  rate = NA,
+  maxNS = NA,
+  rateNS = NA,
   dec = TRUE
 )
 }
 \arguments{
-\item{Flora}{A dataframe with the fields:
-record - a unique, consecutively numbered identifier per site
-site - A name for the site
-species - the name of the species, which will call trait data from 
-'default.species.params'
-stratum - numeric value from 1 to 4, counting from lowest stratum
-comp - Percent composition of that species in the stratum. 
-   If absent, all species will be considered equally.
-base - base height of plant crowns (m)
-he - he height of plant crowns (m)
-ht - ht height of plant crowns (m)
-top - top height of plant crowns (m)
-w - width of plant crowns (m)
-Hs - standard deviation of the top height of plant crowns (m)
-Hr - range of the top height of plant crowns (m)
-weight - weight in t/ha of fine dead organic material forming 
-   the surface and suspNS layers
-diameter - mean diameter of surface and suspNS litter in m}
-
-\item{Structure}{A dataframe with the fields:
-record - a unique, consecutively numbered identifier per site
-site - a unique identifier per site
-NS, El, Mid & Can - the mean separation between plants (m) per stratum
-ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
-on the left grow directly beneath those in the stratum on the right. 
-   Acceptable values are TRUE, FALSE, or blank, where the outcome 
-   will be decided by the relative stratum heights.
-nsR, eR, mR, cR. Species richness (number of species) in each stratum}
-
 \item{default.species.params}{Plant traits database}
 
 \item{density}{Wood density (kg.m-3)}
 
-\item{top}{Top height of suspended layer}
-
 \item{cover}{Percent cover of suspended layer}
-
-\item{pnts}{Number of surveyed points}
 
 \item{age}{Years since last fire}
 
@@ -69,16 +32,17 @@ nsR, eR, mR, cR. Species richness (number of species) in each stratum}
 
 \item{cQ}{Parameter for a quadratic trend; leave as NA if trend is negative exponential}
 
-\item{max}{Parameter for a negative exponential trend; leave as NA if trend is quadratic}
+\item{maxNS}{Asymptote for negative exponential increase in NS}
 
-\item{rate}{Parameter for a negative exponential trend; leave as NA if trend is quadratic}
+\item{rateNS}{Rate for negative exponential increase in NS}
 
-\item{dec}{Logical - TRUE allows for Burr model to decline as vegetation thins,
-otherwise suspNS remains at the highest point it has reached by that age}
+\item{dec}{Logical - TRUE allows for quadratic model to decline as vegetation thins,}
+
+\item{wNS}{Width of NS patches (m)}
 }
 \value{
 List
 }
 \description{
-Adds parameters for suspended litter to tables Flora & Structure
+Finds the height of near-surface litter
 }

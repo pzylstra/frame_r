@@ -33,7 +33,31 @@ floraDynamics(
 
 \item{p}{The maximum allowable p value for a model}
 
+\item{bTest}{}
+
+\item{cTest}{}
+
 \item{maxiter}{The maximum number of iterations for model fitting}
+
+\item{Sr}{Rate of increase for surface litter in a negative exponential curve}
+
+\item{Sk}{Asymptote for surface litter in a negative exponential curve}
+
+\item{Sa}{}
+
+\item{Sb}{}
+
+\item{Sc}{}
+
+\item{NSr}{Rate of increase for NS fuels in a negative exponential curve}
+
+\item{NSk}{Asymptote for NS fuels in a negative exponential curve}
+
+\item{NSa}{}
+
+\item{NSb}{}
+
+\item{NSc}{}
 }
 \value{
 dataframe

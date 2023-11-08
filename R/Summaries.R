@@ -116,6 +116,57 @@ frameSummary <- function(flames, sites, ros, surface)
                   epsilon = 1-exp(-0.72*zeta)))
 }
 
+#' Summary table of fire behaviour, beta version
+#'
+#' Summarises FRaME generated fire behaviour by RepId
+#'
+#' @param flames The dataframe $FlameSummaries
+#' @param sites The dataframe $Sites
+#' @param ros The dataframe $ROS
+#' @param surface The dataframe $SurfaceResults
+#' @param IP The dataframe $IgnitionPaths
+#'
+#' @return dataframe
+#' @export
+
+frameSummaryBeta <- function(flames, sites, ros, surface, IP)
+{
+  Stratum <- stratum(flames, sites, ros, surface)
+  Surf <- surf(surface)
+  top <- IP %>%
+    mutate(angle = abs(atan((y1 - y0)/(x1 - x0))),
+           repHeight = flameLength*sin(angle)+y0)%>%
+    group_by(repId) %>%
+    summarize_all(max) %>%
+    select(repId, repHeight)
+  
+  repFlame <- suppressMessages(IP %>%
+                                 mutate(repAngle = atan((y1 - y0)/(x1 - x0))) %>%
+                                 select(repId, repAngle)%>%
+                                 group_by(repId) %>%
+                                 summarize_all(mean) %>%
+                                 left_join(top) %>%
+                                 mutate(repLength = repHeight/abs(sin(repAngle))) %>%
+                                 select(repId, repHeight, repLength, repAngle))
+  
+  out <- suppressMessages(Stratum %>%
+                            select(repId, slope_degrees, wind_kph, deadFuelMoistureProp, temperature,
+                                   heightPlant, lengthPlant, flameAngle, ros_kph, extinct) %>%
+                            group_by(repId) %>%
+                            summarize_all(max) %>%
+                            left_join(Surf) %>%
+                            left_join(repFlame) %>%
+                            mutate(heightPlant = pmax(heightPlant, repHeight, na.rm = TRUE),
+                                   lengthPlant = pmax(lengthPlant, repLength, na.rm = TRUE),
+                                   flameAngle = max(flameAngle, repAngle, na.rm = TRUE),
+                                   fh = pmax(heightSurface, heightPlant, na.rm = TRUE) * extinct,
+                                   fl = pmax(lengthSurface, lengthPlant, na.rm = TRUE) * extinct,
+                                   zeta = 2.5*ros_kph,
+                                   epsilon = 1-exp(-0.72*zeta)))
+  
+  return(out)
+}
+
 #####################################################################
 #' Discontinued version of summary table of fire behaviour
 #'
@@ -143,7 +194,7 @@ summary <- function(flames, sites, ros, surface)
 #' Summarises FRaME generated flame segments into a combined,
 #' representative plant flame for each repId where plants ignited
 #'
-#' @param IP The dataframe $IP
+#' @param IP The dataframe $IgnitionPaths
 #'
 #' @return dataframe
 #' @export
@@ -151,6 +202,7 @@ summary <- function(flames, sites, ros, surface)
 
 repFlame <- function(IP)
 {
+  # Finds the maximum flame height for all reps in one set of conditions
   top <- IP %>%
     mutate(angle = abs(atan((y1 - y0)/(x1 - x0))),
            repHeight = flameLength*sin(angle)+y0)%>%
@@ -158,6 +210,7 @@ repFlame <- function(IP)
     summarize_all(max) %>%
     select(repId, repHeight)
   
+  # Finds the mean angle, the back-calculates length from these values
   repFlame <- suppressMessages(IP %>%
     mutate(repAngle = atan((y1 - y0)/(x1 - x0))
     ) %>%
@@ -165,8 +218,9 @@ repFlame <- function(IP)
     group_by(repId) %>%
     summarize_all(mean) %>%
     left_join(top) %>%
-    mutate(repLength = repHeight/abs(sin(repAngle))) %>%
-    select(repId, repHeight, repLength, repAngle)%>%
+    mutate(repLength = repHeight/abs(sin(repAngle)),
+           angle_degrees = repAngle * 180/pi) %>%
+    select(repId, repHeight, repLength, repAngle, angle_degrees)%>%
     right_join(IP))
   
   return(repFlame)
@@ -264,8 +318,8 @@ species <- function(base.params)
                                 'st'=as.numeric(sp$stratum), 'sp'=as.numeric(sp$species),
                                 'comp'=as.numeric(Comp$value))) %>%
     mutate(htR = ht/hp,
-           hcR = hc/hp,
-           heR = he/hp,
+           hcR = pmin(hc/hp,0.9),
+           heR = pmin(he/hp,htR),
            wR = w/hp)
   cov <- species%>%
     group_by(st) %>%

@@ -21,10 +21,11 @@ firePlant(
   wind = 5,
   windSD = 1,
   windRange = 2,
+  vAir500 = 2,
   moistureMultiplier = 1,
   moistureSD = 0.01,
   moistureRange = 1.5,
-  fLine = 100,
+  fLine = 1000,
   leafVar = 0.1,
   updateProgress = NULL
 )
@@ -66,7 +67,7 @@ firePlant(
 
 \item{moistureRange}{}
 
-\item{fLine}{}
+\item{fLine}{Length of the active fire front (m)}
 
 \item{leafVar}{}
 

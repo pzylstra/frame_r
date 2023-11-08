@@ -8,10 +8,8 @@ built from plant modelling}
 frameDynTab(
   dat,
   tr,
-  upper,
-  interval = c(2, 5),
-  propSamp = 0.5,
-  transects = 10,
+  breaks = c(20, 50, 200),
+  interval = c(2, 5, 10),
   propDead = 0,
   leafForm = "Flat",
   lwRat = 3,
@@ -22,11 +20,13 @@ frameDynTab(
   G.C_rat = 3,
   C.C_rat = 0.1,
   deltaL = 0.46,
-  lat = -35,
-  map = 1000,
-  mat = 20,
-  lma,
-  diameter = 0.005
+  hw = 0,
+  mat = 17,
+  diameter = 0.005,
+  propSamp = 0.75,
+  transects = 10,
+  sepSig = 0.1,
+  minCov = 1e-04
 )
 }
 \arguments{
@@ -34,23 +34,19 @@ frameDynTab(
 
 \item{tr}{An optional table of input traits}
 
-\item{upper}{}
+\item{breaks}{List of time periods for each sampling interval, length 3}
 
-\item{interval}{List of time intervals for sampling, length 2. 1st value for 1st 30 years.}
-
-\item{propSamp}{Proportion of cohorts to test (0-1)}
-
-\item{transects}{Number of repeats for each sample}
+\item{interval}{List of sampling intervals, length 3.}
 
 \item{propDead}{Proportion of foliage dead}
 
 \item{leafForm}{Flat or Round}
 
-\item{lwRat}{}
+\item{lwRat}{Ratio of leaf length to width}
 
 \item{leafA}{Area of a leaf in m2}
 
-\item{ram}{}
+\item{ram}{Stem ramification}
 
 \item{ignitionTemp}{Temperature of the endotherm (degC)}
 
@@ -62,15 +58,17 @@ frameDynTab(
 
 \item{deltaL}{Leaf density (g/cm3)}
 
-\item{lat}{Latitude (degrees)}
+\item{hw}{Environmental difference in plant height: width ratio}
 
-\item{map}{Mean annual precipitation (mm)}
-
-\item{mat}{Mean annual temperature (degC)}
-
-\item{lma}{List of LMA values per species (kgm−2)}
+\item{mat}{Mean annual temperature (deg C)}
 
 \item{diameter}{Mean diameter of surface litter pieces (m)}
+
+\item{propSamp}{Values closer to 0 have more accurate ratios of components but miss some cohorts}
+
+\item{transects}{More transects ensure more cohorts}
+
+\item{sepSig}{}
 }
 \description{
 Constructs an age sequence of parameter files 

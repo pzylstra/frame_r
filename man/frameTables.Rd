@@ -9,9 +9,10 @@ frameTables(
   dat,
   tr,
   age,
-  rec = 1,
-  propSamp = 0.5,
+  propSamp = 0.75,
   transects = 10,
+  sepSig = 0.1,
+  rec = 1,
   propDead = 0,
   leafForm = "Flat",
   lwRat = 3,
@@ -22,12 +23,10 @@ frameTables(
   G.C_rat = 3,
   C.C_rat = 0.1,
   deltaL = 0.46,
-  lat = -35,
-  map = 1000,
-  mat = 20,
-  lma,
+  hw = 0,
   sLitter = 15,
-  diameter = 0.005
+  diameter = 0.005,
+  minCov = 1e-04
 )
 }
 \arguments{
@@ -39,15 +38,15 @@ frameTables(
 
 \item{rec}{Number of the record}
 
-\item{propSamp}{Proportion of cohorts to test (0-1)}
-
-\item{transects}{Number of repeats for each sample}
-
 \item{propDead}{Proportion of foliage dead}
 
 \item{leafForm}{Flat or Round}
 
+\item{lwRat}{Ratio of leaf length to width}
+
 \item{leafA}{Area of a leaf in m2}
+
+\item{ram}{Stem ramification}
 
 \item{ignitionTemp}{Temperature of the endotherm (degC)}
 
@@ -59,25 +58,11 @@ frameTables(
 
 \item{deltaL}{Leaf density (g/cm3)}
 
-\item{lat}{Latitude (degrees)}
-
-\item{map}{Mean annual precipitation (mm)}
-
-\item{mat}{Mean annual temperature (degC)}
-
-\item{lma}{List of LMA values per species (kgm−2)}
+\item{hw}{Environmental difference in plant height: width ratio}
 
 \item{sLitter}{Weight of surface litter (t/ha)}
 
 \item{diameter}{Mean diameter of surface litter pieces (m)}
-
-\item{openness}{Ratio of gaps to clumps of leaves}
-
-\item{clump}{Ratio of clump frontal area diameter to crown frontal area diameter}
-
-\item{litter}{Weight of surface litter (t/ha)}
-
-\item{lwRatio}{Ratio of leaf length to width}
 }
 \description{
 Constructs parameter files for FRaME using 

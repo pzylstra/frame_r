@@ -1,13 +1,13 @@
 Package: frame
 Type: Package
 Title: Fire Research and Modelling Environment
-Version: 0.5.1
-Date: 2022-07-13
+Version: 0.5.3
+Date: 2023-08-11
 Authors@R: as.person( c(
     "Philip Zylstra <philip.zylstra@curtin.edu.au> [cre]",
     "Michael Bedward <michael.bedward@gmail.com> [aut]",
     "Soroush Homayounpour <soroush@uow.edu.au> [aut]"))
-Description: This package provides an interface to the forest flammability model (Zylstra et al 2016), updated to include the fire effects models of Zylstra (2021). Release four extends this to include functions for processing field survey data into vegetation trends and automatically formatted files for fire behaviour modelling. Version 0.5.0 includes functions for modelling fire effects on fauna, and for interfacing with 'plant' (Falster et al 2016) to model fire behaviour for a dynamic vegetation model. The package includes a distribution of the model and its dependencies in the form of Java jar files. FRaME requires an installation of Java version 1.8 (aka Java 8) or higher on the host system, with RTools and a minimum of R3.5.
+Description: This package provides an interface to the forest flammability model (Zylstra et al 2016), updated to include the fire effects models of Zylstra (2021) and Zylstra et al. (2023). Release four extends this to include functions for processing field survey data into vegetation trends and automatically formatted files for fire behaviour modelling. Version 0.5.0 includes functions for modelling fire effects on fauna, and for interfacing with 'plant' (Falster et al 2016) to model fire behaviour for a dynamic vegetation model. The package includes a distribution of the model and its dependencies in the form of Java jar files. FRaME requires an installation of Java version 1.8 (aka Java 8) or higher on the host system, with RTools and a minimum of R3.5.
 License: MIT + file LICENSE
 URL: https://github.com/pzylstra/frame_r
 BugReports: https://github.com/pzylstra/frame_r/issues
@@ -28,7 +28,7 @@ Imports:
     wrapr(>= 2.0.8)
 Encoding: UTF-8
 LazyData: TRUE
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.0
 Suggests: 
     knitr,
     rmarkdown,

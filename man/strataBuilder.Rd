@@ -14,7 +14,7 @@ strataBuilder(Structure, Flora, a)
 \item{a}{}
 }
 \value{
-
+dataframe
 }
 \description{
 Builds the dataframe strata.meta

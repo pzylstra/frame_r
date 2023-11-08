@@ -27,7 +27,7 @@ plantRisk(
 \arguments{
 \item{dynDat}{}
 
-\item{a}{}
+\item{a}{A unique identifier for the record being run}
 
 \item{ignitions}{}
 
@@ -60,7 +60,7 @@ plantRisk(
 \item{fireN}{}
 }
 \value{
-
+list
 }
 \description{
 Calculates risk (likelihood & consequence) for plants in a given climate & terrain

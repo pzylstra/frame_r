@@ -5,47 +5,19 @@
 \title{Divides site data into consecutively numbered strata with
 base and top heights}
 \usage{
-stratSite(
-  dat,
-  thres = 0,
-  pN = "Point",
-  spName = "Species",
-  base = "base",
-  top = "top",
-  he = "he",
-  ht = "ht"
-)
+stratSite(dat, thres = 0, sepSig = 0.001)
 }
 \arguments{
-\item{dat}{The dataframe containing the input data}
+\item{dat}{A dataframe listing plant species with columns describing crown dimensions using standardised names:
+veg, pN, spName, base, top, he, ht, wid, Site, sN}
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
-\item{pN}{The number of the point in the transect}
-
-\item{spName}{Name of the field with the species name}
-
-\item{base}{Name of the field with the base height}
-
-\item{top}{Name of the field with the top height}
-
-\item{he}{Name of the field with dimension he}
-
-\item{ht}{Name of the field with dimension ht}
-
-\item{pnts}{The number of points measured in a transect}
+\item{sepSig}{}
 }
 \value{
 dataframe
 }
 \description{
-Input table requires the following fields:
-Point - numbered point in a transect
-A field with the base height of the plants
-A field with the top height of the plants
-he
-ht
-}
-\details{
 Species that are less common than the set threshold are combined as "Minor Species"
 }

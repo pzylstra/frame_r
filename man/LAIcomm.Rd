@@ -14,7 +14,7 @@ LAIcomm(base.params, yu = 100, yl = 0)
 \item{yl}{Base of slice (m)}
 }
 \value{
-
+value
 }
 \description{
 Calculates LAI for a horizontal slice of a plant community

@@ -4,31 +4,15 @@
 \alias{frameStratify}
 \title{Arranges survey data into strata using k-means clustering}
 \usage{
-frameStratify(
-  veg,
-  pN = "Point",
-  spName = "Species",
-  base = "base",
-  top = "top",
-  he = "he",
-  ht = "ht",
-  mStrat = 4
-)
+frameStratify(veg, mStrat = 4, sepSig = 0.001)
 }
 \arguments{
-\item{veg}{A dataframe listing plant species with columns describing crown dimensions}
+\item{veg}{A dataframe listing plant species with columns describing crown dimensions using standardised names:
+veg, pN, spName, base, top, he, ht, wid, Site, sN}
 
-\item{pN}{The number of the point in the transect}
+\item{mStrat}{Maximum number of strata}
 
-\item{spName}{Name of the field with the species name}
-
-\item{base}{Name of the field with the base height}
-
-\item{top}{Name of the field with the top height}
-
-\item{he}{Name of the field with dimension he}
-
-\item{ht}{Name of the field with dimension ht}
+\item{sepSig}{p value to define significant stratum separation}
 }
 \value{
 Dataframe

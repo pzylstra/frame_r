@@ -1,4 +1,4 @@
-#' Scorch height using an isotherm
+#' Scorch height using an isotherm, including target species
 #'
 #' Calculates the height to which vegetation will be consumed,
 #' and the height to a designated temperature isotherm reached for one second.
@@ -20,7 +20,7 @@
 #' @return dataframe
 #' @export
 
-flora <- function(Surf, Plant, Param = Param, targSp = "a", Test = 70)
+floraTarget <- function(Surf, Plant, Param = Param, targSp = "a", Test = 70)
 {
   S <- strata(Param)
   n <- max(S$stratum)
@@ -98,7 +98,7 @@ flora <- function(Surf, Plant, Param = Param, targSp = "a", Test = 70)
   nM <-ifelse(count(M)==0, 0,as.numeric(as.character(M$stratum)))
   C <- S[S$name == "canopy", ]
   nC <- ifelse(count(C)==0, 0,as.numeric(as.character(C$stratum)))
-  nSp <- targSp %in% unique(Param$species)
+  nSp <- targSp %in% unique(Param$value[which(Param$param=="name")])
   
   
   #Final heating
@@ -131,6 +131,138 @@ flora <- function(Surf, Plant, Param = Param, targSp = "a", Test = 70)
                                 TRUE ~ 0),
            targSp = ifelse(spTop == 0, 0, round(pmin(100,pmax(0,100*(Height-spBase)/(spTop-spBase))),0)))%>%
     select(repId, wind_kph, Height, ns, e, m, c, b1, b2, b3, b4, sc1, sc2, sc3, sc4, severity, targSp)
+  
+  return(Iso)
+}
+
+#' Scorch height using an isotherm
+#'
+#' Calculates the height to which vegetation will be consumed,
+#' and the height to a designated temperature isotherm reached for one second.
+#'
+#' Output fields are:
+#' Height - overall scorch height (m)
+#' ns, e, m, c - height of consumption in each stratum (m)
+#' b1, b2, b3, b4 - percentage of strata 1 (ns) to strata 4 (c) consumed
+#' sc1, sc2, sc3, sc4 - percentage of strata 1 (ns) to strata 4 (c) scorched
+#' d1, d2, d3, d4 - death (1) or survival (0) of standing foliage per stratum (50% or more scorch)
+#'
+#' @param Surf The dataframe produced by the function 'summary',
+#' @param Plant The dataframe produced by the function 'repFlame'.
+#' @param Param A parameter dataframe used for FRaME,
+#' such as produced using readLegacyParamFile
+#' @param Test The temperature of the flora, default 70 degC
+#'
+#' @return dataframe
+#' @export
+
+flora <- function(Surf, Plant, Param = Param, Test = 70)
+{
+  S <- strata(Param)
+  n <- max(S$stratum)
+  
+  #Max burn height
+  c <- Plant[Plant$level == "Canopy", ]%>%
+    group_by(repId) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
+    mutate(c = y1)%>%
+    select(repId, c)%>%
+    right_join(Surf)
+  c[is.na(c)] <- 0
+  m <- Plant[Plant$level == "MidStorey", ]%>%
+    group_by(repId) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
+    mutate(m = y1)%>%
+    select(repId, m)%>%
+    right_join(c)%>%
+    mutate(m = ifelse(c>0, S$top[3], m))
+  m[is.na(m)] <- 0
+  e <- Plant[Plant$level == "Elevated", ]%>%
+    group_by(repId) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
+    mutate(e = y1)%>%
+    select(repId, e)%>%
+    right_join(m)%>%
+    mutate(e = ifelse(m>0, S$top[2], e))
+  e[is.na(e)] <- 0
+  ns <- Plant[Plant$level == "NearSurface", ]%>%
+    group_by(repId) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
+    mutate(ns = y1)%>%
+    select(repId, ns)%>%
+    right_join(e)%>%
+    mutate(ns = ifelse(e>0, S$top[1], ns))
+  ns[is.na(ns)] <- 0
+  
+  #Heating from surface fire
+  ground <- ns%>%
+    mutate(Alpha = 1/(2*lengthSurface^2),
+           C = 950*lengthSurface*exp(-Alpha*lengthSurface^2),
+           pAlpha = abs(C/(Test-temperature)),
+           R = pAlpha*cos(angleSurface),
+           El = R * tan((slope_degrees * pi)/180),
+           ht = (sin(angleSurface)*pAlpha - El) * extinct,
+           ns = ns * extinct,
+           e = e * extinct,
+           m = m * extinct,
+           c = c * extinct
+    )%>%
+    select(repId, extinct, temperature, slope_degrees, wind_kph, ht, ns, e, m, c)
+  
+  #Heating from plants
+  plant<-Plant%>%
+    left_join(ground)%>%
+    mutate(Angle = atan((y1-y0)/(x1-x0)),
+           Alpha = 1/(2*flameLength*(flameLength-length)),
+           C = 950*flameLength*exp(-Alpha*(flameLength-length)^2),
+           pAlpha = abs(C/(Test-temperature)),
+           Reach = pAlpha*cos(Angle),
+           El = Reach * tan((slope_degrees * pi)/180),
+           htP = (sin(Angle)*pAlpha + y0 - El) * extinct)%>%
+    select(repId, htP)%>%
+    group_by(repId) %>%
+    summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE)))%>%
+    right_join(ground)
+  plant[is.na(plant)] <- 0
+  
+  #Find the corresponding number of each stratum
+  NS <- S[S$name == "near surface", ]
+  nNS <-ifelse(count(NS)==0, 0,as.numeric(as.character(NS$stratum)))
+  E <- S[S$name == "elevated", ]
+  nE <- ifelse(count(E)==0, 0,as.numeric(as.character(E$stratum)))
+  M <- S[S$name == "midstorey", ]
+  nM <-ifelse(count(M)==0, 0,as.numeric(as.character(M$stratum)))
+  C <- S[S$name == "canopy", ]
+  nC <- ifelse(count(C)==0, 0,as.numeric(as.character(C$stratum)))
+  
+  
+  #Final heating
+  Iso <- plant%>%
+    mutate(Height = pmax(ht, htP),
+           nsBase = if(count(NS)==0){0} else {S$base[which(S$name == "near surface")]},
+           eBase = if(count(E)==0) {0} else {S$base[which(S$name == "elevated")]},
+           mBase = if(count(M)==0) {0} else {S$base[which(S$name == "midstorey")]},
+           cBase = if(count(C)==0) {0} else {S$base[which(S$name == "canopy")]},
+           nsTop = if(count(NS)==0) {0} else {S$top[which(S$name == "near surface")]},
+           eTop = if(count(E)==0) {0} else {S$top[which(S$name == "elevated")]},
+           mTop = if(count(M)==0) {0} else {S$top[which(S$name == "midstorey")]},
+           cTop = if(count(C)==0) {0} else {S$top[which(S$name == "canopy")]},
+           #Calculate scorch and burn
+           b1 = ifelse(nsTop == 0, 0, round(pmin(100,pmax(0,100*(ns-nsBase)/(nsTop-nsBase))),0)),
+           b2 = ifelse(eTop == 0, 0, round(pmin(100,pmax(0,100*(e-eBase)/(eTop-eBase))),0)),
+           b3 = ifelse(mTop == 0, 0, round(pmin(100,pmax(0,100*(m-mBase)/(mTop-mBase))),0)),
+           b4 = ifelse(cTop == 0, 0, round(pmin(100,pmax(0,100*(c-cBase)/(cTop-cBase))),0)),
+           sc1 = ifelse(nsTop == 0, 0, round(pmin(100,pmax(0,100*(Height-nsBase)/(nsTop-nsBase))),0)),
+           sc2 = ifelse(eTop == 0, 0, round(pmin(100,pmax(0,100*(Height-eBase)/(eTop-eBase))),0)),
+           sc3 = ifelse(mTop == 0, 0, round(pmin(100,pmax(0,100*(Height-mBase)/(mTop-mBase))),0)),
+           sc4 = ifelse(cTop == 0, 0, round(pmin(100,pmax(0,100*(Height-cBase)/(cTop-cBase))),0)),
+           severity = case_when(b4 > 50 ~ 5,
+                                b4 > 0 ~ 4,
+                                sc4 > 0 ~ 3,
+                                b1+b2 > 50 ~ 2,
+                                b1+b2 > 0 ~ 1,
+                                TRUE ~ 0))%>%
+    select(repId, wind_kph, Height, ns, e, m, c, b1, b2, b3, b4, sc1, sc2, sc3, sc4, severity)
   
   return(Iso)
 }
@@ -1008,7 +1140,7 @@ girdle <- function(Surf, Plant, Height = 0.1, woodDensity = 700, barkDensity = 5
 #' @param surfDecl 
 #' @param t 
 #'
-#' @return
+#' @return value
 #' @export
 #'
 
@@ -1033,7 +1165,7 @@ bole <- function(lengthSurface = 2, residence = 300, depth = 0.05, h = 0.1, surf
 #' @param rhoW 
 #' @param kAir 
 #'
-#' @return
+#' @return value
 #' @export
 #'
 
@@ -1108,12 +1240,12 @@ plantFlame <- function(paths, Stratum, Species, repId) {
 #' Calculates LAI for a slice of a plant
 #'
 #' @param base.params 
-#' @param sp Name of the species
+#' @param sp Number of the species
 #' @param yu Height at the top of the slice (m)
 #' @param yl Height at the base of the slice (m)
 #'
-#' @return
-#' @export
+#' @return list
+#' @export 
 #'
 
 LAIp <- function(base.params, sp = 1, yu = 100, yl = 0)
@@ -1137,8 +1269,10 @@ LAIp <- function(base.params, sp = 1, yu = 100, yl = 0)
   
   if (yu <= min(hc,he)) {
     l <- 0
+    LA <- 0
   } else if (yl >= max(ht,hp)) {
     l <- 0
+    LA <- 0
   } else {
     
     # Find w at cutoff cones
@@ -1185,7 +1319,7 @@ LAIp <- function(base.params, sp = 1, yu = 100, yl = 0)
                0,
                LA/(pi*(max(wa,wb,wc,wd)/2)^2))
   }
-  return(l)
+  return(list(l,LA))
 }
 
 
@@ -1196,11 +1330,60 @@ LAIp <- function(base.params, sp = 1, yu = 100, yl = 0)
 #' @param yu Top of slice (m)
 #' @param yl Base of slice (m)
 #'
-#' @return
+#' @return value
 #' @export
-#'
 
 LAIcomm <- function(base.params, yu = 100, yl = 0)
+{
+  # Collect plant figures
+  spec  <- species(base.params)
+  str <- strata(base.params)
+  l <- data.frame()
+  c <- data.frame()
+  cover <- data.frame()
+  s <- data.frame()
+  w <- data.frame()
+  N <- nrow(spec)
+  n <- 1
+  while(n <= N[1]) {
+    spPar <- subset(base.params, species == n)
+    laiN <- (LAIp(base.params, sp = n, yu = yu, yl = yl))[[1]]
+    l <- rbind(l,laiN)
+    c <- rbind(c,as.numeric(spec$comp[n]))
+    cover <- rbind(cover, as.numeric(str$cover[spec$st[n]]))
+    s <- rbind(s, as.numeric(str$separation[as.numeric(spPar$stratum[1])]))
+    w <- rbind(w,as.numeric(spPar$value[spPar$param == "w"]))
+    n <- n + 1
+  }
+  
+  # Construct table
+  colnames(l) <- c("LAIp")
+  l$ID <- seq.int(nrow(l))
+  colnames(c) <- c("Weight")
+  c$ID <- seq.int(nrow(c))
+  colnames(cover) <- c("Cover")
+  cover$ID <- seq.int(nrow(cover))
+  LAIplant <- left_join(l,c, by = "ID")%>%
+    mutate(Weight = ifelse(LAIp>0,
+                           Weight,
+                           0))%>%
+    left_join(cover)
+  
+  # Calculate LAI
+  LAIplant <- LAIplant %>% 
+    mutate(LAIw = LAIp*Cover*Weight)
+  LAI <- sum(LAIplant$LAIw)
+  LAI[is.nan(LAI)] <- 0  
+  return(LAI)
+}
+
+#' Title
+#'
+#' @param base.params 
+#' @param yu 
+#' @param yl 
+
+LAIcommX <- function(base.params, yu = 100, yl = 0)
 {
   # Collect plant figures
   l <- data.frame()
@@ -1212,7 +1395,7 @@ LAIcomm <- function(base.params, yu = 100, yl = 0)
   n <- 1
   while(n <= N[1]) {
     spPar <- subset(base.params, species == n)
-    laiN <- LAIp(base.params, sp = n, yu = yu, yl = yl)
+    laiN <- LAIp(base.params, sp = n, yu = yu, yl = yl)[[1]]
     l <- rbind(l,laiN)
     c <- rbind(c,as.numeric(spPar$value[spPar$param == "composition"]))
     s <- rbind(s, as.numeric(str$separation[as.numeric(spPar$stratum[1])]))
@@ -1253,7 +1436,7 @@ LAIcomm <- function(base.params, yu = 100, yl = 0)
 #' @param base.params 
 #' @param slices Number of horizontal slices to use in calculation
 #'
-#' @return
+#' @return dataframe
 #' @export
 #'
 
@@ -1301,17 +1484,381 @@ profileDet <- function(base.params, slices = 10)
 #' @param base.params 
 #' @param test Height at which the WRF is calculated (m)
 #'
-#' @return
+#' @return value
 #' @export
 #'
 
 windReduction <- function(base.params, test = 1.2)
 {
   s <- strata(base.params)
-  t <- max(s$top)
+  t <- max(s$top, na.rm = TRUE)
   slice <- round(t/test)
   det <- profileDet(base.params, slices = slice)
   w <- det[nrow(det)-1,]
   wrf <- as.numeric(round(1/w$w[1], 1))
   return(wrf)
+}
+
+
+#' Calculates likelihood of basal scarring on a tree
+#' 
+#' Assumes lee-side vortex at bole causes flame to lean backward to a distance 2.5*DBH
+#' Estimate taken from Malcolm Gill A 1974 
+#' Toward an understanding of fire scar formation: field observation and laboratory simulation 
+#' For. Sci. 20 198–205
+#'
+#' @param Surf 
+#' @param Plant 
+#' @param DBH 
+#' @param Height 
+#' @param woodDensity 
+#' @param barkDensity 
+#' @param bark 
+#' @param comBark 
+#' @param resBark 
+#' @param phloem 
+#' @param RH 
+#' @param moisture 
+#' @param bMoisture 
+#' @param distance 
+#' @param trail 
+#' @param var 
+#' @param diameter 
+#' @param Pressure 
+#' @param Altitude 
+#' @param startTemp 
+#' @param necT 
+#' @param surfDecl 
+#' @param updateProgress 
+#'
+#' @return dataframe
+#'
+
+dryside <- function(Surf, Plant, DBH = 1, Height = 0.1, woodDensity = 700, barkDensity = 500,
+                    bark = 0.04, comBark = 700, resBark = 45, phloem = 0.01, RH = 0.2,
+                    moisture = 0.6, bMoisture = 0.5, distance = 5, trail = 100, var = 10, 
+                    diameter = 20, Pressure = 1013.25,Altitude = 0, startTemp = 25, 
+                    necT = 60, surfDecl = 10,updateProgress=NULL)
+{
+  
+  # Post-front surface flame heating
+  lengthSurface <- mean(Surf$lengthSurface)
+  residence <- 0.871*diameter^1.875
+  depth <- diameter/1000
+  
+  # Collect step distance, time, and total distance
+  ROS <- mean(Surf$ros_kph)/3.6
+  Ta <- round(distance/ROS+residence)
+  Tb <- round(distance/ROS)
+  TIME <- Ta + trail
+  Horiz <- distance
+  
+  # Duration of post-front vortex
+  vortex <- round(2.5*DBH/ROS,0)
+  
+  # Description of the protection
+  step <- bark/4
+  # Convert units from kg/m^3 to kg
+  mass <- step * barkDensity
+  massW <- phloem * woodDensity
+  R <- sqrt(0.01/pi)
+  startM <- moisture
+  
+  #Starting values
+  Ca <- threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude) %>%
+    summarise_all(mean)%>%
+    mutate(tS = 1,
+           #Convective transfer
+           Re = (Plume_velocity*Density)/viscosity,
+           h = 0.35 + 0.47*Re^(1/2)*0.837,
+           #Incoming heat from surface
+           Pt = pmax(0, tS - Tb),
+           comBark = ifelse(Pt <= resBark, comBark, 0),
+           postS = if(Pt < vortex) {950} else {bole(lengthSurface,residence, depth, h = Height,
+                                                    surfDecl = 10, t = Pt)},
+           tempS = ifelse(Horiz <=0, pmax(tempAir, postS, comBark), tempAir),
+           qc = h * (tempS - startTemp),
+           att = frame:::tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+           qr = 0.86*qr*att,
+           Qi = pmax(0, qc)+qr,
+           
+           #STEP A ________________________________________________________
+           ### Water effects: evaporation and energy drain
+           # Mass of water
+           mWaterA = bMoisture*mass,
+           # Energy removed by current water quantity
+           drainA = ifelse(startTemp>99,
+                           ifelse(bMoisture>0,mWaterA*2256400,0),0),
+           #Thermal values - (cp: J/kg/deg, k: W/m/deg)
+           rhoM = (bMoisture+bMoisture^2)*barkDensity,
+           cpA = ((1105+4.85*startTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture),
+           kA = (2.104*barkDensity+5.544*rhoM+3.266*startTemp-166.216)*10^-4,
+           # Conduction from above and below, less latent heat of evaporation
+           fAD = ((kA * (tempS - startTemp)) / step),
+           fAU = 0,
+           fourierA = fAD + fAU - max(0, min((fAD + fAU), drainA)),
+           tempA = (fourierA / (mass * cpA) + startTemp),
+           # Change in proportion water this step
+           moistureA = ifelse(startTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((Qi/2256400)/mWaterA)),
+                                                  bMoisture),bMoisture),
+           
+           #STEP B ________________________________________________________
+           ### Water effects: evaporation and energy drain
+           # Mass of water (kg)
+           mWaterB = bMoisture*mass,
+           # Energy removed by current water quantity
+           drainB = ifelse(startTemp>99,
+                           ifelse(moisture>0,mWaterB*2256400,0),0),
+           #Thermal values - (cp: J/kg/deg, k: W/m/deg)
+           rhoM = (bMoisture+bMoisture^2)*barkDensity,
+           cpB = ((1105+4.85*startTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture),
+           kB = (2.104*barkDensity+5.544*rhoM+3.266*startTemp-166.216)*10^-4,
+           # Conduction from above and below, less latent heat of evaporation
+           fBD = ((kB * (tempA - startTemp)) / step),
+           fBU = 0,
+           fourierB = fBD + fBU - max(0, min((fBD + fBU), drainB)),
+           tempB = (fourierB / (mass * cpB) + startTemp),
+           # Change in proportion water this step
+           moistureB = ifelse(startTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((fourierA/2256400)/mWaterB)),
+                                                  bMoisture), bMoisture),
+           
+           #STEP C ________________________________________________________
+           ### Water effects: evaporation and energy drain
+           # Mass of water
+           mWaterC = bMoisture*mass,
+           # Energy removed by current water quantity
+           drainC = ifelse(startTemp>99,
+                           ifelse(moisture>0,mWaterC*2256400,0),0),
+           #Thermal values - (cp: J/kg/deg, k: W/m/deg)
+           rhoM = (bMoisture+bMoisture^2)*barkDensity,
+           cpC = ((1105+4.85*startTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture),
+           kC = (2.104*barkDensity+5.544*rhoM+3.266*startTemp-166.216)*10^-4,
+           # Conduction from above and below, less latent heat of evaporation
+           fCD = ((kC * (tempB - startTemp)) / step),
+           fCU = 0,
+           fourierC = fCD + fCU - max(0, min((fCD + fCU), drainC)),
+           tempC = (fourierC / (mass * cpC) + startTemp),
+           # Change in proportion water this step
+           moistureC = ifelse(startTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((fourierB/2256400)/mWaterC)),
+                                                  bMoisture),bMoisture),
+           
+           #STEP D ________________________________________________________
+           ### Water effects: evaporation and energy drain
+           # Mass of water
+           mWaterD = bMoisture*mass,
+           # Energy removed by current water quantity
+           drainD = ifelse(startTemp>99,
+                           ifelse(moisture>0,mWaterD*2256400,0),0),
+           #Thermal values - (cp: J/kg/deg, k: W/m/deg)
+           rhoM = (bMoisture+bMoisture^2)*barkDensity,
+           cpD = ((1105+4.85*startTemp)*(1-bMoisture)+bMoisture*4185+1276*bMoisture),
+           kD = (2.104*barkDensity+5.544*rhoM+3.266*startTemp-166.216)*10^-4,
+           # Conduction from above and below, less latent heat of evaporation
+           fDD = ((kD * (tempC - startTemp)) / step),
+           fDU = 0,
+           fourierD = fDD + fDU - max(0, min((fDD + fDU), drainD)),
+           tempD = (fourierD / (mass * cpD) + startTemp),
+           # Change in proportion water this step
+           moistureD = ifelse(startTemp>99,ifelse(bMoisture>0,max(0,bMoisture-((fourierC/2256400)/mWaterD)),
+                                                  bMoisture),bMoisture),
+           
+           #Phloem ________________________________________________________
+           ### Water effects: evaporation and energy drain
+           # Mass of water
+           mWaterE = moisture*massW,
+           # Energy removed by current water quantity
+           drainE = ifelse(startTemp>99,
+                           ifelse(moisture>0,mWaterE*2256400,0),0),
+           #Thermal values - (cp: J/g/deg, k: W/m/deg)
+           kAir = 0.00028683*(startTemp+273.15)^0.7919,
+           cpE = 1080+408*moisture+2.53*startTemp+6.28*moisture*startTemp,
+           kE = kWood(startTemp, woodDensity, kAir),
+           # Conduction from above and below, less latent heat of evaporation
+           fED = ((kE * (tempD - startTemp)) / step),
+           fEU = 0,
+           fourierE = fED + fEU - max(0, min((fED + fEU), drainE)),
+           tempE = (fourierE / (massW * cpE) + startTemp),
+           # Change in proportion water this step
+           moistureE = ifelse(startTemp>99,ifelse(moisture>0,max(0,moisture-((fourierD/2256400)/mWaterE)),
+                                                  moisture),moisture))
+  
+  #Collect values for the next step
+  tempA <- Ca$tempA
+  moistureA <- Ca$moistureA
+  kA <- Ca$kA
+  tempB <- Ca$tempB
+  moistureB <- Ca$moistureB
+  kB <- Ca$kB
+  tempC <- Ca$tempC
+  moistureC <- Ca$moistureC
+  kC <- Ca$kC
+  tempD <- Ca$tempD
+  moistureD <- Ca$moistureD
+  kD <- Ca$kD
+  tempE <- Ca$tempE
+  moistureE <- Ca$moistureE
+  kE <- Ca$kE
+  
+  # Advance one second's travel
+  Horiz <- Horiz - ROS
+  pbar <-  txtProgressBar(max = TIME, style = 3)
+  # Loop through each time step and collect outputs
+  for(tS in 2:TIME){
+    Cb <-threat(Surf, Plant, Horiz, Height, var, Pressure, Altitude) %>%
+      summarise_all(mean)%>%
+      mutate(tS = tS,
+             #Convective transfer
+             Re = (Plume_velocity*Density)/viscosity,
+             h = 0.35 + 0.47*Re^(1/2)*0.837,
+             #Incoming heat from surface
+             Pt = pmax(0, tS - Tb),
+             comBark = ifelse(Pt <= resBark, comBark, 0),
+             postS = if(Pt < vortex) {950} else {bole(lengthSurface,residence, depth, h = Height,
+                                                      surfDecl = 10, t = Pt)},
+             tempS = ifelse(tS > Ta, tempAir, ifelse(Horiz <=0, pmax(tempAir, postS, comBark), tempAir)),
+             qc = h * (tempS - tempA),
+             att = frame:::tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+             qr = 0.86*qr*att,
+             Qi = pmax(0, qc)+qr,
+             
+             
+             #STEP A ________________________________________________________
+             ### Water effects: evaporation and energy drain
+             # Mass of water
+             mWaterA = moistureA*mass,
+             # Energy removed by current water quantity
+             drainA = ifelse(tempA>99,
+                             ifelse(moistureA>0,mWaterA*2256400,0),0),
+             #Bark thermal values - (cp: J/kg/deg, k: W/m/deg)
+             rhoM = (moistureA+moistureA^2)*barkDensity,
+             cpA = ((1105+4.85*tempA)*(1-moistureA)+moistureA*4185+1276*moistureA),
+             kA = (2.104*barkDensity+5.544*rhoM+3.266*tempA-166.216)*10^-4,
+             # Conduction from above and below, less latent heat of evaporation
+             fAD = ((kA * (tempS - tempA)) / step),
+             fAU = ((kB * (tempB - tempA)) / step),
+             fourierA = fAD + fAU - max(0, min((fAD + fAU), drainA)),
+             tempA = (fourierA / (mass * cpA) + tempA),  
+             # Change in proportion water this step
+             moistureA = ifelse(tempA>99,ifelse(moistureA>0,max(0,moistureA-((Qi/2256400)/mWaterA)),
+                                                moistureA),moistureA),
+             
+             
+             #STEP B ________________________________________________________
+             ### Water effects: evaporation and energy drain
+             # Mass of water
+             mWaterB = moistureB*mass,
+             # Energy removed by current water quantity
+             drainB = ifelse(tempB>99,
+                             ifelse(moistureB>0,mWaterB*2256400,0),0),
+             #Thermal values - (cp: J/kg/deg, k: W/m/deg)
+             rhoM = (moistureB+moistureB^2)*barkDensity,
+             cpB = ((1105+4.85*tempB)*(1-moistureB)+moistureB*4185+1276*moistureB),
+             kB = (2.104*barkDensity+5.544*rhoM+3.266*tempB-166.216)*10^-4,
+             # Conduction from above and below, less latent heat of evaporation
+             fBD = ((kB * (tempA - tempB)) / step),
+             fBU = ((kC * (tempC - tempB)) / step),
+             fourierB = fBD + fBU - max(0, min((fBD + fBU), drainB)),
+             tempB = (fourierB / (mass * cpB) + tempB),
+             # Change in proportion water this step
+             moistureB = ifelse(tempB>99,ifelse(moistureB>0,max(0,moistureB-((fourierA/2256400)/mWaterB)),
+                                                moistureB),moistureB),
+             
+             #STEP C ________________________________________________________
+             ### Water effects: evaporation and energy drain
+             # Mass of water
+             mWaterC = moistureC*mass,
+             # Energy removed by current water quantity
+             drainC = ifelse(tempC>99,
+                             ifelse(moistureC>0,mWaterC*2256400,0),0),
+             #Thermal values - (cp: J/kg/deg, k: W/m/deg)
+             rhoM = (moistureC+moistureC^2)*barkDensity,
+             cpC = ((1105+4.85*tempC)*(1-moistureC)+moistureC*4185+1276*moistureC),
+             kC = (2.104*barkDensity+5.544*rhoM+3.266*tempC-166.216)*10^-4,
+             # Conduction from above and below, less latent heat of evaporation
+             fCD = ((kC * (tempB - tempC)) / step),
+             fCU = ((kC * (tempD - tempC)) / step),
+             fourierC = fCD + fCU - max(0, min((fCD + fCU), drainC)),
+             tempC = (fourierC / (mass * cpC) + tempC),
+             # Change in proportion water this step
+             moistureC = ifelse(tempC>99,ifelse(moistureC>0,max(0,moistureC-((fourierB/2256400)/mWaterC)),
+                                                moistureC),moistureC),
+             
+             #STEP D ________________________________________________________
+             ### Water effects: evaporation and energy drain
+             # Mass of water
+             mWaterD = moistureD*mass,
+             # Energy removed by current water quantity
+             drainD = ifelse(tempD>99,
+                             ifelse(moistureD>0,mWaterD*2256400,0),0),
+             #Thermal values - (cp: J/kg/deg, k: W/m/deg)
+             rhoM = (moistureD+moistureD^2)*barkDensity,
+             cpD = ((1105+4.85*tempD)*(1-moistureD)+moistureD*4185+1276*moistureD),
+             kD = (2.104*barkDensity+5.544*rhoM+3.266*tempD-166.216)*10^-4,
+             # Conduction from above and below, less latent heat of evaporation
+             fDD = ((kD * (tempC - tempD)) / step),
+             fDU = ((kD * (tempE - tempD)) / step),
+             fourierD = fDD + fDU - max(0, min((fDD + fDU), drainD)),
+             tempD = (fourierD / (mass * cpD) + tempD),
+             # Change in proportion water this step
+             moistureD = ifelse(tempD>99,ifelse(moistureD>0,max(0,moistureD-((fourierC/2256400)/mWaterD)),
+                                                moistureD),moistureD),
+             
+             #phloem ________________________________________________________
+             ### Water effects: evaporation and energy drain
+             # Mass of water
+             mWaterE = moistureE*massW,
+             # Energy removed by current water quantity
+             drainE = ifelse(tempE>99,
+                             ifelse(moistureE>0,mWaterE*2256400,0),0),
+             #Thermal values - (cp: J/g/deg, k: W/m/deg)
+             kAir = 0.00028683*(tempE+273.15)^0.7919,
+             cpE = 1080+408*moistureE+2.53*tempE+6.28*moistureE*tempE,
+             kE = kWood(tempE, woodDensity, kAir),
+             # Conduction from above and below, less latent heat of evaporation. Below unknown.
+             fED = ((kE * (tempD - tempE)) / phloem),
+             fEU = 0,
+             fourierE = fED + fEU - max(0, min((fED + fEU), drainE)),
+             tempE = (fourierE / (massW * cpE) + tempE),
+             # Change in proportion water this step
+             moistureE = ifelse(tempE>99,ifelse(moistureE>0,max(0,moistureE-((fourierD/2256400)/mWaterE)),
+                                                moistureE),moistureE))
+    
+    Ca <- rbind(Ca, Cb)
+    
+    #Collect values for the next step
+    tempA <- Cb$tempA
+    moistureA <- Cb$moistureA
+    kA <- Cb$kA
+    tempB <- Cb$tempB
+    moistureB <- Cb$moistureB
+    kB <- Cb$kB
+    tempC <- Cb$tempC
+    moistureC <- Cb$moistureC
+    kC <- Cb$kC
+    tempD <- Cb$tempD
+    moistureD <- Cb$moistureD
+    kD <- Cb$kD
+    tempE <- Cb$tempE
+    moistureE <- Cb$moistureE
+    kE <- Cb$kE
+    
+    setTxtProgressBar(pbar,tS)
+    ##  progress bar
+    Sys.sleep(0.25)
+    ####UpdateProgress
+    if (is.function(updateProgress)) {
+      text <- paste0("Number of remaining steps is ", TIME - tS)
+      updateProgress(detail = text)
+    }
+    tS <- tS + 1
+    Horiz <- Horiz - ROS
+  }
+  
+  # Create table
+  Ca <- Ca %>%
+    select(tS, repId, tempS, tempA, tempB, tempC, tempD, tempE,
+           moistureA, moistureB, moistureC, moistureD, moistureE)%>%
+    mutate(scar = ifelse(tempE>=necT, 1, 0))
+  
+  return(Ca)
 }

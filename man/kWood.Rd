@@ -12,7 +12,7 @@ kWood(T = 100, rhoW = 700, kAir = 0.026)
 \item{kAir}{}
 }
 \value{
-
+value
 }
 \description{
 Model drawn from Kollmann, F. F. P. & Cote, W. A.

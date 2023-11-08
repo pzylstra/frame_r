@@ -15,7 +15,7 @@ simplefmc(
   rhoLitter = 550,
   nelsonA = 5.2,
   nelsonB = -19,
-  conLitter = 3e-04,
+  conLitter = 6e-04,
   sigma = 3000,
   EPS = 0.01
 )
@@ -41,7 +41,7 @@ simplefmc(
 
 \item{nelsonB}{Constant from Nelson FMC model}
 
-\item{conLitter}{Litter conductance (m/s)}
+\item{conLitter}{Litter conductance (m/s). Using value from Matthews spreadsheet rather than paper}
 
 \item{sigma}{Surface area: volume ratio of litter particles (m2/m3)}
 

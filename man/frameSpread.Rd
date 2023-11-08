@@ -11,6 +11,7 @@ frameSpread(
   igLoc = -1,
   t = 1,
   hourStep = 3,
+  strikeTime = 1,
   Extinction = 0.15,
   fReach = 0,
   fEdge = 1,
@@ -41,8 +42,17 @@ frameSpread(
   vAir500 = 2,
   necT = 60,
   surfDecl = 10,
-  minR = 0.001,
-  targSp = "c"
+  minR = 1,
+  targSp = "c",
+  testN = 5,
+  Strata,
+  Species,
+  Flora,
+  Structure,
+  l = 0.1,
+  Ms = 0.01,
+  Pm = 1,
+  Mr = 1.5
 )
 }
 \arguments{
@@ -50,13 +60,15 @@ frameSpread(
 
 \item{weather}{Formatted weather dataset}
 
-\item{a}{}
+\item{a}{A unique identifier for the record being run}
 
 \item{igLoc}{Ignition location between -1 (base of sunny slope), 0 (ridgeline) & 1 (base of shade slope)}
 
 \item{t}{Record number in the weather set for which tio model}
 
 \item{hourStep}{Number of hours for which to model}
+
+\item{strikeTime}{}
 
 \item{Extinction}{Extinction litter moisture content (Percent ODW)}
 
@@ -121,6 +133,49 @@ frameSpread(
 \item{minR}{}
 
 \item{targSp}{}
+
+\item{testN}{}
+
+\item{Strata}{}
+
+\item{Species}{Species descriptor table output by the function 'species'}
+
+\item{Flora}{A dataframe with the fields:
+record - a unique, consecutively numbered identifier per site
+site - A name for the site
+species - the name of the species, which will call trait data from 
+'default.species.params'
+stratum - numeric value from 1 to 4, counting from lowest stratum
+comp - Percent composition of that species in the stratum. 
+   If absent, all species will be considered equally.
+base - base height of plant crowns (m)
+he - he height of plant crowns (m)
+ht - ht height of plant crowns (m)
+top - top height of plant crowns (m)
+w - width of plant crowns (m)
+Hs - standard deviation of the top height of plant crowns (m)
+Hr - range of the top height of plant crowns (m)
+weight - weight in t/ha of fine dead organic material forming 
+   the surface and suspNS layers
+diameter - mean diameter of surface and suspNS litter in m}
+
+\item{Structure}{A dataframe with the fields:
+record - a unique, consecutively numbered identifier per site
+site - a unique identifier per site
+NS, El, Mid & Can - the mean separation between plants (m) per stratum
+ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
+on the left grow directly beneath those in the stratum on the right. 
+   Acceptable values are TRUE, FALSE, or blank, where the outcome 
+   will be decided by the relative stratum heights.
+nsR, eR, mR, cR. Species richness (number of species) in each stratum}
+
+\item{l}{}
+
+\item{Ms}{}
+
+\item{Pm}{}
+
+\item{Mr}{}
 }
 \value{
 dataframe

@@ -15,8 +15,7 @@ buildTraitsP(
   moist = 1,
   G.C_rat = 3,
   C.C_rat = 0.1,
-  deltaL = 0.46,
-  lma
+  deltaL = 0.46
 )
 }
 \arguments{
@@ -26,7 +25,11 @@ buildTraitsP(
 
 \item{leafForm}{Flat or Round}
 
+\item{lwRat}{Ratio of leaf length to width}
+
 \item{leafA}{Area of a leaf in m2}
+
+\item{ram}{Stem ramification}
 
 \item{ignitionTemp}{Temperature of the endotherm (degC)}
 
@@ -37,10 +40,6 @@ buildTraitsP(
 \item{C.C_rat}{Ratio of clump to canopy size}
 
 \item{deltaL}{Leaf density (g/cm3)}
-
-\item{lma}{List of LMA values per species (kgm−2)}
-
-\item{lwRatio}{Ratio of leaf length to width}
 }
 \description{
 Leaf dimensions default to ausTraits mean leaf size

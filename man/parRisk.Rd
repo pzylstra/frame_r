@@ -7,10 +7,10 @@
 parRisk(a)
 }
 \arguments{
-\item{a}{}
+\item{a}{A unique identifier for the record being run}
 }
 \value{
-
+list
 }
 \description{
 Internal function for riskDynamics

@@ -27,7 +27,7 @@ bole(
 \item{t}{}
 }
 \value{
-
+value
 }
 \description{
 Dynamic air temperature at bole height, declining flame length exponentially
