@@ -202,6 +202,7 @@ summary <- function(flames, sites, ros, surface)
 
 repFlame <- function(IP)
 {
+  # Finds the maximum flame height for all reps in one set of conditions
   top <- IP %>%
     mutate(angle = abs(atan((y1 - y0)/(x1 - x0))),
            repHeight = flameLength*sin(angle)+y0)%>%
@@ -209,6 +210,7 @@ repFlame <- function(IP)
     summarize_all(max) %>%
     select(repId, repHeight)
   
+  # Finds the mean angle, the back-calculates length from these values
   repFlame <- suppressMessages(IP %>%
     mutate(repAngle = atan((y1 - y0)/(x1 - x0))
     ) %>%
@@ -216,8 +218,9 @@ repFlame <- function(IP)
     group_by(repId) %>%
     summarize_all(mean) %>%
     left_join(top) %>%
-    mutate(repLength = repHeight/abs(sin(repAngle))) %>%
-    select(repId, repHeight, repLength, repAngle)%>%
+    mutate(repLength = repHeight/abs(sin(repAngle)),
+           angle_degrees = repAngle * 180/pi) %>%
+    select(repId, repHeight, repLength, repAngle, angle_degrees)%>%
     right_join(IP))
   
   return(repFlame)
