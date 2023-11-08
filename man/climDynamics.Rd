@@ -9,10 +9,11 @@ climDynamics(
   fireDat,
   clim,
   m = 0.15,
-  slope = 5,
-  slopeSD = 2,
+  slope = 0,
+  slopeSD = 0,
   rholitter = 550,
   lat = -34.95,
+  lAngleAccounting = TRUE,
   rangeDir = 270,
   cardinal = TRUE,
   freeCores = 1
@@ -25,21 +26,21 @@ climDynamics(
 
 \item{m}{}
 
-\item{slope}{}
+\item{slope}{(degrees)}
 
-\item{slopeSD}{}
+\item{slopeSD}{Standard deviation of the slope}
 
 \item{rholitter}{}
 
-\item{lat}{}
+\item{lat}{Latitude (degrees)}
 
-\item{rangeDir}{}
+\item{lAngleAccounting}{Set to TRUE to automatically modify leaf angle by number of strata}
+
+\item{rangeDir}{Cardinal direction of the ridgelines - either Nth/Sth (0) or west/east (270)}
 
 \item{cardinal}{}
 
-\item{freeCores}{}
-
-\item{litterW}{}
+\item{freeCores}{Number of cores to leave unused by the model}
 }
 \value{
 dataframe

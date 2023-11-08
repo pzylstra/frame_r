@@ -14,7 +14,7 @@ frameSurvey(
   he = "he",
   ht = "ht",
   wid = "width",
-  rec = "Site",
+  Site = "Site",
   sN = "SiteName",
   negEx = 1,
   max = 54.22,
@@ -34,7 +34,9 @@ frameSurvey(
   thin = TRUE,
   sLit = TRUE,
   dec = TRUE,
-  sepSig = 0.001
+  sepSig = 0.001,
+  messages = F,
+  overlap = 0.5
 )
 }
 \arguments{
@@ -56,7 +58,7 @@ frameSurvey(
 
 \item{wid}{Name of the field with dimension width}
 
-\item{rec}{Name of the field with the record number}
+\item{Site}{Name of the field with the record number}
 
 \item{sN}{Optional field with a site name}
 
@@ -98,7 +100,12 @@ the maximum value to that age is maintained}
 
 \item{dec}{Logical - TRUE allows near surface surface litter to decline if the model does so, otherwise}
 
-\item{sepSig}{the maximum value to that age is maintained}
+\item{sepSig}{}
+
+\item{messages}{T or F to display messages from component functions}
+
+\item{overlap}{Either 'automatic', or threshold occurrence at which overlap is set to TRUE.
+the maximum value to that age is maintained}
 }
 \value{
 list

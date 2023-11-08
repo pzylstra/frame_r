@@ -2,10 +2,13 @@
 % Please edit documentation in R/Risk.R
 \name{fireDynamics}
 \alias{fireDynamics}
-\title{Models probabilistic fire behaviour across multiple ages on parallel cores}
+\title{Models fire behaviour across multiple ages on parallel cores
+Uses either weatherSet_Frame or probFire_Frame}
 \usage{
 fireDynamics(
   fireDat,
+  analysis = "Probabilistic",
+  weather,
   slope = 5,
   slopeSD = 2,
   slopeRange = 5,
@@ -35,13 +38,22 @@ fireDynamics(
 )
 }
 \arguments{
-\item{fireDat}{}
+\item{fireDat}{A list containing the datasets Flora, Structure, and default.species.params}
 
-\item{slope}{}
+\item{analysis}{Type of analysis, either "Weather" to use weatherSet_Frame, or "Probabilistic" to use probFire_Frame}
 
-\item{slopeSD}{}
+\item{weather}{A dataframe for use with weatherSet_Frame, with the five fields:
+tm - Sequential numbering of the records
+T - Air temperature (deg C)
+W - Wind velocity (km/h)
+DFMC - Dead fuel moisture content (proportion ODW)
+record - A unique number for each age corresponding to the same fields in fireDat}
 
-\item{slopeRange}{}
+\item{slope}{Mean slope (degrees)}
+
+\item{slopeSD}{Standard deviation of the slope (degrees)}
+
+\item{slopeRange}{Range of slope (degrees)}
 
 \item{temp}{}
 
@@ -69,7 +81,9 @@ fireDynamics(
 
 \item{moistureRange}{}
 
-\item{reps}{}
+\item{reps}{Number of repetitions for each set of weather conditions}
+
+\item{leafVar}{}
 
 \item{Ms}{}
 
@@ -77,17 +91,20 @@ fireDynamics(
 
 \item{Mr}{}
 
-\item{vAir500}{}
+\item{vAir500}{Multiplier of wind speed to estimate 500 hPA wind}
 
-\item{updateProgress}{}
+\item{testN}{}
 
-\item{freeCores}{}
+\item{updateProgress}{Progress bar for use in the dashboard}
 
-\item{l}{}
+\item{threshold}{Minimum allowable height for canopy (m)}
+
+\item{freeCores}{Number of cores to leave free for other processes}
 }
 \value{
 list
 }
 \description{
-Models probabilistic fire behaviour across multiple ages on parallel cores
+Models fire behaviour across multiple ages on parallel cores
+Uses either weatherSet_Frame or probFire_Frame
 }

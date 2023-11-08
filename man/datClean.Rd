@@ -5,7 +5,7 @@
 \title{Performs basic data checks on survey data, 
 fixes or removes data and lists changes}
 \usage{
-datClean(veg, base = "base", top = "top", he = "he", ht = "ht")
+datClean(veg, base = "base", top = "top", he = "he", ht = "ht", messages = F)
 }
 \arguments{
 \item{base}{Name of the field with the base height}

@@ -4,43 +4,15 @@
 \alias{buildFlora}
 \title{Constructs the table F_flora from formatted survey data}
 \usage{
-buildFlora(
-  veg,
-  pN = "Point",
-  spName = "Species",
-  base = "base",
-  top = "top",
-  he = "he",
-  ht = "ht",
-  wid = "width",
-  rec = "Site",
-  sN = "SiteName",
-  surf = 20,
-  sepSig = 0.001
-)
+buildFlora(veg, surf = 20, sepSig = 0.001)
 }
 \arguments{
-\item{veg}{The dataframe containing the input data}
-
-\item{pN}{The number of the point in the transect}
-
-\item{spName}{Name of the field with the species name}
-
-\item{base}{Name of the field with the base height}
-
-\item{top}{Name of the field with the top height}
-
-\item{he}{Name of the field with dimension he}
-
-\item{ht}{Name of the field with dimension ht}
-
-\item{wid}{Name of the field with dimension width}
-
-\item{rec}{Name of the field with the record number}
-
-\item{sN}{Optional field with a site name}
+\item{veg}{A dataframe listing plant species with columns describing crown dimensions using standardised names:
+veg, pN, spName, base, top, he, ht, wid, Site, sN}
 
 \item{surf}{Weight of surface litter in t/ha}
+
+\item{sepSig}{}
 }
 \value{
 dataframe

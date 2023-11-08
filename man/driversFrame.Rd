@@ -12,15 +12,16 @@ driversFrame(
   db.path = "out_mc.db",
   replicates = 3,
   winds = seq(0, 60, 5),
-  slopes,
-  DFMCs,
-  tAir,
-  moistureMultiplier,
-  moistureSD,
-  moistureRange,
-  leafVar,
+  slopes = 0,
+  DFMCs = 0.05,
+  tAir = 30,
+  Pm = 1,
+  Ms = 0.01,
+  Mr = 0.01,
+  l = 0.1,
   testN = 10,
-  updateProgress = NULL
+  updateProgress = NULL,
+  threshold = 1
 )
 }
 \arguments{
@@ -58,17 +59,17 @@ are t, f, or blank, where the outcome will be decided by the relative stratum he
 
 \item{tAir}{}
 
-\item{moistureMultiplier}{Multiplies all LFMC values by this number}
+\item{Pm}{}
 
-\item{moistureSD}{Standard deviation of moisture}
+\item{Ms}{}
 
-\item{moistureRange}{Truncates variability by +/- mean * range}
-
-\item{leafVar}{Variation around input leaf dimensions, equivalent to l}
+\item{Mr}{}
 
 \item{testN}{}
 
 \item{updateProgress}{Progress bar for use in the dashboard}
+
+\item{leafVar}{Variation around input leaf dimensions, equivalent to l}
 }
 \description{
 Models fire behaviour across ranged variables using species specific details

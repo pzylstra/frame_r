@@ -9,14 +9,14 @@ LAIp(base.params, sp = 1, yu = 100, yl = 0)
 \arguments{
 \item{base.params}{}
 
-\item{sp}{Name of the species}
+\item{sp}{Number of the species}
 
 \item{yu}{Height at the top of the slice (m)}
 
 \item{yl}{Height at the base of the slice (m)}
 }
 \value{
-value
+list
 }
 \description{
 Calculates LAI for a slice of a plant

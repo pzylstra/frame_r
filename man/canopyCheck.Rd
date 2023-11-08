@@ -2,7 +2,7 @@
 % Please edit documentation in R/Ensembles.R
 \name{canopyCheck}
 \alias{canopyCheck}
-\title{Modifies inputs until params file fits criteria}
+\title{Modifies inputs ensuring params file fits criteria}
 \usage{
 canopyCheck(
   base.params,
@@ -54,5 +54,5 @@ are t, f, or blank, where the outcome will be decided by the relative stratum he
 Dataframe
 }
 \description{
-Modifies inputs until params file fits criteria
+Modifies inputs ensuring params file fits criteria
 }

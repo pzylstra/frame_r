@@ -4,48 +4,21 @@
 \alias{richS}
 \title{Finds the distribution of species richness per stratum}
 \usage{
-richS(
-  dat,
-  thres = 0,
-  pnts = 10,
-  pN = "Point",
-  spName = "Species",
-  base = "base",
-  top = "top",
-  he = "he",
-  ht = "ht",
-  sepSig = 0.001
-)
+richS(dat, thres = 0, pnts = 10, sepSig = 0.001)
 }
 \arguments{
-\item{dat}{The dataframe containing the input data}
+\item{dat}{A dataframe listing plant species with columns describing crown dimensions using standardised names:
+veg, pN, spName, base, top, he, ht, wid, Site, sN}
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
 \item{pnts}{The number of points measured in a transect}
 
-\item{pN}{The number of the point in the transect}
-
-\item{spName}{Name of the field with the species name}
-
-\item{base}{Name of the field with the base height}
-
-\item{top}{Name of the field with the top height}
-
-\item{he}{Name of the field with dimension he}
-
-\item{ht}{Name of the field with dimension ht}
+\item{sepSig}{Threshold for determining significance}
 }
 \value{
 dataframe
 }
 \description{
-Input table requires the following fields:
-Point - numbered point in a transect
-Species - name of the surveyed Species
-base - base height of each species
-top - top height of each species
-}
-\details{
 Species that are less common than the set threshold are combined as "Minor Species"
 }

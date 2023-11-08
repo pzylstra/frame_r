@@ -9,6 +9,7 @@ pseudoTransect(
   Dynamics,
   pointRich,
   default.species.params,
+  perspective = FALSE,
   pnts = 10,
   Age = 10,
   growth = TRUE,
@@ -23,6 +24,8 @@ pseudoTransect(
 as output by function rich}
 
 \item{default.species.params}{Plant traits database}
+
+\item{perspective}{Use FALSE for vertical to calculate LAI, otherwise TRUE}
 
 \item{pnts}{number of points in the transect}
 

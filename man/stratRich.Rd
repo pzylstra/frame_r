@@ -5,17 +5,7 @@
 \title{Calculates the range, mean and sd of 
 species richness in each plant stratum}
 \usage{
-stratRich(
-  dat,
-  thres = 5,
-  pnts = 10,
-  pN = "Point",
-  spName = "Species",
-  base = "base",
-  top = "top",
-  he = "he",
-  ht = "ht"
-)
+stratRich(dat, thres = 5, pnts = 10)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data}

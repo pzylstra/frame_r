@@ -4,37 +4,15 @@
 \alias{buildStructure}
 \title{Constructs the table F_structure from formatted survey data}
 \usage{
-buildStructure(
-  veg,
-  pN = "Point",
-  spName = "Species",
-  base = "base",
-  top = "top",
-  he = "he",
-  ht = "ht",
-  rec = "Site",
-  sN = "SiteName",
-  sepSig = 0.001
-)
+buildStructure(veg, overlap = 0.5, sepSig = 0.001)
 }
 \arguments{
-\item{veg}{The dataframe containing the input data}
+\item{veg}{A dataframe listing plant species with columns describing crown dimensions using standardised names:
+veg, pN, spName, base, top, he, ht, wid, Site, sN}
 
-\item{pN}{The number of the point in the transect}
+\item{overlap}{Either 'automatic', or threshold occurrence at which overlap is set to TRUE.}
 
-\item{spName}{Name of the field with the species name}
-
-\item{base}{Name of the field with the base height}
-
-\item{top}{Name of the field with the top height}
-
-\item{he}{Name of the field with dimension he}
-
-\item{ht}{Name of the field with dimension ht}
-
-\item{rec}{Name of the field with the record number}
-
-\item{sN}{Optional field with a site name}
+\item{sepSig}{Significance at which to recognise separate strata}
 }
 \value{
 dataframe
