@@ -1586,7 +1586,7 @@ ffm_run_robust <- function(base.params, db.path, db.recreate = TRUE, testN = 5,
 }
 
 
-#' Modifies inputs until params file fits criteria
+#' Modifies inputs ensuring params file fits criteria
 #'
 #' @param base.params 
 #' @param testN Number of replicates to allow
