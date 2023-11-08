@@ -499,7 +499,7 @@ plantVarS <- function (base.params, Strata, Species, Variation, a, l = 0.1, Ms =
 #' 
 plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, threshold = 0.5)
 {
-  
+  Mr <- max(Mr, 1.001)
   tbl <- base.params
   # Vary leaf traits
   tbl <- ffm_param_variance(tbl, max.prop = l, method = "uniform")
