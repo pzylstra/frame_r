@@ -654,3 +654,257 @@ buildParams <- function(Structure, Flora, default.species.params, a,
   
   return(param)
 }
+
+#' Constructs a default.species.params table using traits available in the austraits database
+#' Collects traits from ausTraits for use in shade and fire effects modelling
+#'
+#' @param version Version of austraits
+#' @param path 
+#' @param shadeTolerance The Whole Plant Light Compensation Point below which 
+#' plants are considered shade tolerant
+#'
+#' @return list of tables
+#' @export
+#' @examples
+#' Traits <- ausTraitTable(version = "3.0.2", path = "data/austraits")
+#'
+
+ausTraitTable <- function(version = "3.0.2", path = "data/austraits", shadeTolerance = 3) {
+  
+  Austraits <- austraits::load_austraits(version = version, path = path)
+  
+  # Create tables of each trait in FRaME units
+  leaf_length  <- (austraits::extract_trait(Austraits, "leaf_length"))$traits %>%
+    group_by(taxon_name)%>%
+    summarise_if(is.numeric, median) %>%
+    mutate(leafLength = value/1000) %>%
+    select(taxon_name, leafLength)
+  
+  leaf_width  <- (austraits::extract_trait(Austraits, "leaf_width"))$traits %>%
+    group_by(taxon_name)%>%
+    summarise_if(is.numeric, median) %>%
+    mutate(leafWidth = value/1000) %>%
+    select(taxon_name, leafWidth)
+  
+  leaf_shape  <- (austraits::extract_trait(Austraits, "leaf_shape"))$traits 
+  leaf_shape$leafForm <- case_when(leaf_shape$value == "needle terete" ~ "Round",
+                                   leaf_shape$value == "terete" ~ "Round",
+                                   leaf_shape$value == "subulate terete" ~ "Round",
+                                   leaf_shape$value == "needle" ~ "Round",
+                                   leaf_shape$value == "linear terete" ~ "Round",
+                                   leaf_shape$value == "clavate linear terete" ~ "Round",
+                                   leaf_shape$value == "terete_compressed" ~ "Round",
+                                   leaf_shape$value == "scale terete" ~ "Round",
+                                   leaf_shape$value == "trigonous_terete" ~ "Round",
+                                   leaf_shape$value == "half_terete" ~ "Round",
+                                   leaf_shape$value == "terete_compressed" ~ "Round",
+                                   TRUE ~ "Flat")
+  leaf_shape  <- leaf_shape %>% select(taxon_name, leafForm)
+  
+  leaf_thickness  <- (austraits::extract_trait(Austraits, "leaf_thickness"))$traits %>%
+    group_by(taxon_name)%>%
+    summarise_if(is.numeric, median) %>%
+    mutate(leafThickness = value/1000) %>%
+    select(taxon_name, leafThickness)
+  
+  # List species
+  tNames <- unique(Austraits[[1]]$taxon_name)
+  T_names <- tNames[!grepl("\\d+", tNames)]
+  
+  
+  traits <- data.frame(taxon_name = T_names) 
+  list_of_dfs <- list(traits, leaf_length, leaf_width, leaf_shape, leaf_thickness)
+  result <- list_of_dfs %>%
+    purrr::reduce(left_join, by = "taxon_name") %>%
+    mutate(name = taxon_name,
+           propDead = 0) %>%
+    select(name, propDead, leafForm, leafThickness, leafWidth, leafLength) %>%
+    mutate(leafSeparation = NA,
+           stemOrder = NA,
+           ignitionTemp = NA,
+           moisture = 1,
+           G.C_rat = NA,
+           C.C_rat = NA)
+  
+  result <- arrange(result, name)
+  
+  # Secondary traits
+  traitNames <- data.frame(taxon_name = T_names) 
+  
+  #___________________________________
+  # Shade tolerance
+  Dark_respiration  <- (austraits::extract_trait(Austraits, "leaf_dark_respiration_per_dry_mass"))$traits %>%
+    group_by(taxon_name)%>%
+    summarise_if(is.numeric, median) %>%
+    mutate(Dark_respiration = value,
+           WPLCP = (390*value)+0.78,
+           Shade = WPLCP < shadeTolerance) %>%
+    select(taxon_name, WPLCP, Shade)
+  # Approximate from area measurement
+  respArea  <- (austraits::extract_trait(Austraits, "leaf_dark_respiration_per_area"))$traits %>%
+    group_by(taxon_name)%>%
+    summarise_if(is.numeric, median)
+  list_of_dfs <- list(traitNames, Dark_respiration, respArea)
+  sh <- list_of_dfs %>%
+    purrr::reduce(left_join, by = "taxon_name")
+  sh <- sh[complete.cases(sh),]
+  LM<-lm(sh$value ~ sh$WPLCP)
+  LMSum <- base::summary(LM)
+  eqThres <- LMSum$coefficients[1] + LMSum$coefficients[2] * shadeTolerance
+  respArea <- respArea %>%
+    mutate(Shade = value < eqThres)
+  ShadeTolerance <- respArea[!(respArea$taxon_name %in% Dark_respiration$taxon_name), ]%>%
+    right_join(Dark_respiration, by = c("taxon_name", "Shade")) %>%
+    select(taxon_name, Shade) 
+  
+  list_of_dfs <- list(traitNames, ShadeTolerance)
+  resultII <- list_of_dfs %>%
+    purrr::reduce(left_join, by = "taxon_name") %>%
+    mutate(Genus = word(taxon_name, 1),
+           name = taxon_name)
+  
+  # Generalise genera
+  genera <- resultII[complete.cases(resultII), ] %>%
+    group_by(Genus)%>%
+    summarise(Shade = as.logical(round(mean(Shade),0))) %>%
+    mutate(name = Genus) %>%
+    select(name, Shade)
+  
+  resultII <- resultII %>%
+    select(name, Shade)%>%
+    full_join(genera, by = c("name", "Shade"))
+  resultII <- arrange(resultII, name)
+  
+  remList <- vector()
+  for (r in 2:nrow(resultII)) {
+    if (tolower(resultII$name[r]) == tolower(resultII$name[r-1])) {
+      remList[length(remList)+1] <- r-1
+    }
+  }
+  if (length(remList)>0) {
+    resultII <- resultII[-remList,]
+  }
+  
+  return(list(result, resultII))
+}
+
+
+#' Checks traits table for column names and adds data from a new table
+#'
+#' @param traits Existing trait table
+#' @param traitsNew Table containing new trait data
+#' @param deleteReplicates If set to TRUE, retains the first mention of a species, then removes all following mentions
+#' @param fill If set to TRUE, fills empty numeric values with mean values of the genus
+#'
+#' @return table
+#' @export
+#' @examples 
+#' Traits <- ausTraitTable(version = "3.0.2", path = "data/austraits")
+#' TraitsNew <- read.csv("Traits.csv")
+#' Tr <- updateTraits(traits = Traits, traitsNew = TraitsNew, deleteReplicates = TRUE, fill = TRUE)
+#'
+
+updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, fill = TRUE) {
+  # Ensure traits table has all necessary columns
+  cols_to_check <- c("name", "propDead", "leafForm", "leafThickness", "leafWidth", 
+                     "leafLength", "leafSeparation", "stemOrder", "ignitionTemp", "moisture", "G.C_rat", "C.C_rat")
+  
+  for (colName in cols_to_check) {
+    if(!colName %in% names(traits)) {
+      traits$colName == ""
+    }
+  }
+  
+  # Add any missing species to existing list
+  missing_species <- unique(traitsNew$name)[!(unique(traitsNew$name) %in% unique(traits$name))]
+  newSp <- traitsNew[traitsNew$name %in% missing_species, ]
+  traits <- rbind(traits,newSp)
+  traits <- arrange(traits, name)
+  
+  newCols <- names(traitsNew)
+  
+  for (sp in unique(traitsNew$name)) {
+    for (colName in newCols) {
+      if(!is.na(traitsNew[traitsNew$name == sp,colName])){traits[traits$name == sp,colName] <- traitsNew[traitsNew$name == sp,colName]}
+    }
+  }
+  # Generalise genera
+  traits <- traits %>% 
+    mutate(Genus = word(name, 1),
+           leafThickness = as.numeric(leafThickness),
+           leafWidth = as.numeric(leafWidth),
+           leafLength = as.numeric(leafLength),
+           leafSeparation = as.numeric(leafSeparation),
+           stemOrder = as.numeric(stemOrder),
+           ignitionTemp = as.numeric(ignitionTemp),
+           moisture = as.numeric(moisture),
+           G.C_rat = as.numeric(G.C_rat),
+           C.C_rat = as.numeric(C.C_rat))
+  genera <- traits  %>%
+    group_by(Genus)%>%
+    summarise_if(is.numeric, ~mean(., na.rm=TRUE)) %>%
+    mutate(leafForm = "Flat")
+  
+  # Find most common leaf form
+  for (g in 1:nrow(genera)) {
+    genSub <- traits[traits$Genus == genera$Genus[g],]
+    Round <- nrow(genSub[genSub$leafForm == "Round",])
+    Flat <- nrow(genSub[genSub$leafForm == "Flat",])
+    if (Round > Flat) {
+      genera$leafForm[g] <- "Round"
+    }
+  }
+  
+  # Fill empty traits with means if chosen
+  if (fill) {
+    traits <- left_join(traits, genera, by = "Genus")%>%
+      mutate(propDead = ifelse(!is.na(propDead.x), propDead.x, propDead.y),
+             leafThickness = ifelse(!is.na(leafThickness.x), leafThickness.x, leafThickness.y),
+             leafForm = ifelse(!is.na(leafForm.x), leafForm.x, leafForm.y),
+             leafWidth = ifelse(!is.na(leafWidth.x), leafWidth.x,leafWidth.y),
+             leafLength = ifelse(!is.na(leafLength.x), leafLength.x, leafLength.y),
+             leafSeparation= ifelse(!is.na(leafSeparation.x), leafSeparation.x,leafSeparation.y),
+             stemOrder = ifelse(!is.na(stemOrder.x), stemOrder.x, stemOrder.y),
+             ignitionTemp = ifelse(!is.na(ignitionTemp.x), ignitionTemp.x, ignitionTemp.y),
+             moisture = ifelse(!is.na(moisture.x), moisture.x, moisture.y),
+             G.C_rat = ifelse(!is.na(G.C_rat.x), G.C_rat.x, G.C_rat.y),
+             C.C_rat = ifelse(!is.na(C.C_rat.x), C.C_rat.x, C.C_rat.y))
+  }
+  
+  traits <- traits %>%
+    dplyr::select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leafSeparation, stemOrder, ignitionTemp, moisture, G.C_rat, C.C_rat)
+  genera <- genera %>%
+    mutate(name = Genus) %>%
+    dplyr::select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leafSeparation, stemOrder, ignitionTemp, moisture, G.C_rat, C.C_rat)
+  traits <- genera  %>%
+    rbind(traits)
+  
+  traits$propDead[which(is.nan(traits$propDead))] <- NA
+  traits$leafThickness[which(is.nan(traits$leafThickness))] <- NA
+  traits$leafWidth[which(is.nan(traits$leafWidth))] <- NA
+  traits$leafLength[which(is.nan(traits$leafLength))] <- NA
+  traits$leafSeparation[which(is.nan(traits$leafSeparation))] <- NA
+  traits$stemOrder[which(is.nan(traits$stemOrder))] <- NA
+  traits$ignitionTemp[which(is.nan(traits$ignitionTemp))] <- NA
+  traits$moisture[which(is.nan(traits$moisture))] <- NA
+  traits$G.C_rat[which(is.nan(traits$G.C_rat))] <- NA
+  traits$C.C_rat[which(is.nan(traits$C.C_rat))] <- NA
+  traits <- arrange(traits,name)
+  
+  if (deleteReplicates) {
+    # Check for repeated species
+    traits <- arrange(traits, name)
+    remList <- vector()
+    for (r in 2:nrow(traits)) {
+      if (tolower(traits$name[r]) == tolower(traits$name[r-1])) {
+        remList[length(remList)+1] <- r
+      }
+    }
+    if (length(remList)>0) {
+      traits <- traits[-remList,]
+      cat(length(remList), "duplicate species were removed")
+    }
+  }
+  
+  return(traits)
+}
