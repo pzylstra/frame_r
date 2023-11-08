@@ -1356,14 +1356,11 @@ driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windM
 }
 
 #' Models fire behaviour across ranged variables using species specific details
-#'
+#' 
 #' @param a A unique identifier for the record being run
 #' @param db.path Name of the exported database
 #' @param slopes List of slope values for testing
 #' @param DFMCs List of DFMC values for testing
-#' @param moistureMultiplier Multiplies all LFMC values by this number
-#' @param moistureSD Standard deviation of moisture
-#' @param moistureRange Truncates variability by +/- mean * range
 #' @param leafVar Variation around input leaf dimensions, equivalent to l
 #' @param Flora  A dataframe with the fields:
 #' record - a unique, consecutively numbered identifier per site
@@ -1387,18 +1384,18 @@ driversRand <- function(base.params, a, db.path = "out_mc.db", replicates, windM
 #' @param default.species.params 
 #' @param tAir 
 #' @param winds 
+#' @param Pm 
+#' @param Ms 
+#' @param Mr 
 #'
 #' @export
 
 driversFrame <- function(Flora, Structure, default.species.params, a, db.path = "out_mc.db", replicates = 3, winds = seq(0, 60, 5),
-                         slopes, DFMCs, tAir, moistureMultiplier, moistureSD, moistureRange, leafVar, testN = 10, updateProgress = NULL) {
+                         slopes = 0, DFMCs = 0.05, tAir = 30, Pm = 1, Ms = 0.01, Mr = 0.01, l = 0.1, testN = 10, updateProgress = NULL, threshold = 1) {
   
   # Collect original descriptors
-  base.params <- suppressWarnings(frame::buildParams(Flora, Structure, default.species.params, a,
+  base.params <- suppressWarnings(frame::buildParams(Flora = Flora, Structure = Structure, default.species.params = default.species.params, a = a,
                                                      fLine = 100, slope = 0, temp = 30, dfmc = 0.1, wind = 10))
-  
-  #Range environmental values
-  winds <- seq(windMin, (windReps*windStep+windMin), windStep)
   
   #Dataframe of orthogonal combinations
   if (is.null(slopes)){
@@ -1410,7 +1407,7 @@ driversFrame <- function(Flora, Structure, default.species.params, a, db.path = 
   
   #Set test temperature
   base.params <- base.params %>%
-    ffm_set_site_param("temperature", temperature, "degC")
+    ffm_set_site_param("temperature", tAir, "degC")
   
   #Loop through combinations
   pbar <- txtProgressBar(max = Niter, style = 3)
@@ -1432,18 +1429,8 @@ driversFrame <- function(Flora, Structure, default.species.params, a, db.path = 
         ffm_set_site_param("windSpeed", w)
     }
     
-    #Randomise plant parameters
-#    base.params <- frame::specPoint(base.params, Structure, a)
-#    Strata <- strata(base.params)
-#    Species <- species(base.params)
-#    tbl <- plantVarFrame(base.params, Strata, Species, Flora, a, l = leafVar,
-#                         Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
-#    ffm_run_robust(base.params=tbl, db.path, db.recreate, testN,
-#                   Flora = Flora, Structure = Structure, a = a, l = leafVar,
-#                   Ms = moistureSD, Pm = moistureMultiplier, Mr = moistureRange)
-    
     # Choose random point and species, and vary plant traits for each species within their range
-    TBL <- canopyCheck(base.params, testN = testN, Flora, Structure, a = a, l = l, Ms = Ms, Pm = Pm, Mr = Mr)
+    TBL <- canopyCheck(base.params, testN = testN, Flora, Structure, a = a, l = l, Ms = Ms, Pm = Pm, Mr = Mr, threshold = threshold)
     # Run the model
     ffm_run(TBL, db.path = db.path, db.recreate = db.recreate)
     Sys.sleep(0.25)
@@ -1455,6 +1442,7 @@ driversFrame <- function(Flora, Structure, default.species.params, a, db.path = 
     }
     setTxtProgressBar(pbar, i)
   }
+  cat("Finished.  Output written to", db.path)
 }
 
 
