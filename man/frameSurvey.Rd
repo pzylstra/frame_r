@@ -7,15 +7,6 @@
 frameSurvey(
   dat,
   default.species.params,
-  pN = "Point",
-  spName = "Species",
-  base = "base",
-  top = "top",
-  he = "he",
-  ht = "ht",
-  wid = "width",
-  Site = "Site",
-  sN = "SiteName",
   negEx = 1,
   max = 54.22,
   rate = 0.026,
@@ -43,24 +34,6 @@ frameSurvey(
 \item{dat}{The dataframe containing the formatted field survey data}
 
 \item{default.species.params}{Plant traits database}
-
-\item{pN}{The number of the point in the transect}
-
-\item{spName}{Name of the field with the species name}
-
-\item{base}{Name of the field with the base height}
-
-\item{top}{Name of the field with the top height}
-
-\item{he}{Name of the field with dimension he}
-
-\item{ht}{Name of the field with dimension ht}
-
-\item{wid}{Name of the field with dimension width}
-
-\item{Site}{Name of the field with the record number}
-
-\item{sN}{Optional field with a site name}
 
 \item{negEx}{Value determining the model used. 1 = olson, 2 = Burr}
 
