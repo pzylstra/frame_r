@@ -4,10 +4,12 @@
 \alias{transectLong}
 \title{Combines multiple transects into one}
 \usage{
-transectLong(alldata)
+transectLong(alldata, pN = "Point")
 }
 \arguments{
 \item{alldata}{Raw survey data with one or more transects}
+
+\item{pN}{The name of the column that will be the number of the measurement point}
 }
 \value{
 dataframe
