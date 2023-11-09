@@ -2032,8 +2032,8 @@ frameStratify <- function(veg, mStrat = 4, sepSig = 0.001)
       select(cluster, Stratum)
     
     strat <- left_join(clust, h, by = "cluster") %>% 
-      dplyr::select(all_of(c(pN, spName, top, "Stratum")))
-    veg <- left_join(veg, strat, by = c(pN, spName, top))
+      dplyr::select(pN, spName, top, Stratum)
+    veg <- left_join(veg, strat, by = c("pN", "spName", "top"))
   } else {
     veg$Stratum <- 1
   }
@@ -2236,66 +2236,66 @@ stratRich <- function(dat, thres = 5, pnts = 10) {
 #'
 
 buildFlora <- function(veg, surf = 20, sepSig = 0.001) {
-
+  
   vegA <- frame::frameStratify(veg = veg, sepSig = sepSig)
   
   # Summarise species
   spCount <- vegA %>%
-    dplyr::count(Stratum, Species, name = "comp")
+    dplyr::count(Stratum, spName, name = "comp")
   suppressMessages(spM <- vegA %>%
-                     group_by(Stratum, Species) %>%
+                     group_by(Stratum, spName) %>%
                      summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))))
   # Remove faulty data
-  entries <- which(is.na(spM[wid]))
+  entries <- which(is.na(spM$wid))
   if (length(entries)>0) {
     cat(length(entries), "Species were removed due to faulty crown width data", "\n")
     spM <- spM[-entries,]
   }
   
   suppressMessages(spSD <- vegA %>%
-                     group_by(Stratum, Species) %>%
+                     group_by(Stratum, spName) %>%
                      summarise(across(where(is.numeric), ~ sd(.x, na.rm = TRUE))))
   if (length(entries)>0) {
     spSD <- spSD[-entries,]
   }
   
   # Correct empty entries
-  singles <- which(is.na(spSD[top]))
+  singles <- which(is.na(spSD$top))
   if (length(singles)>0) {
-    spSD[top][is.na(spSD[top])]<-0.01
+    spSD$top[is.na(spSD$top)]<-0.01
   }
   
   vegShort <- vegA %>%
-    select(Stratum, Species, top)
+    select(Stratum, spName, top)
   
   suppressMessages(spMax <- vegShort %>%
-                     group_by(Stratum, Species) %>%
+                     group_by(Stratum, spName) %>%
                      summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE))))
   if (length(entries)>0) {
     spMax <- spMax[-entries,]
   }
   suppressMessages(spMin <- vegShort %>%
-                     group_by(Stratum, Species) %>%
+                     group_by(Stratum, spName) %>%
                      summarise(across(where(is.numeric), ~ min(.x, na.rm = TRUE))))
   if (length(entries)>0) {
     spMin <- spMin[-entries,]
   }
-  tab <- (left_join(spMin, spCount, by = c("Stratum", "Species")))
+  tab <- (left_join(spMin, spCount, by = c("Stratum", "spName")))
   
   # Collate into table
-  ns <- vegA %>% dplyr::select(all_of(c(Site, sN)))
-  record <- matrix(nrow = length(spMin$Species))
+  ns <- vegA %>% dplyr::select(Site, sN)
+  record <- matrix(nrow = length(spMin$spName))
   florTab <- data.frame(record)
   florTab$record <- ns$Site[1]
-  florTab$site <- ns$SiteName[1]
-  florTab$species <- tab$Species
+  florTab$site <- ns$sN[1]
+  florTab$species <- tab$spName
   florTab$stratum <- tab$Stratum
   florTab$comp <- tab$comp
   florTab$base <- round(spM$base,2)
   florTab$he <- round(spM$he,2)
   florTab$ht <- round(spM$ht,2)
   florTab$top <- round(spM$top,2)
-  florTab$w <- round(spM$width,2)
+  florTab$w <- round(spM$wid,2)
   florTab$Hs <- round(spSD$top,2)
   florTab$Hr <- max(0.001,round(spMax$top - spMin$top,2))
   florTab$weight <- NA
@@ -2305,6 +2305,7 @@ buildFlora <- function(veg, surf = 20, sepSig = 0.001) {
   
   return(florTab)
 }
+
 
 #' Constructs the table F_structure from formatted survey data
 #'
@@ -2322,16 +2323,16 @@ buildStructure <- function(veg, overlap = 0.5, sepSig = 0.001) {
   # 1. Horizontal relationships  
   vegA <- frame::frameStratify(veg = veg, sepSig = sepSig)
   suppressMessages(StratC <- vegA %>%
-                     select(Point, Stratum)%>%
-                     group_by(Stratum, Point) %>%
+                     select(pN, Stratum)%>%
+                     group_by(Stratum, pN) %>%
                      summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))))
   suppressMessages(StratW <- vegA %>%
-                     select(Stratum, width)%>%
+                     select(Stratum, wid)%>%
                      group_by(Stratum) %>%
                      summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))))
   
   sepTab <- as.data.frame(table(StratC$Stratum))
-  pnts <- n_distinct(StratC$Point)
+  pnts <- n_distinct(StratC$pN)
   sep <- vector()
   for (s in 1:max(StratC$Stratum)) {
     sep[s] <- max(sqrt((as.numeric(StratW[s,2])^2)/(sepTab[s,2]/pnts)), as.numeric(StratW[s,2]))
@@ -2344,8 +2345,8 @@ buildStructure <- function(veg, overlap = 0.5, sepSig = 0.001) {
   e_m <- vector()
   e_c <- vector()
   m_c <- vector()
-  for (pt in unique(StratO$Point, incomparables = FALSE)) {
-    point <- filter(StratO, Point == pt)
+  for (pt in unique(StratO$pN, incomparables = FALSE)) {
+    point <- filter(StratO, pN == pt)
     if (max(StratC$Stratum) > 2) {
       ns_e[pt] <- point$Freq[1]*point$Freq[2]
       if (max(StratC$Stratum) == 4) {
@@ -2361,17 +2362,17 @@ buildStructure <- function(veg, overlap = 0.5, sepSig = 0.001) {
   
   # 3. Species richness
   suppressMessages(StratR <- vegA %>%
-                     select(Stratum, Species)%>%
+                     select(Stratum, spName)%>%
                      group_by(Stratum) %>%
                      summarise(across(everything(), n_distinct)))
   
   # Collate into table
-  ns <- vegA %>% dplyr::select(all_of(c(Site, sN)))
+  ns <- vegA %>% dplyr::select(Site, sN)
   record <- matrix(nrow = 1)
   strucTab <- data.frame(record)
   strucTab$record <- ns$Site[1]
-  strucTab$site <- ns$SiteName[1]
-    
+  strucTab$site <- ns$sN[1]
+  
   ## Separation
   strucTab$NS <- NA
   strucTab$El <- NA
@@ -2413,14 +2414,14 @@ buildStructure <- function(veg, overlap = 0.5, sepSig = 0.001) {
   strucTab$nsR <- NA
   strucTab$eR <- NA
   strucTab$mR <- NA
-  strucTab$cR <- StratR$Species[length(sep)]
+  strucTab$cR <- StratR$spName[length(sep)]
   
   if (max(StratC$Stratum) > 1) {
-    strucTab$nsR <- StratR$Species[1] 
+    strucTab$nsR <- StratR$spName[1] 
     if (max(StratC$Stratum) > 2) {
-      strucTab$eR <- StratR$Species[2]
+      strucTab$eR <- StratR$spName[2]
       if (max(StratC$Stratum) > 3) {
-        strucTab$mR <- StratR$Species[3]
+        strucTab$mR <- StratR$spName[3]
       }
     }
   }
@@ -2512,14 +2513,17 @@ litter <- function(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, ag
 #' Combines multiple transects into one
 #'
 #' @param alldata Raw survey data with one or more transects
+#' @param pN The name of the column that will be the number of the measurement point
 #'
 #' @return dataframe
 #' @export
 #'
 
-transectLong <- function(alldata){
+transectLong <- function(alldata, pN = "Point"){
+  alldata <- as.data.frame(alldata)
+  alldata$pN <- alldata[,pN]
   Sites <- unique(alldata$Site)
-  maxPoint <- max(dplyr::filter(alldata, Site == Sites[1])$Point)
+  maxPoint <- max(dplyr::filter(alldata, Site == Sites[1])$pN)
   out <- dplyr::filter(alldata, Site == Sites[1])
   
   # Rename consecutive sites
@@ -2527,11 +2531,16 @@ transectLong <- function(alldata){
     if (s > Sites[1]) {
       outA <- dplyr::filter(alldata, Site == Sites[s]) %>%
         mutate(Site = Sites[1],
-               Point = Point + maxPoint)
-      maxPoint <- max(outA$Point)
+               pN = pN + maxPoint)
+      maxPoint <- max(outA$pN)
       out <- rbind(out, outA)
     }
   }
+  
+  if (pN != "pN") {
+    print("The field pN has been added to the dataframe")
+  }
+  
   return(out)
 }
 
@@ -2539,15 +2548,6 @@ transectLong <- function(alldata){
 #'
 #' @param dat The dataframe containing the formatted field survey data
 #' @param default.species.params Plant traits database
-#' @param pN The number of the point in the transect
-#' @param spName Name of the field with the species name
-#' @param base Name of the field with the base height
-#' @param top Name of the field with the top height
-#' @param he Name of the field with dimension he
-#' @param ht Name of the field with dimension ht
-#' @param wid Name of the field with dimension width
-#' @param Site Name of the field with the record number
-#' @param sN Optional field with a site name
 #' @param max Maximum weight of surface litter (t/ha)
 #' @param rate Growth rate for surface litter in a negative exponential function
 #' @param age Optional field with site age 
@@ -2576,16 +2576,12 @@ transectLong <- function(alldata){
 #' @export
 #' 
 
-frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Species", base = "base", top = "top", he = "he", ht = "ht",
-                        wid = "width", Site = "Site", sN = "SiteName", negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = NA, 
+frameSurvey <- function(dat, default.species.params, negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = NA, 
                         surf = 10, density = 300, cover = 0.8, aQ = NA, bQ = NA, cQ = NA, maxNS = NA, rateNS = NA, wNS = 1,
                         thin = TRUE, sLit  = TRUE, dec = TRUE, sepSig = 0.001, messages = F, overlap = 0.5) {
   
-#  dat <- standardiseNames(dat, pN, spName, base, top, he, ht,
-#                                      wid, Site, sN)
-  
   # Find missing data
-  entries <- which(is.na(dat[top]))
+  entries <- which(is.na(dat$top))
   if (length(entries)>0) {
     if (messages == T) {
       cat(" These rows were removed as they were missing top heights", "\n", entries, "\n", "\n") 
@@ -2594,23 +2590,23 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
   }
   
   # Fill empty dimensions
-  entries <- which(is.na(dat[ht])|is.na(dat[he]))
+  entries <- which(is.na(dat$ht)|is.na(dat$he))
   if (length(entries)>0) {
     if (messages == T) {
       cat(" Empty values of ht & he were filled with top and base heights for these rows", "\n", entries, "\n", "\n")
     }
     for (row in 1:nrow(dat)) {
-      if (is.na(dat[row,ht])) {
-        dat[row,ht] <- dat[row,top]
+      if (is.na(dat$ht[row])) {
+        dat$ht[row] <- dat$top[row]
       }
-      if (is.na(dat[row,he])) {
-        dat[row,he] <- dat[row,base]
+      if (is.na(dat$he[row])) {
+        dat$he[row] <- dat$base[row]
       }
     }
   }
   
   # Remove faulty data
-  entries <- which(dat[ht]<dat[he]|dat[top]<dat[base])
+  entries <- which(dat$ht<dat$he|dat$top<dat$base)
   if (length(entries)>0) {
     if (messages == T) {
       cat(" These rows were removed as upper and lower heights conflicted", "\n", entries)
@@ -2639,37 +2635,36 @@ frameSurvey <- function(dat, default.species.params, pN ="Point", spName ="Speci
         }
         surf <- max(preLit)
       })
-    }
-    
-    # Add suspended litter
-    if (cover != 0) {
-      if (thin == TRUE && dec == TRUE) {
-        decline <- TRUE
-      } else {
-        decline <- FALSE
-      }
-      suspNS <- susp(default.species.params, density = density, cover = cover,
-                     age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, maxNS = maxNS, rate = rateNS, dec = decline)
-      topNS <- suspNS[[1]]
-      #Update tables
-      if (topNS > 0) {
-        row <- nrow(veg)
-        rows <- round(cover*length(unique(veg$Point)),0)
-        for (r in 1:rows) {
-          veg[row+r,1] <- AGE
-          veg[row+r,2] <- "suspNS"
-          veg[row+r,3] <- 0
-          veg[row+r,4] <- topNS
-          veg[row+r,5] <- 0
-          veg[row+r,6] <- topNS
-          veg[row+r,7] <- wNS
-          veg[row+r,8] <- AGE
-          veg[row+r,9] <- rec
+      
+      # Add suspended litter
+      if (cover != 0) {
+        if (thin == TRUE && dec == TRUE) {
+          decline <- TRUE
+        } else {
+          decline <- FALSE
+        }
+        suspNS <- susp(default.species.params, density = density, cover = cover,
+                       age = AGE, aQ = aQ, bQ = bQ, cQ = cQ, maxNS = maxNS, rate = rateNS, dec = decline)
+        topNS <- suspNS[[1]]
+        #Update tables
+        if (topNS > 0) {
+          row <- nrow(veg)
+          rows <- round(cover*length(unique(veg$Point)),0)
+          for (r in 1:rows) {
+            veg[row+r,1] <- AGE
+            veg[row+r,2] <- "suspNS"
+            veg[row+r,3] <- 0
+            veg[row+r,4] <- topNS
+            veg[row+r,5] <- 0
+            veg[row+r,6] <- topNS
+            veg[row+r,7] <- wNS
+            veg[row+r,8] <- AGE
+            veg[row+r,9] <- rec
+          }
         }
       }
     }
-    # Check for faults, then create tables
-    veg <- datClean(veg = veg, base, top, he, ht)
+    # Create tables
     Struct <- buildStructure(veg, overlap = overlap, sepSig = sepSig)
     Flor <- buildFlora(veg, surf = surf, sepSig = sepSig)
     Structure <- rbind(Structure, Struct)
@@ -2881,8 +2876,12 @@ datClean <- function(veg,  base = "base", top = "top", he = "he", ht = "ht", mes
     if (messages == T) {
       cat(" Filled empty values of ht & he with top and base heights for these rows", "\n", entries, "\n", "\n")
     }
-    veg[ht][is.na(veg[ht])]<-veg[top][is.na(veg[ht])]
-    veg[he][is.na(veg[he])]<-veg[base][is.na(veg[he])]
+    for (n in which(is.na(veg[ht]))) {
+      veg[n,ht] <- veg[n,top]
+    }
+    for (n in which(is.na(veg[he]))) {
+      veg[n,he] <- veg[n,base]
+    }
   }
   
   # Remove plants <1cm
@@ -3011,6 +3010,7 @@ specCover <- function(dat, thres = 5, pnts = 10) {
 #' @param sN A name identifying the transect
 #'
 #' @return table
+#' @export
 #'
 
 standardiseNames <- function(dat, pN, spName, base, top, he, ht,
@@ -3024,6 +3024,8 @@ standardiseNames <- function(dat, pN, spName, base, top, he, ht,
   dat$wid <- as.vector(dat[,wid])[[1]]
   dat$Site <- as.vector(dat[,Site])[[1]]
   dat$sN <- as.vector(dat[,sN])[[1]]
+  dat <- dat %>%
+    select(pN, spName, base, top, he, ht, wid, Site, sN)
   
   return(dat)
 }
