@@ -296,7 +296,7 @@ ffm_complete_params <- function(tbl, default.species.params) {
   }
   
   if ( any(table(tolower(default.species.params$name)) > 1) ) {
-    stop(paste0("These species have duplicates: ", names(which(table(tolower(traits$name)) > 1)),"\n"))
+    stop(paste0("These species have duplicates: ", names(which(table(tolower(default.species.params$name)) > 1)),"\n"))
   }
   
   # Convert default to long format

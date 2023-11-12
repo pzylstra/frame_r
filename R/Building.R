@@ -804,7 +804,7 @@ ausTraitTable <- function(version = "3.0.2", path = "data/austraits", shadeToler
 #' Tr <- updateTraits(traits = Traits, traitsNew = TraitsNew, deleteReplicates = TRUE, fill = TRUE)
 #'
 
-updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, fill = TRUE) {
+updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplicates = TRUE, fill = TRUE) {
   # Ensure traits table has all necessary columns
   cols_to_check <- c("name", "propDead", "leafForm", "leafThickness", "leafWidth", 
                      "leafLength", "leafSeparation", "stemOrder", "ignitionTemp", "moisture", "G.C_rat", "C.C_rat")
@@ -892,19 +892,40 @@ updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, fill = TRUE
   traits <- arrange(traits,name)
   
   if (deleteReplicates) {
-    # Check for repeated species
-    traits <- arrange(traits, name)
+    traits <- remReps(traits, printReplicates)
+  }
+  
+  return(traits)
+}
+
+
+#' Removes replicates in a formatted trait table
+#'
+#' @param traits the table default.species.params
+#' @param printReplicates Set TRUE if names of species removed are printed
+#'
+#' @return
+#' @export
+#'
+#' 
+remReps <- function(traits, printReplicates = TRUE){
+  
+  if(any(table(tolower(traits$name)) > 1)) {
+    repNames <- names(which(table(tolower(traits$name)) > 1))
     remList <- vector()
-    for (r in 2:nrow(traits)) {
-      if (tolower(traits$name[r]) == tolower(traits$name[r-1])) {
-        remList[length(remList)+1] <- r
-      }
+    n <- 1
+    for (s in repNames) {
+      recs <- length(which(tolower(traits$name) == s))-2
+      remList[n:(n+recs)] <- which(tolower(traits$name) == s)[-1]
+      n<-n+1+recs
     }
     if (length(remList)>0) {
       traits <- traits[-remList,]
-      cat(length(remList), "duplicate species were removed")
+      cat(length(remList), "rows of duplicate species were removed.\n")
+      if (printReplicates) {
+        print(repNames)
+      }
     }
   }
-  
   return(traits)
 }

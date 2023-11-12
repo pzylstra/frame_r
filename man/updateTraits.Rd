@@ -4,7 +4,13 @@
 \alias{updateTraits}
 \title{Checks traits table for column names and adds data from a new table}
 \usage{
-updateTraits(traits, traitsNew, deleteReplicates = TRUE, fill = TRUE)
+updateTraits(
+  traits,
+  traitsNew,
+  deleteReplicates = TRUE,
+  printReplicates = TRUE,
+  fill = TRUE
+)
 }
 \arguments{
 \item{traits}{Existing trait table}
