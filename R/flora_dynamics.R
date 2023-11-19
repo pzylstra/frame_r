@@ -2003,9 +2003,8 @@ frameStratify <- function(veg, mStrat = 4, sepSig = 0.001)
         km.res <- kmeans(df, centers = nstrat, nstart = 25)
         clust <- cbind(veg_subset, cluster = km.res$cluster)
         testa <- frame:::stratTest(clust) 
-#        testa <- 0
         test <- aov(cluster ~ base * top * he * ht, data = clust)
-        sig[nstrat] <- base::summary(test)[[1]][["Pr(>F)"]][[4]]+testa
+        sig[nstrat] <- if(is.null(base::summary(test)[[1]][["Pr(>F)"]][[4]])){0} +testa #Returns p=0 if is.null
       }
     }
     if (length(which(sig < sepSig)) > 0) {
