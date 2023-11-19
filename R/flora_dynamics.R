@@ -2296,7 +2296,7 @@ buildFlora <- function(veg, surf = 20, sepSig = 0.001) {
   florTab$top <- round(spM$top,2)
   florTab$w <- round(spM$wid,2)
   florTab$Hs <- round(spSD$top,2)
-  florTab$Hr <- max(0.001,round(spMax$top - spMin$top,2))
+  florTab$Hr <- pmax(0.001,round(spMax$top - spMin$top,2))
   florTab$weight <- NA
   florTab$diameter <- NA
   s <- c(florTab$record[1], florTab$site[1], "Litter", NA, NA, NA, NA, NA, NA, NA, NA, NA, surf, 0.005)
