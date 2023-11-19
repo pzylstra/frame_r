@@ -817,6 +817,7 @@ updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplic
   
   # Add any missing species to existing list
   missing_species <- unique(traitsNew$name)[!(unique(traitsNew$name) %in% unique(traits$name))]
+  cat("These species names differed from those in AusTraits", writeLines(as.character(missing_species)))
   newSp <- traitsNew[traitsNew$name %in% missing_species, ]
   traits <- rbind(traits,newSp)
   traits <- arrange(traits, name)
