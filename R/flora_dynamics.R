@@ -1989,7 +1989,8 @@ frameStratify <- function(veg, mStrat = 4, sepSig = 0.001)
            he = case_when(veg_subset$top == 0 ~ 0.001, TRUE ~ veg_subset$top),
            lhe = log(veg_subset$he),
            lhe = case_when(is.infinite(lhe) ~ -6.9, TRUE ~ lhe),
-           lht = log(veg_subset$ht))
+           lht = log(veg_subset$ht),
+           lht = case_when(is.infinite(lht) ~ -6.9, TRUE ~ lht))
   df <- scale(veg_subset[, c(7,8,9,10)])
   
   # Find the best division of strata

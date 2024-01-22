@@ -2,8 +2,7 @@
 % Please edit documentation in R/Building.R
 \name{buildSpeciesValues}
 \alias{buildSpeciesValues}
-\title{Builds the dataframe species.values from input tables
-Building from MEE inputs requires function speciesBuilder}
+\title{Builds the dataframe species.values from input tables}
 \usage{
 buildSpeciesValues(Flora, default.species.params, a)
 }
@@ -30,6 +29,5 @@ diameter - mean diameter of surface and suspNS litter in m}
 \item{default.species.params}{Plant traits database}
 }
 \description{
-Builds the dataframe species.values from input tables
 Building from MEE inputs requires function speciesBuilder
 }

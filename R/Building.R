@@ -482,6 +482,7 @@ buildStrataMeta <- function(Structure, a)
 }
 
 #' Builds the dataframe species.values from input tables
+#' 
 #' Building from MEE inputs requires function speciesBuilder
 #' 
 #' @param Flora A dataframe with the fields:
