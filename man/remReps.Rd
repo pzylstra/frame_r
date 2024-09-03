@@ -11,6 +11,9 @@ remReps(traits, printReplicates = TRUE)
 
 \item{printReplicates}{Set TRUE if names of species removed are printed}
 }
+\value{
+dataframe
+}
 \description{
 Removes replicates in a formatted trait table
 }
