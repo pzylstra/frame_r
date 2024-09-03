@@ -185,7 +185,7 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
            E = pmax(0, epsilon*0.0000000567*(flameTemp^4-(tempAir+273.15)^4)),
            repAngle = ifelse(repLength>lengthSurface, repAngle, angleSurface),
            repLength = max(repLength, lengthSurface),
-           phi = frame:::phi(repLength,repAngle,slope_degrees,Horizontal,Height),
+           phi = frame::phi(repLength,repAngle,slope_degrees,Horizontal,Height),
            qr = E * phi) %>%
     select(repId, ros_kph, wind_kph, temperature, lengthSurface, pAlpha, tempAir, cpAir,
            viscosity, presAtm, Density, Plume_velocity, flameTemp, epsilon, E, phi, qr)
@@ -212,7 +212,7 @@ k <- function(Material = "bark", temp, moist, density){
     rhoM <- (moist+moist^2)*density
     (2.104*density+5.544*rhoM+3.266*temp-166.216)*10^-4
   } else {
-    frame:::kWood(temp, density, kAir)
+    frame::kWood(temp, density, kAir)
   }
   
   return(cp)

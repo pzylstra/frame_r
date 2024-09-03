@@ -182,8 +182,8 @@ tidyWeather <- function(clim) {
                            dPM == "WNW" ~ 292,
                            dPM == "NW" ~ 315,
                            dPM == "NNW" ~ 338),
-           specHumAM = (rhAM/100)*frame:::QSat(tAM, MSLP),
-           specHumPM = (rhPM/100)*frame:::QSat(tPM, MSLP))
+           specHumAM = (rhAM/100)*frame::QSat(tAM, MSLP),
+           specHumPM = (rhPM/100)*frame::QSat(tPM, MSLP))
   
   # Create sequence
   Temp  <- clim[,c('tAM','tPM','tMin','tMax','Day')] %>% pivot_longer(c(tMin, tAM, tMax, tPM), names_to = "Time", values_to = "Temp")  %>%
@@ -299,8 +299,8 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
   out$Temp = (-(0.0009*exp(0.1195*(out$TempA-273.15)))*log(hCan)+1)*(out$TempA-273.15)+273.15
   out$sRH <- sRH
   out$MSLP <- MSLP
-  out$RHA <- (sRH / frame:::QSat(out$TempA, out$MSLP))*100
-  out$RH <- (sRH / frame:::QSat(out$Temp, out$MSLP))*100
+  out$RHA <- (sRH / frame::QSat(out$TempA, out$MSLP))*100
+  out$RH <- (sRH / frame::QSat(out$Temp, out$MSLP))*100
   out$Wind <- Wind / WRF
   out$Cloud <- Cloud
   
