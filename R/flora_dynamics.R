@@ -1974,8 +1974,80 @@ stratTest <- function(clust) {
 #'
 #' @return Dataframe
 #' @export
-
+#' 
 frameStratify <- function(veg, mStrat = 4, sepSig = 0.001)
+{
+  veg_subset <- veg %>% dplyr::select(pN, spName, base, top, he, ht)
+  veg_subset <- veg_subset[complete.cases(veg_subset), ] # Omit NAs in relevant columns
+  
+  veg_subset <- veg_subset %>% #log-scale dimensions for stratification
+    mutate(base = pmax(veg_subset$base,0.001),
+           he = case_when(veg_subset$he == 0 ~ 0.001, TRUE ~ veg_subset$he),
+           base = pmin(base, he),
+           lBase = log(veg_subset$base),
+           lBase = case_when(is.infinite(lBase) ~ -6.9, TRUE ~ lBase),
+           top = pmax(top, ht, base),
+           lTop = log(veg_subset$top),
+           lTop = case_when(is.infinite(lTop) ~ -6.9, TRUE ~ lTop),
+           lmid = log((base+top)/2))
+  df <- scale(veg_subset[, c(8,9)])
+  
+  # Find the best division of strata
+  sig <- vector()
+  sig[1] <- sepSig
+  set.seed(123)
+  if (!berryFunctions::is.error(kmeans(df, centers = 2, nstart = 25))) {
+    for (nstrat in 2:mStrat) {
+      set.seed(123)
+      if (!berryFunctions::is.error(kmeans(df, centers = nstrat, nstart = 25))){
+        km.res <- kmeans(df, centers = nstrat, nstart = 25)
+        clust <- cbind(veg_subset, cluster = km.res$cluster)
+        testa <- stratTest(clust) 
+        test <- aov(cluster ~ lTop * lmid, data = clust)
+        sigStat <- min(base::summary(test)[[1]][["Pr(>F)"]], na.rm = TRUE)
+        sig[nstrat] <- if(is.null(sigStat)){0} else {sigStat} +testa #Returns p=0 if is.null
+      }
+    }
+    if (length(which(sig < sepSig)) > 0) {
+      nstrat <- as.numeric(max(which(sig < sepSig)))
+    } else {
+      if (length(sig[!is.na(sig)])>0) {
+        nstrat <- as.numeric(min(which(sig == min(sig, na.rm = TRUE))))
+      } else {
+        nstrat <- 1
+      }
+    }
+    rm(list=".Random.seed", envir=globalenv())
+    set.seed(123)
+    km.res <- kmeans(df, centers = nstrat, nstart = 25)
+    clust <- cbind(veg_subset, cluster = km.res$cluster)
+    
+    # Summarise strata and order by mean height
+    h <- clust %>% 
+      mutate(mid = (base+top+he+ht)/4)%>%
+      group_by(cluster) %>% 
+      summarise_if(is.numeric, mean)
+    h <- h[wrapr::orderv(h[,10]),] %>% 
+      mutate(Stratum = 1:nstrat) %>% 
+      select(cluster, Stratum)
+    
+    strat <- left_join(clust, h, by = "cluster") %>% 
+      mutate(topM = pmax(top, ht, base)) %>%
+      dplyr::select(pN, spName, topM, Stratum)
+    veg <- veg %>%
+      mutate(topM = pmax(top, ht, base))
+    veg <- left_join(veg, strat, by = c("pN", "spName", "topM")) %>%
+      select(-"topM")
+  } else {
+    veg$Stratum <- 1
+  }
+  rm(list=".Random.seed", envir=globalenv())
+  return(veg)
+}
+
+
+# Old version of frameStratify to keep while testing update
+frameStratifyX <- function(veg, mStrat = 4, sepSig = 0.001)
 {
 #  veg_subset <- veg %>% dplyr::select(all_of(c(pN, spName, base, top, he, ht)))
   veg_subset <- veg %>% dplyr::select(pN, spName, base, top, he, ht)
@@ -2003,9 +2075,10 @@ frameStratify <- function(veg, mStrat = 4, sepSig = 0.001)
       if (!berryFunctions::is.error(kmeans(df, centers = nstrat, nstart = 25))){
         km.res <- kmeans(df, centers = nstrat, nstart = 25)
         clust <- cbind(veg_subset, cluster = km.res$cluster)
-        testa <- frame:::stratTest(clust) 
+        testa <- frame::stratTest(clust) 
         test <- aov(cluster ~ lBase * lTop * lhe * lht, data = clust)
-        sig[nstrat] <- if(is.null(base::summary(test)[[1]][["Pr(>F)"]][[5]])){0} else {base::summary(test)[[1]][["Pr(>F)"]][[5]]} +testa #Returns p=0 if is.null
+        sigStat <- min((base::summary(test)[[1]][["Pr(>F)"]][[5]]), (base::summary(test)[[1]][["Pr(>F)"]][[9]]), (base::summary(test)[[1]][["Pr(>F)"]][[12]]))
+        sig[nstrat] <- if(is.null(sigStat)){0} else {sigStat} +testa #Returns p=0 if is.null
       }
     }
     if (length(which(sig < sepSig)) > 0) {
