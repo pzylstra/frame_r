@@ -906,7 +906,7 @@ updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplic
 #' @param traits the table default.species.params
 #' @param printReplicates Set TRUE if names of species removed are printed
 #'
-#' @return
+#' @return dataframe
 #' @export
 #'
 #' 
