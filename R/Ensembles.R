@@ -510,6 +510,131 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
   varRec <- Flora[Flora$record==a & Flora$species!="Litter",]
   varRec$Hs[is.na(varRec$Hs)]<-0.001
   #  varRec$Hr[varRec$Hr==0]<-0.001 
+  varRec$Hr<-pmax(0.01,as.numeric(varRec$Hr)) # Hr corrected
+  varRec$Hs[varRec$Hs==0]<-0.001 
+  #  varRec$Hr<-as.numeric(varRec$Hr)+1 
+  varRec <- varRec %>% 
+    mutate(name = species,
+           st = as.double(stratum)) %>%
+    select(st, name, Hs, Hr)
+  varRec <- left_join(Species, varRec, by = c("st", "name"))
+  
+  # Loop through plant strata
+  
+  StN <- as.numeric(count(Strata))
+  dCount <- 0
+  
+  for (st in 1:StN) {
+    
+    # Vary leaf moisture to randomly place points in the community and decide which plants will be present.
+    # Where the random number is > stratum cover, all species are marked with liveLeafMoisture == 100.
+    # Otherwise, species are varied by Ms & Mr, and multiplied by Pm
+    
+    if (runif(1) <= Strata$cover[st] | dCount == StN - 1) {
+      for (t in 1:Strata$speciesN[st]) {
+        Mrand <- Pm * rtnorm(n = 1, mean = Species$lfmc[SpeciesN],
+                             sd = Ms, a = Species$lfmc[SpeciesN]/Mr, b = Species$lfmc[SpeciesN] * Mr)
+        tbl <- ffm_set_species_param(tbl, st, SpeciesN,
+                                     "liveLeafMoisture", Mrand)
+        (SpeciesN <- SpeciesN + 1)
+      }
+    } else {
+      dCount <- dCount+1
+      for (f in 1:Strata$speciesN[st]) {
+        tbl <- tbl %>% ffm_set_species_param(st, SpeciesN,
+                                             "liveLeafMoisture", 100)
+        SpeciesN <- SpeciesN + 1
+      }
+    }
+    
+    # Modify plant dimensions for each species within the stratum
+    
+    for (p in 1:Strata$speciesN[st]) {
+      Hr <- as.numeric(varRec$Hr[SpeciesP])
+      peak <- rtnorm(n = 1, mean = Species$hp[SpeciesP],
+                     sd = as.numeric(varRec$Hs[SpeciesP]), a = Species$hp[SpeciesP]-(0.5*Hr), b = Species$hp[SpeciesP]+(0.5*Hr))
+      # Corrected for Hr as an additive rather than multiplicative value
+      
+      # APPROXIMATE FIX ADDED TO DEAL WITH SCALA CODE FAILING
+      # https://github.com/pzylstra/frame_scala/blob/master/forest/src/main/scala/ffm/forest/DefaultVegetationWindModel.scala#L50
+      if (st == max(Species$st)) {
+        peak <- max(peak, threshold)
+      }
+      tbl <- tbl %>%
+        ffm_set_species_param(st, SpeciesP, "hp", peak) %>%
+        ffm_set_species_param(st, SpeciesP, "ht", peak * Species$htR[SpeciesP]) %>%
+        ffm_set_species_param(st, SpeciesP, "he", min((peak * Species$heR[SpeciesP]),(peak * Species$htR[SpeciesP]))) %>%
+        ffm_set_species_param(st, SpeciesP, "hc", min(0.9*peak, peak * Species$hcR[SpeciesP])) %>%
+        ffm_set_species_param(st, SpeciesP, "w", peak * Species$wR[SpeciesP])
+      SpeciesP = SpeciesP + 1
+    }
+  }
+  
+  # Remove marked species and tidy params file
+  oldStrat <- strata(tbl)
+  tbl <- frame::speciesDrop(tbl)
+  
+  # Check and correct for stratum overlaps
+  Strata <- strata(tbl)
+  Species <- species(tbl)
+  for (row in as.numeric(Strata$stratum)) {
+    if (row > 1) {
+      # Check for overlap between base of stratum and top of lower stratum
+      if (Strata$base[row] < Strata$top[row-1]) {
+        # Check that the lower stratum is not as tall as the upper stratum
+        if (Strata$top[row-1] < Strata$top[row]) {
+          # Correct overlapping strata to average of heights
+          newV <- (Strata$base[row]+Strata$top[row-1])/2
+          # Make sure the new heights don't make the heights of the lower stratum conflict
+          if (newV > max(Species$hc[Species$st==row-1])) {
+            Species$hc[Species$st == row] <- newV
+            Species$he[Species$st == row] <- newV
+            Species$hp[Species$st == row-1] <- newV
+            Species$ht[Species$st == row-1] <- newV
+          } else {
+            cat("The base of stratum", row, "is too low to correct.", "\n")
+          }
+          # Loop through and update species in each stratum
+          for (sp in unique(Species$sp)) {
+            tbl$value[tbl$param == "hc" & tbl$species == sp] <- Species$hc[sp]
+            tbl$value[tbl$param == "he" & tbl$species == sp] <- Species$he[sp]
+            tbl$value[tbl$param == "ht" & tbl$species == sp] <- Species$ht[sp]
+            tbl$value[tbl$param == "hp" & tbl$species == sp] <- Species$hp[sp]
+          }
+        } else {
+          cat("Stratum", row, "is as tall as the next stratum")
+        }
+      }
+    }
+  }
+  
+  # Reset plant spacing to retain original percent cover
+  stComb <- left_join(oldStrat, Strata, by = "separation") %>%
+    mutate(newSep = sqrt(width.y^2/cover.x))
+  newSep <- stComb$newSep[which(complete.cases(stComb))]
+  stratRows <- which(tbl$param == "plantSeparation")
+  for (str in 1:length(stratRows)) {
+    tbl$value[stratRows[str]]<-as.character(newSep[str])
+  }
+  
+  return(tbl)
+}
+
+
+# Old version used in tingle study
+plantVarFrameX <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms = 0.01, Pm = 1, Mr = 1.001, threshold = 0.5)
+{
+  Mr <- max(Mr, 1.001)
+  tbl <- base.params
+  # Vary leaf traits
+  tbl <- ffm_param_variance(tbl, max.prop = l, method = "uniform")
+  SpeciesN <- 1
+  SpeciesP <- 1
+  
+  #Filter variation table to record
+  varRec <- Flora[Flora$record==a & Flora$species!="Litter",]
+  varRec$Hs[is.na(varRec$Hs)]<-0.001
+  #  varRec$Hr[varRec$Hr==0]<-0.001 
   varRec$Hr<-pmin(2,as.numeric(varRec$Hr)+1.01) 
   varRec$Hs[varRec$Hs==0]<-0.001 
   #  varRec$Hr<-as.numeric(varRec$Hr)+1 
@@ -625,8 +750,76 @@ plantVarFrame <- function (base.params, Strata, Species, Flora, a, l = 0.1, Ms =
 #' nsR, eR, mR, cR - maximum species richness recorded for each stratum
 #' @return dataframe
 #' @export
-
+#' 
 specPoint <- function(base.params, Structure, a)
+{
+  Species <- species(base.params)
+  
+  # Add temporary fields
+  Species$wComp = 0
+  Species$include = 1
+  
+  # Count strata
+  StN <- as.numeric(max(base.params$stratum[!is.na(base.params$stratum)]))
+  
+  
+  # For each stratum, identify the species being considered, then choose how many of these
+  # will be modelled from a range set by the recorded maximum point richness of each stratum
+  
+  richList <- c(as.numeric(Structure[Structure$record == a, ]$nsR), as.numeric(Structure[Structure$record == a, ]$eR),
+                as.numeric(Structure[Structure$record == a, ]$mR), as.numeric(Structure[Structure$record == a, ]$cR))
+  richList <- richList[!is.na(richList)]
+  
+  for (StratNo in 1:StN) {
+    
+    SpL <- as.numeric(min(Species[Species$st == StratNo, ]$sp))
+    SpU <- as.numeric(max(Species[Species$st == StratNo, ]$sp))
+    SpN <- SpU-SpL+1
+    
+    # Species richness for point in the stratum
+    R <- richList[StratNo]
+    choose <- round(runif(n=1)*(min(R,SpN)-1),0)+1
+    
+    # Limit stratum species list to a random selection weighted by species occurrence
+    for (a in SpL:SpU) {
+      Species$wComp[a] = runif(n=1)*Species$comp[a]
+    }
+    # Identify unneeded records
+    low <- Rfast::nth(Species[Species$st == StratNo, ]$wComp, choose, descending = TRUE)
+    
+    for (sp in SpL:SpU) {
+      Species$include[sp] = if (Species$wComp[sp] < low) { 0 }
+      else {  1 }
+    }
+  }
+  Species <- Species%>%
+    mutate(species = as.character(sp))
+  Species[,"new"] <- cumsum(Species$include)
+  base.params <- base.params %>%
+    mutate(species = as.character(species))
+  
+  param <- left_join(base.params, Species, by="species")%>%
+    subset(include != 0 | is.na(include))%>%
+    mutate(species = new)%>%
+    select(stratum, species, param, value, units)
+  rownames(param) <- seq(length=nrow(param))
+  
+  # Reset plant spacing to retain original percent cover
+  stratRows <- which(param$param == "plantSeparation")
+  oldStrat <- frame::strata(base.params)
+  newStrat <- frame::strata(param)
+  for (str in 1:length(stratRows)) {
+    param$value[stratRows[str]]<-as.character(sqrt(newStrat$width[str]^2/oldStrat$cover[str]))
+  }
+  
+  return(param)
+}
+
+
+
+#' Old version used in tingle study
+#' 
+specPointX <- function(base.params, Structure, a)
 {
   
   Species <- species(base.params)
@@ -1063,7 +1256,7 @@ probFire_Frame <- function(base.params, Structure, Flora, a, db.path = "out_mc.d
   pbar <- txtProgressBar(max = jitters, style = 3)
   
   #Set input limits
-  DFMCRange <- pmax(1.0001, DFMCRange)
+  DFMCRange <- pmax(0.01, DFMCRange)
   
   if (jitters > 2) {
     for (j in 1:jitters) {
