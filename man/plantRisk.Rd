@@ -2,7 +2,7 @@
 % Please edit documentation in R/Risk.R
 \name{plantRisk}
 \alias{plantRisk}
-\title{Calculates risk (likelihood & consequence) for plants in a given climate & terrain}
+\title{plantRisk}
 \usage{
 plantRisk(
   dynDat,
@@ -25,39 +25,39 @@ plantRisk(
 )
 }
 \arguments{
-\item{dynDat}{}
+\item{dynDat}{List of three dataframes: Flora, Structure & default.species.params}
 
 \item{a}{A unique identifier for the record being run}
 
-\item{ignitions}{}
+\item{ignitions}{Number of ignitions to model}
 
-\item{hourStep}{}
+\item{hourStep}{Number of hours for which to model}
 
-\item{Area}{}
+\item{Area}{Area of the site (ha)}
 
-\item{weather}{}
+\item{weather}{Formatted weather dataset}
 
-\item{vAir}{}
+\item{vAir}{Wind speed (km/h)}
 
-\item{wStDev}{}
+\item{wStDev}{Wind speed standard deviation}
 
-\item{tAir}{}
+\item{tAir}{Air temperature (C)}
 
-\item{dfmc}{}
+\item{dfmc}{Dead fuel moisture content}
 
-\item{slope}{}
+\item{slope}{Slope (degrees)}
 
-\item{l}{}
+\item{l}{Leaf thickness variability}
 
-\item{Ms}{}
+\item{Ms}{Standard deviation of leaf moisture content}
 
-\item{Pm}{}
+\item{Pm}{Leaf moisture multiplier}
 
-\item{Mr}{}
+\item{Mr}{Leaf moisture range}
 
-\item{Test}{}
+\item{Test}{Temperature at which to test for scorching (C)}
 
-\item{fireN}{}
+\item{fireN}{Number of fires to model for each age}
 }
 \value{
 list
