@@ -2,7 +2,7 @@
 % Please edit documentation in R/plant_interface.R
 \name{buildStructureP}
 \alias{buildStructureP}
-\title{Creates an 'F_structure' table for FRaME from plant modelling}
+\title{buildStructureP}
 \usage{
 buildStructureP(dat, age, rec = 1)
 }

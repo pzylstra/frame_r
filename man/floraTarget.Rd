@@ -2,7 +2,7 @@
 % Please edit documentation in R/Flora.R
 \name{floraTarget}
 \alias{floraTarget}
-\title{Scorch height using an isotherm, including target species}
+\title{floraTarget}
 \usage{
 floraTarget(Surf, Plant, Param = Param, targSp = "a", Test = 70)
 }
@@ -22,10 +22,11 @@ such as produced using readLegacyParamFile}
 dataframe
 }
 \description{
+Scorch height using an isotherm, including target species
+
 Calculates the height to which vegetation will be consumed,
 and the height to a designated temperature isotherm reached for one second.
-}
-\details{
+
 Output fields are:
 Height - overall scorch height (m)
 ns, e, m, c - height of consumption in each stratum (m)

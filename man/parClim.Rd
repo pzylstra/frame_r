@@ -2,12 +2,12 @@
 % Please edit documentation in R/FMC.R
 \name{parClim}
 \alias{parClim}
-\title{Internal function for climDynamics}
+\title{parClim}
 \usage{
 parClim(a)
 }
 \arguments{
-\item{a}{}
+\item{a}{Record number}
 }
 \value{
 dataframe

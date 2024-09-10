@@ -2,7 +2,7 @@
 % Please edit documentation in R/Flora.R
 \name{plantFlame}
 \alias{plantFlame}
-\title{Collects flame segments for a specified plant in a stratum}
+\title{plantFlame}
 \usage{
 plantFlame(paths, Stratum, Species, repId)
 }
@@ -20,7 +20,4 @@ dataframe
 }
 \description{
 Collects flame segments for a specified plant in a stratum
-}
-\examples{
-balga <- plantFlame(IPW, "NearSurface", "Xanthorrhoea preissii", 6)
 }

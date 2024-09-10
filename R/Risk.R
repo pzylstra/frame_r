@@ -1,4 +1,5 @@
-#' Finds randomised lightning ignition time and location
+#' @title ignitions
+#' @description Finds randomised lightning ignition time and location
 #'
 #' @param weather Hourly weather dataset from function frameWeather
 #' @param smoulder Time for which an ignition may smoulder (hours)
@@ -42,7 +43,8 @@ ignitions <- function(weather, smoulder = 24, Extinction = 0.15){
   return(out)
 }
 
-#' Support function to randomise river width
+#' @title river
+#' @description Support function to randomise river width
 #' 
 #' @param lRiver Likelihood of encountering a large river
 #' @param mRiver Likelihood of encountering a medium river
@@ -55,7 +57,8 @@ river <- function(lRiver, mRiver){
   )
 }
 
-#' Finds distance of fire spread for a part of a landscape
+#' @title frameSpread
+#' @description Finds distance of fire spread for a part of a landscape
 #'
 #' @param base.params Parameter file
 #' @param weather Formatted weather dataset
@@ -71,32 +74,32 @@ river <- function(lRiver, mRiver){
 #' @param mRiver Likelihood of encountering a medium river
 #' @param lRiver Likelihood of encountering a large river
 #' @param igLoc Ignition location between -1 (base of sunny slope), 0 (ridgeline) & 1 (base of shade slope)
-#' @param firelineW 
-#' @param Test 
-#' @param sensitive 
-#' @param girdleH 
-#' @param woodDensity 
-#' @param barkDensity 
-#' @param bark 
-#' @param comBark 
-#' @param resBark 
-#' @param phloem 
-#' @param moisture 
-#' @param bMoisture 
-#' @param distance 
-#' @param trail 
-#' @param var 
-#' @param Altitude 
-#' @param necT 
-#' @param surfDecl 
-#' @param minR 
+#' @param firelineW Width of the fireline (m)
+#' @param Test Temperature at which to test for scorching (C)
+#' @param sensitive Sensitivity of plants to scorching
+#' @param girdleH Height at which to test for girdling
+#' @param woodDensity Density of wood (kg/m^3)
+#' @param barkDensity Density of bark (kg/m^3)
+#' @param bark Bark thickness (m)
+#' @param comBark Temperature of burning bark (C)
+#' @param resBark Flame residence time on bark (s)
+#' @param phloem Thickness of phloem (m)
+#' @param moisture Moisture content of wood
+#' @param bMoisture Moisture content of bark
+#' @param distance Distance between tree and flame start (m)
+#' @param trail Modelling time after flame has passed (s)
+#' @param var Variability in flame angle
+#' @param Altitude Altitude of the site (m)
+#' @param necT Temperature at which wood necrosis occurs (C)
+#' @param surfDecl Decline in surface temperature with height (C/m)
+#' @param minR Minimum ROS (m/h)
 #' @param a A unique identifier for the record being run
-#' @param fireArea 
-#' @param FPC 
-#' @param vAir500 
-#' @param targSp 
-#' @param testN 
-#' @param Strata 
+#' @param fireArea Area of the fire (ha)
+#' @param FPC Foliage projective cover
+#' @param vAir500 Multiplier for wind speed at 500hPa
+#' @param targSp Target species for scorching
+#' @param testN Number of test runs
+#' @param Strata Strata descriptor table output by the function 'strata'
 #' @param Species Species descriptor table output by the function 'species'
 #' @param Flora  A dataframe with the fields:
 #' record - a unique, consecutively numbered identifier per site
@@ -125,11 +128,11 @@ river <- function(lRiver, mRiver){
 #'    Acceptable values are TRUE, FALSE, or blank, where the outcome 
 #'    will be decided by the relative stratum heights.
 #' nsR, eR, mR, cR. Species richness (number of species) in each stratum
-#' @param l 
-#' @param Ms 
-#' @param Pm 
-#' @param Mr 
-#' @param strikeTime 
+#' @param l Variability in leaf thickness
+#' @param Ms Standard deviation of leaf moisture content
+#' @param Pm Leaf moisture multiplier
+#' @param Mr Leaf moisture range
+#' @param strikeTime Time of ignition
 #'
 #' @return dataframe
 #' @export
@@ -169,7 +172,7 @@ frameSpread <- function (base.params, weather, a, igLoc = -1, t = 1, hourStep = 
   landscapeLoc[landStep - 1] <- igLoc
   while (remTime > 0) {
     recreate <- remTime == hourStep
-    landformDistance <- dplyr::case_when(landscapeLoc[landStep - 1] == 1 ~ frame:::river(lRiver, mRiver), 
+    landformDistance <- dplyr::case_when(landscapeLoc[landStep - 1] == 1 ~ river(lRiver, mRiver), 
                                          landscapeLoc[landStep - 1] >= 0.95 ~ slopeLength - (landscapeLoc[landStep - 1] * slopeLength), 
                                          landscapeLoc[landStep - 1] >= 0.68 ~ 0.95 * slopeLength - (landscapeLoc[landStep - 1] * slopeLength), 
                                          landscapeLoc[landStep - 1] >= 0 ~ 0.68 * slopeLength - (landscapeLoc[landStep - 1] * slopeLength), 
@@ -210,9 +213,10 @@ frameSpread <- function (base.params, weather, a, igLoc = -1, t = 1, hourStep = 
                                  max(res$SurfaceResults$reach <- res$SurfaceResults$flameLength * cos(res$SurfaceResults$flameAngle)), Rs)
           litterDepth <- as.numeric(TBL$value[TBL$param == "fuelLoad"])/0.5
           if (sensitive) {
-            runs <- suppressMessages(frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults))
-            IP <- frame::repFlame(res$IgnitionPaths)
-            scorch <- suppressMessages(frame::flora(runs, IP, Param = TBL, targSp = targSp, Test = Test))
+            runs <- suppressMessages(frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults))
+            IP <- repFlame(res$IgnitionPaths)
+            #scorch <- suppressMessages(flora(runs, IP, Param = TBL, targSp = targSp, Test = Test))
+            scorch <- suppressMessages(flora(runs, IP, Param = TBL, Test = Test))
             sMort[landStep] <- as.numeric(scorch$targSp[1] >= 50) * sensitive
           }
           else {
@@ -229,7 +233,7 @@ frameSpread <- function (base.params, weather, a, igLoc = -1, t = 1, hourStep = 
                 stems$girdle <- 0
               }
               else {
-                stem <- frame::girdle(Surf = runs, Plant = IP, 
+                stem <- girdle(Surf = runs, Plant = IP, 
                                       Height = Height, woodDensity = woodDensity, 
                                       phloem = phloem, barkDensity = barkDensity, 
                                       bark = bark, comBark = comBark, resBark = resBark, 
@@ -281,7 +285,7 @@ frameSpread <- function (base.params, weather, a, igLoc = -1, t = 1, hourStep = 
                                     TRUE ~ ll[seg - 1])
         wider <- ll[seg] != ll[seg - 1] && Barrier <= slopeLength * 2
         if (wider) {
-          nextSeg <- dplyr::case_when(ll[seg] == 1 ~ frame:::river(lRiver, mRiver), 
+          nextSeg <- dplyr::case_when(ll[seg] == 1 ~ river(lRiver, mRiver), 
                                       ll[seg] >= 0.95 ~ slopeLength - (0.95 * slopeLength), 
                                       ll[seg] >= 0.68 ~ 0.95 * slopeLength - (0.68 * slopeLength), 
                                       ll[seg] >= 0 ~ 0.68 * slopeLength, 
@@ -359,7 +363,8 @@ frameSpread <- function (base.params, weather, a, igLoc = -1, t = 1, hourStep = 
 
 
 
-#' Finds the area burned and effects of a fire
+#' @title burnPrint
+#' @description Finds the area burned and effects of a fire
 #'
 #' @param Flora  A dataframe with the fields:
 #' record - a unique, consecutively numbered identifier per site
@@ -390,43 +395,43 @@ frameSpread <- function (base.params, weather, a, igLoc = -1, t = 1, hourStep = 
 #' nsR, eR, mR, cR. Species richness (number of species) in each stratum
 #' @param default.species.params Plant traits database
 #' @param a A unique identifier for the record being run
-#' @param weather 
-#' @param smoulder 
-#' @param Extinction 
-#' @param hourStep 
-#' @param tArea 
-#' @param slopeM 
-#' @param slopeSD 
-#' @param slopeLength 
-#' @param rangeDir 
-#' @param mRiver 
-#' @param lRiver 
-#' @param l 
-#' @param Ms 
-#' @param Pm 
-#' @param Mr 
-#' @param Test 
-#' @param sensitive 
-#' @param fireN 
-#' @param girdleH 
-#' @param woodDensity 
-#' @param phloem 
-#' @param moisture 
-#' @param barkDensity 
-#' @param bark 
-#' @param comBark 
-#' @param resBark 
-#' @param bMoisture 
-#' @param distance 
-#' @param trail 
-#' @param var 
-#' @param Altitude 
-#' @param necT 
-#' @param surfDecl 
+#' @param weather Formatted weather dataset
+#' @param smoulder Time for which an ignition may smoulder (hours)
+#' @param Extinction Extinction litter moisture content (Percent ODW)
+#' @param hourStep Number of hours for which to model
+#' @param tArea Area of the fire (ha)
+#' @param slopeM Mean slope
+#' @param slopeSD Slope standard deviation
+#' @param slopeLength Distance from ridgeline to river
+#' @param rangeDir Wind direction in relation to slope exposure: Up sun slope = 1, cross slope = 0, down sun slope = -1
+#' @param mRiver Likelihood of encountering a medium river
+#' @param lRiver Likelihood of encountering a large river
+#' @param l Variability in leaf thickness
+#' @param Ms Standard deviation of leaf moisture content
+#' @param Pm Leaf moisture multiplier
+#' @param Mr Leaf moisture range
+#' @param Test Temperature at which to test for scorching (C)
+#' @param sensitive Sensitivity of plants to scorching
+#' @param fireN Number of fires
+#' @param girdleH Height at which to test for girdling
+#' @param woodDensity Density of wood (kg/m^3)
+#' @param phloem Thickness of phloem (m)
+#' @param moisture Moisture content of wood
+#' @param barkDensity Density of bark (kg/m^3)
+#' @param bark Bark thickness (m)
+#' @param comBark Temperature of burning bark (C)
+#' @param resBark Flame residence time on bark (s)
+#' @param bMoisture Moisture content of bark
+#' @param distance Distance between tree and flame start (m)
+#' @param trail Modelling time after flame has passed (s)
+#' @param var Variability in flame angle
+#' @param Altitude Altitude of the site (m)
+#' @param necT Temperature at which wood necrosis occurs (C)
+#' @param surfDecl Decline in surface temperature with height (C/m)
 #' @param minR Minimum ROS (m/h)
 #' @param vAir500 Multiplier for wind speed at 500hPa
-#' @param targSp 
-#' @param testN 
+#' @param targSp Target species for scorching
+#' @param testN Number of test runs
 #'
 #' @return list
 #' @export
@@ -442,7 +447,7 @@ burnPrint <- function(Flora, Structure, default.species.params, a, weather, smou
   
   
   # Starting parameters
-  base.params <- suppressWarnings(frame::buildParams(Structure, Flora, default.species.params, a,
+  base.params <- suppressWarnings(buildParams(Structure, Flora, default.species.params, a,
                                                      fLine = 1, slopeM, temp = 30, dfmc = 0.05, wind = 10))
   
   # Create empty output vectors
@@ -480,7 +485,7 @@ burnPrint <- function(Flora, Structure, default.species.params, a, weather, smou
   fireArea <- 1e-04 # Actively burning area in ha
   
   # Lightning strike, ignition, and following weather conditions
-  ig <- frame::ignitions(weather, smoulder = smoulder, Extinction = Extinction)
+  ig <- ignitions(weather, smoulder = smoulder, Extinction = Extinction)
     igLoc <- ig$landscapeLoc[1]
   # Run fire if ignition occurs, otherwise return empty dataframe
   if (ig$ignition[1]) {
@@ -502,9 +507,9 @@ burnPrint <- function(Flora, Structure, default.species.params, a, weather, smou
       cat("Time", hour[t], "\n")
       
       # Build new pseudo-transect
-      tbl <- frame::specPoint(base.params, Structure, a)
-      Strata <- frame::strata(tbl)
-      Species <- frame::species(tbl)
+      tbl <- specPoint(base.params, Structure, a)
+      Strata <- strata(tbl)
+      Species <- species(tbl)
       
       # Find foliage projective cover
       for (st in 1:nrow(Strata)) {
@@ -515,7 +520,7 @@ burnPrint <- function(Flora, Structure, default.species.params, a, weather, smou
         }
       }
       
-      TBL <- frame::plantVarFrame(tbl, Strata, Species, Flora, a, l,
+      TBL <- plantVarFrame(tbl, Strata, Species, Flora, a, l,
                                   Ms = Ms, Pm = Pm, Mr = Mr)
       
       # Model edges
@@ -744,7 +749,8 @@ burnPrint <- function(Flora, Structure, default.species.params, a, weather, smou
 }
 
 
-#' Find likelihood and consequence of death for canopy trees
+#' @title frameRisk
+#' @description Find likelihood and consequence of death for canopy trees
 #'
 #' @param Flora  A dataframe with the fields:
 #' record - a unique, consecutively numbered identifier per site
@@ -775,42 +781,42 @@ burnPrint <- function(Flora, Structure, default.species.params, a, weather, smou
 #' nsR, eR, mR, cR. Species richness (number of species) in each stratum
 #' @param default.species.params Plant traits database
 #' @param a A unique identifier for the record being run
-#' @param weather 
-#' @param lightning 
-#' @param smoulder 
-#' @param Extinction 
-#' @param hourStep 
-#' @param slopeM 
-#' @param slopeSD 
-#' @param slopeLength 
-#' @param rangeDir 
-#' @param mRiver 
-#' @param lRiver 
-#' @param l 
-#' @param Ms 
-#' @param Pm 
-#' @param Mr 
-#' @param Test 
-#' @param sensitive 
-#' @param girdleH 
-#' @param woodDensity 
-#' @param phloem 
-#' @param moisture 
-#' @param barkDensity 
-#' @param bark 
-#' @param comBark 
-#' @param resBark 
-#' @param bMoisture 
-#' @param distance 
-#' @param trail 
-#' @param var 
-#' @param Altitude 
-#' @param necT 
-#' @param surfDecl 
-#' @param vAir500 
+#' @param weather Formatted weather dataset
+#' @param lightning Likelihood of lightning strike
+#' @param smoulder Time for which an ignition may smoulder (hours)
+#' @param Extinction Extinction litter moisture content (Percent ODW)
+#' @param hourStep Number of hours for which to model
+#' @param slopeM Slope mean
+#' @param slopeSD Slope standard deviation
+#' @param slopeLength Distance from ridgeline to river
+#' @param rangeDir Wind direction in relation to slope exposure: Up sun slope = 1, cross slope = 0, down sun slope = -1
+#' @param mRiver Likelihood of encountering a medium river
+#' @param lRiver Likelihood of encountering a large river
+#' @param l Variability in leaf thickness
+#' @param Ms Standard deviation of leaf moisture content
+#' @param Pm Leaf moisture multiplier
+#' @param Mr Leaf moisture range
+#' @param Test Temperature at which to test for scorching (C)
+#' @param sensitive Sensitivity of plants to scorching
+#' @param girdleH Height at which to test for girdling
+#' @param woodDensity Density of wood (kg/m^3)
+#' @param phloem Thickness of phloem (m)
+#' @param moisture Moisture content of wood
+#' @param barkDensity Density of bark (kg/m^3)
+#' @param bark Bark thickness (m)
+#' @param comBark Temperature of burning bark (C)
+#' @param resBark Flame residence time on bark (s)
+#' @param bMoisture Moisture content of bark
+#' @param distance Distance between tree and flame start (m)
+#' @param trail Modelling time after flame has passed (s)
+#' @param var Variability in flame angle
+#' @param Altitude Altitude of the site (m)
+#' @param necT Temperature at which wood necrosis occurs (C)
+#' @param surfDecl Decline in surface temperature with height (C/m)
+#' @param vAir500 Multiplier for wind speed at 500hPa
 #' @param minR Minimum ROS (m/h)
-#' @param targSp 
-#' @param testN 
+#' @param targSp Target species for scorching
+#' @param testN Number of test runs
 #' @param fires Number of fires to model for each age
 #'
 #' @return list
@@ -891,7 +897,8 @@ frameRisk <- function(Flora, Structure, default.species.params, a = a, weather, 
 }
 
 
-#' Internal function for riskDynamics
+#' @title parRisk
+#' @description Internal function for riskDynamics
 #'
 #' @param a A unique identifier for the record being run
 #'
@@ -900,7 +907,7 @@ frameRisk <- function(Flora, Structure, default.species.params, a = a, weather, 
 parRisk <- function(a) {
   FloraA <- filter(Flora, record == a)
   StructureA <- filter(Structure, record == a)
-  base.params <- suppressWarnings(frame::buildParams(StructureA, FloraA, default.species.params, a,
+  base.params <- suppressWarnings(buildParams(StructureA, FloraA, default.species.params, a,
                                                      fLine = 1, slopeM, temp = 30, dfmc = 0.05, wind = 10))
   
   hCan <- max(FloraA$top, na.rm = TRUE)
@@ -908,10 +915,10 @@ parRisk <- function(a) {
   WRF <- windReduction(base.params, test = 1.2)
   litterW <- max(FloraA$weight, na.rm = TRUE)
   
-  weather <- frame::frameWeather(clim = clim, m, LAI, WRF, hCan, rholitter, litterW,
+  weather <- frameWeather(clim = clim, m, LAI, WRF, hCan, rholitter, litterW,
                                  lat, slope = slopeM, slopeSD, rangeDir, cardinal)
   
-  res <- frame::frameRisk(Flora = FloraA, Structure = StructureA, default.species.params, a, weather, lightning, fires,
+  res <- frameRisk(Flora = FloraA, Structure = StructureA, default.species.params, a, weather, lightning, fires,
                           smoulder, Extinction, hourStep, slopeM, slopeSD, slopeLength, rangeDir, mRiver, lRiver, 
                           l, Ms, Pm, Mr, Test, sensitive, girdleH, woodDensity, phloem, moisture, vAir500,  
                           barkDensity, bark, comBark, resBark,  bMoisture,
@@ -932,7 +939,8 @@ parRisk <- function(a) {
 }
 
 
-#' Calculates forest risk parameters over a growth series
+#' @title riskDynamics
+#' @description Calculates forest risk parameters over a growth series
 #' using parallel ports
 #'
 #' @param fireDat List of three dataframes: Flora, Structure & default.species.params
@@ -943,42 +951,40 @@ parRisk <- function(a) {
 #' @param slopeM Mean slope (degrees)
 #' @param slopeSD Standard deviation of slope (degrees)
 #' @param slopeLength Distance from ridge to gully (m)
-#' @param rangeDir 
-#' @param mRiver 
-#' @param lRiver 
-#' @param cardinal 
-#' @param smoulder 
-#' @param Extinction 
-#' @param m 
-#' @param rholitter 
-#' @param hourStep 
-#' @param l 
-#' @param Ms 
-#' @param Pm 
-#' @param Mr 
-#' @param Test 
-#' @param sensitive 
-#' @param girdleH 
-#' @param phloem 
-#' @param moisture 
-#' @param barkDensity 
-#' @param bark 
-#' @param comBark 
-#' @param resBark 
-#' @param bMoisture 
-#' @param vAir500 
-#' @param testN 
-#' @param distance 
-#' @param trail 
-#' @param var 
-#' @param necT 
-#' @param surfDecl 
-#' @param minR 
-#' @param freeCores 
-#' @param tr 
+#' @param rangeDir Wind direction in relation to slope exposure: Up sun slope = 1, cross slope = 0, down sun slope = -1
+#' @param mRiver Likelihood of encountering a medium river
+#' @param lRiver Likelihood of encountering a large river
+#' @param cardinal Logical, whether to use cardinal directions
+#' @param smoulder Time for which an ignition may smoulder (hours)
+#' @param Extinction Extinction litter moisture content (Percent ODW)
+#' @param m Mean leaf moisture content
+#' @param rholitter Density of litter (kg/m^3)
+#' @param hourStep Number of hours for which to model
+#' @param l Variability in leaf thickness
+#' @param Ms Standard deviation of leaf moisture content
+#' @param Pm Leaf moisture multiplier
+#' @param Mr Leaf moisture range
+#' @param Test Temperature at which to test for scorching (C)
+#' @param sensitive Sensitivity of plants to scorching
+#' @param girdleH Height at which to test for girdling
+#' @param phloem Thickness of phloem (m)
+#' @param moisture Moisture content of wood
+#' @param barkDensity Density of bark (kg/m^3)
+#' @param bark Bark thickness (m)
+#' @param comBark Temperature of burning bark (C)
+#' @param resBark Flame residence time on bark (s)
+#' @param bMoisture Moisture content of bark
+#' @param vAir500 Multiplier for wind speed at 500hPa
+#' @param testN Number of test runs
+#' @param distance Distance between tree and flame start (m)
+#' @param trail Modelling time after flame has passed (s)
+#' @param var Variability in flame angle
+#' @param necT Temperature at which wood necrosis occurs (C)
+#' @param surfDecl Decline in surface temperature with height (C/m)
+#' @param minR Minimum ROS (m/h)
+#' @param freeCores Number of cores to leave free
+#' @param tr A dataframe with the fields:
 #' @param fires Number of fires to model per age
-#' @param woodDensity 
-#' @param targSp 
 #'
 #' @return list
 #' @export
@@ -1041,25 +1047,26 @@ riskDynamics <- function(fireDat, tr, clim, lightning = 0.05, fires = 5, lat = -
 }
 
 
-#' Calculates risk (likelihood & consequence) for plants in a given climate & terrain
+#' @title plantRisk
+#' @description Calculates risk (likelihood & consequence) for plants in a given climate & terrain
 #'
-#' @param dynDat 
+#' @param dynDat List of three dataframes: Flora, Structure & default.species.params
 #' @param a A unique identifier for the record being run
-#' @param ignitions 
-#' @param hourStep 
-#' @param Area 
-#' @param weather 
-#' @param vAir 
-#' @param wStDev 
-#' @param tAir 
-#' @param dfmc 
-#' @param slope 
-#' @param l 
-#' @param Ms 
-#' @param Pm 
-#' @param Mr 
-#' @param Test 
-#' @param fireN 
+#' @param ignitions Number of ignitions to model
+#' @param hourStep Number of hours for which to model
+#' @param Area Area of the site (ha)
+#' @param weather Formatted weather dataset
+#' @param vAir Wind speed (km/h)
+#' @param wStDev Wind speed standard deviation
+#' @param tAir Air temperature (C)
+#' @param dfmc Dead fuel moisture content
+#' @param slope Slope (degrees)
+#' @param l Leaf thickness variability
+#' @param Ms Standard deviation of leaf moisture content
+#' @param Pm Leaf moisture multiplier
+#' @param Mr Leaf moisture range
+#' @param Test Temperature at which to test for scorching (C)
+#' @param fireN Number of fires to model for each age
 #'
 #' @return list
 #'
@@ -1099,7 +1106,8 @@ plantRisk <- function(dynDat, a, ignitions = 1, hourStep = 3, Area = 10, weather
 
 
 
-#' Calculates spotting distance
+#' @title spotFire
+#' @description Calculates spotting distance
 #'
 #' @param flameHeight Flame height (m)
 #' @param slope Degrees
@@ -1123,311 +1131,4 @@ spotFire <- function(flameHeight, slope, FPC, windExposure, vAir, vAir500 = 2, f
   spG <- 11.98*flameHeight^2.19
   
   return(min(spMax, spG))
-}
-
-
-#' Internal function for fireDynamics
-#' Calculate fire dynamics using weatherSet_Frame
-#'
-#' @param a A unique identifier for the record being run
-#'
-#' @return list
-#' @export
-#'
-
-parBurnW <- function(n) {
-  
-  Wset <- filter(weather, record == n)
-  f <- filter(Flora, record == n)
-  s <- filter(Structure, record == n)
-  base.params <- suppressWarnings(frame::buildParams(Structure = s, Flora = f, default.species.params, a = n,
-                                                     fLine = fLine, slope = slope, temp = Wset$T[1], 
-                                                     dfmc = Wset$DFMC[1], wind = Wset$W[1]))
-  
-  Strata <- strata(base.params)
-  db.path <- paste("age",n,".db", sep = "")
-  
-  # Find foliage projective cover
-  for (st in 1:nrow(Strata)) {
-    if (st == 1) {
-      FPC <- Strata$cover[st]
-    } else {
-      FPC <- FPC + ((1-FPC) * Strata$cover[st])
-    }
-  }
-
-  weatherSet_Frame(base.params, weather = Wset, Structure = s, Flora = f, a = n, 
-                   db.path = db.path, jitters = reps, l = leafVar, Ms = moistureSD, 
-                   Pm = moistureMultiplier, Mr = moistureRange, updateProgress = updateProgress)
-  
-  #SUMMARISE BEHAVIOUR
-  res<-ffm_db_load(db.path)
-  runs <- suppressMessages(frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)%>%
-                             mutate(site = f$site[1],
-                                    FPC = FPC))
-  runs$Spotting <- NA
-  runs$fReach <- NA
-  for (x in 1:nrow(runs)) {
-    runs$Spotting[x] <- spotFire(flameHeight = runs$fh[x], slope = runs$slope_degrees[x], runs$FPC[x], windExposure = 1, vAir = runs$wind_kph[x], vAir500, fireArea = runs$ros_kph[x]*(fLine/10))
-    runs$fReach[x] = max(runs$lengthPlant[x] * cos(runs$flameAngle[x]), runs$lengthSurface[x] * cos(runs$angleSurface[x]), runs$Spotting[x])
-  }
-  IP <- frame::repFlame(res$IgnitionPaths) %>%
-    mutate(site = f$site[1])
-  scorch <- suppressMessages(frame::flora(runs, IP, Param = base.params, Test = 80)) %>%
-    select(!wind_kph)
-  outa <- suppressMessages(left_join(runs,scorch, by = "repId") )
-  
-  return(list(outa, IP))
-  
-}
-
-
-#' Internal function for fireDynamics
-#' Calculate fire dynamics using probFire_Frame
-#'
-#' @param a A unique identifier for the record being run
-#'
-#' @return list
-#' @export
-#'
-
-parBurnP <- function(n) {
-  
-  f <- filter(Flora, record == n)
-  s <- filter(Structure, record == n)
-  base.params <- suppressWarnings(frame::buildParams(Structure = s, Flora = f, default.species.params, a = n,
-                                                     fLine = fLine, slope = slope, temp = temp, dfmc = DFMC, wind = wind))
-  
-  Strata <- strata(base.params)
-  db.path <- paste("age",n,".db", sep = "")
-  
-  # Find foliage projective cover
-  for (st in 1:nrow(Strata)) {
-    if (st == 1) {
-      FPC <- Strata$cover[st]
-    } else {
-      FPC <- FPC + ((1-FPC) * Strata$cover[st])
-    }
-  }
-  
-  probFire_Frame(base.params, Structure = s, Flora = f, a = n, db.path = db.path,
-                 slope = slope, slopeSD = slopeSD, slopeRange = slopeRange, 
-                 temp = temp, tempSD = tempSD, tempRange = tempRange,
-                 DFMC = DFMC, DFMCSD = DFMCSD, DFMCRange = DFMCRange, 
-                 wind = wind, windSD = windSD, windRange = windRange,
-                 jitters = reps, l = leafVar, Ms = moistureSD, 
-                 Pm = moistureMultiplier, Mr = moistureRange, 
-                 updateProgress = updateProgress, testN = testN, threshold = threshold)
-  
-  #SUMMARISE BEHAVIOUR
-  res<-ffm_db_load(db.path)
-  runs <- suppressMessages(frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)%>%
-                             mutate(site = f$site[1],
-                                    FPC = FPC))
-  runs$Spotting <- NA
-  runs$fReach <- NA
-  for (x in 1:nrow(runs)) {
-    runs$Spotting[x] <- spotFire(flameHeight = runs$fh[x], slope = runs$slope_degrees[x], runs$FPC[x], windExposure = 1, vAir = runs$wind_kph[x], vAir500, fireArea = runs$ros_kph[x]*(fLine/10))
-    runs$fReach[x] = max(runs$lengthPlant[x] * cos(runs$flameAngle[x]), runs$lengthSurface[x] * cos(runs$angleSurface[x]), runs$Spotting[x])
-  }
-  IP <- frame::repFlame(res$IgnitionPaths) %>%
-    mutate(site = f$site[1])
-  scorch <- suppressMessages(frame::flora(runs, IP, Param = base.params, Test = 80)) %>%
-    select(!wind_kph)
-  outa <- suppressMessages(left_join(runs,scorch, by = "repId") )
-  
-  return(list(outa, IP))
-  
-}
-
-#' Internal function for fireDynamics
-#' Calculate fire dynamics using probFire_Frame from a weather dataset
-#'
-#' @param a A unique identifier for the record being run
-#'
-#' @return list
-#' @export
-#'
-
-parBurnPW <- function(n) {
-  
-  Wset <- filter(weather, record == n)
-  f <- filter(Flora, record == n)
-  s <- filter(Structure, record == n)
-  base.params <- suppressWarnings(frame::buildParams(Structure = s, Flora = f, default.species.params, a = n,
-                                                     fLine = fLine, slope = slope, temp = Wset$T[1], 
-                                                     dfmc = Wset$DFMC[1], wind = Wset$W[1]))
-  
-  Strata <- strata(base.params)
-  db.path <- paste("age",n,".db", sep = "")
-  
-  # Find foliage projective cover
-  for (st in 1:nrow(Strata)) {
-    if (st == 1) {
-      FPC <- Strata$cover[st]
-    } else {
-      FPC <- FPC + ((1-FPC) * Strata$cover[st])
-    }
-  }
-  
-  probFire_Frame(base.params, Structure = s, Flora = f, a = n, db.path = db.path,
-                 slope = slope, slopeSD = slopeSD, slopeRange = slopeRange, 
-                 temp = mean(Wset$T), tempSD = sd(Wset$T), tempRange = max(Wset$T)-min(Wset$T),
-                 DFMC = mean(Wset$DFMC), DFMCSD = sd(Wset$DFMC), DFMCRange = max(0.02, max(Wset$DFMC) - min(Wset$DFMC)), 
-                 wind = mean(Wset$W), windSD = sd(Wset$W), windRange = (max(Wset$W) - min(Wset$W)),
-                 jitters = reps, l = leafVar, Ms = moistureSD, 
-                 Pm = moistureMultiplier, Mr = moistureRange, 
-                 updateProgress = updateProgress, testN = testN, threshold = threshold)
-  
-  #SUMMARISE BEHAVIOUR
-  res<-ffm_db_load(db.path)
-  runs <- suppressMessages(frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)%>%
-                             mutate(site = f$site[1],
-                                    FPC = FPC))
-  runs$Spotting <- NA
-  runs$fReach <- NA
-  for (x in 1:nrow(runs)) {
-    runs$Spotting[x] <- spotFire(flameHeight = runs$fh[x], slope = runs$slope_degrees[x], runs$FPC[x], windExposure = 1, vAir = runs$wind_kph[x], vAir500, fireArea = runs$ros_kph[x]*(fLine/10))
-    runs$fReach[x] = max(runs$lengthPlant[x] * cos(runs$flameAngle[x]), runs$lengthSurface[x] * cos(runs$angleSurface[x]), runs$Spotting[x])
-  }
-  IP <- frame::repFlame(res$IgnitionPaths) %>%
-    mutate(site = f$site[1])
-  scorch <- suppressMessages(frame::flora(runs, IP, Param = base.params, Test = 80)) %>%
-    select(!wind_kph)
-  outa <- suppressMessages(left_join(runs,scorch, by = "repId") )
-  
-  return(list(outa, IP))
-  
-}
-
-
-#' Models fire behaviour across multiple ages on parallel cores
-#' Uses either weatherSet_Frame or probFire_Frame
-#'
-#' @param fireDat A list containing the datasets Flora, Structure, and default.species.params
-#' @param analysis Type of analysis, either "Weather" to use weatherSet_Frame, or "Probabilistic" to use probFire_Frame
-#' @param weather A dataframe for use with weatherSet_Frame, with the five fields:
-#' tm - Sequential numbering of the records
-#' T - Air temperature (deg C)
-#' W - Wind velocity (km/h)
-#' DFMC - Dead fuel moisture content (proportion ODW)
-#' record - A unique number for each age corresponding to the same fields in fireDat
-#' @param reps Number of repetitions for each set of weather conditions
-#' @param slope Mean slope (degrees)
-#' @param slopeSD Standard deviation of the slope (degrees)
-#' @param slopeRange Range of slope (degrees)
-#' @param temp 
-#' @param tempSD 
-#' @param tempRange 
-#' @param DFMC 
-#' @param DFMCSD 
-#' @param DFMCRange 
-#' @param wind 
-#' @param windSD 
-#' @param windRange 
-#' @param moistureMultiplier 
-#' @param moistureSD 
-#' @param moistureRange 
-#' @param fLine Fireline length (m)
-#' @param freeCores Number of cores to leave free for other processes
-#' @param Ms 
-#' @param Pm 
-#' @param Mr 
-#' @param vAir500 Multiplier of wind speed to estimate 500 hPA wind
-#' @param leafVar 
-#' @param testN 
-#' @param threshold Minimum allowable height for canopy (m)
-#' @param updateProgress  Progress bar for use in the dashboard
-#'
-#' @return list
-#' @export
-#'
-
-fireDynamics <- function(fireDat, analysis = "Probabilistic", weather, 
-                         slope = 5, slopeSD = 2, slopeRange = 5, 
-                         temp = 30, tempSD = 5, tempRange = 3,
-                         DFMC = 0.1, DFMCSD = 0.01, DFMCRange = 2, 
-                         wind = 10, windSD = 5, windRange = 5, fLine = 1000,
-                         moistureMultiplier = 1, moistureSD = 0.01, moistureRange = 1.5,
-                         reps = 5, leafVar = 0.1, Ms = 0.01, Pm = 1, Mr = 1.5, vAir500 = 2, 
-                         testN = 5, updateProgress = NULL, threshold = 1, freeCores = 1){
-  
-  cat("Modelling risk", "\n")
-  
-  # 1. Compile inputs
-  Flora <- fireDat[[1]]
-  Structure <- fireDat[[2]]
-  default.species.params <- fireDat[[3]]
-  
-  # 2. Create a cluster of cores with replicated R on each
-  nCores <- max(parallel::detectCores() - freeCores,1)
-  cl <- parallel::makeCluster(nCores)
-  
-  # 3. Load the packages
-  parallel::clusterEvalQ(cl,
-                         { library(dplyr)
-                           library(tidyr)
-                           library(frame)
-                           library(assertthat)
-                           library(extraDistr)})
-  
-  # 4. Load the inputs and set the analysis
-  # If no weather dataset is present, only a probabilistic analysis is possible
-  
-  if (missing(weather)) {
-    
-    # Check inputs
-    if (missing(temp) || missing(tempSD) || missing(tempRange) || 
-        missing(DFMC)|| missing(DFMCSD) || missing(DFMCRange) ||
-        missing(wind)|| missing(windSD) || missing(windRange)) {
-      stop("Some weather inputs are missing. You need a weather table, or individual statistics.")
-    }
-    
-    r <- unique(Flora$record)
-    
-    cat("Running", reps*length(as.numeric(r)), "probabilistic replicates", "\n")
-    parallel::clusterExport(cl,varlist=c('Flora', 'Structure', 'default.species.params', 
-                                         'slope', 'slopeSD', 'slopeRange', 
-                                         'temp', 'tempSD', 'tempRange',
-                                         'DFMC', 'DFMCSD', 'DFMCRange', 
-                                         'wind', 'windSD', 'windRange', 'fLine',
-                                         'moistureMultiplier', 'moistureSD', 'moistureRange',
-                                         'reps', 'leafVar', 'Ms', 'Pm', 'Mr', 'vAir500', 
-                                         'updateProgress', 'testN', 'threshold'), environment())
-    system.time(parT <- parallel::parLapply(cl, r, parBurnP))
-    
-  } else {
-    
-    r <- unique(weather$record)
-    
-    parallel::clusterExport(cl,varlist=c('Flora', 'Structure', 'default.species.params', 
-                                         'slope', 'slopeSD', 'slopeRange', 'fLine', 'weather',
-                                         'moistureMultiplier', 'moistureSD', 'moistureRange',
-                                         'reps', 'leafVar', 'Ms', 'Pm', 'Mr', 'vAir500', 
-                                         'updateProgress', 'testN', 'threshold'), environment())
-    if (analysis == "Probabilistic") {
-      cat("Running", reps*length(as.numeric(r)), "probabilistic replicates", "\n")
-      system.time(parT <- parallel::parLapply(cl, r, parBurnPW))
-      
-    } else {
-      cat("Running", nrow(weather)*length(as.numeric(r)), "replicates on a weather set", "\n")
-      system.time(parT <- parallel::parLapply(cl, r, parBurnW))
-      
-    }
-  }
-  
-  parallel::stopCluster(cl)
-  
-  # 6. Summarise and export results
-  cat("Summarising results", "\n", "\n")
-  runs <- data.frame()
-  IP <- data.frame()
-  for (n in 1:length(r)) {
-    Na <- as.data.frame(parT[[n]][1])
-    Nb <- as.data.frame(parT[[n]][2])
-    runs <- rbind(runs,Na)
-    IP <- rbind(IP,Nb)
-  }
-  out <- list(runs, IP)
-  return(out)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/plant_interface.R
 \name{updateSpecies}
 \alias{updateSpecies}
-\title{Updates species names from an optional table}
+\title{updateSpecies}
 \usage{
 updateSpecies(comm, tr)
 }

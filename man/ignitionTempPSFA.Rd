@@ -2,7 +2,7 @@
 % Please edit documentation in R/ignitionTempPSFA.R
 \name{ignitionTempPSFA}
 \alias{ignitionTempPSFA}
-\title{Calculates ignition temperature from proportion of silica free ash.}
+\title{Ignition Temperature from Proportion of Silica Free Ash}
 \usage{
 ignitionTempPSFA(prop)
 }

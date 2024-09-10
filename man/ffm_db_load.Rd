@@ -2,8 +2,7 @@
 % Please edit documentation in R/ffm_db_functions.R
 \name{ffm_db_load}
 \alias{ffm_db_load}
-\title{Attempts to load the entire contents of a database into
-the R workspace.}
+\title{Database functions for the ffm package.}
 \usage{
 ffm_db_load(db.path)
 }
@@ -15,29 +14,11 @@ A named list of data frames corresponding to
   database tables.
 }
 \description{
+Attempts to load the entire contents of a database into
+the R workspace.
+
 Given a path and filename for a database of model results,
 this function connects to the database and loads the full
 contents of all tables into a \code{list} of data frames.
 An error is returned if the database cannot be opened.
-}
-\examples{
-\dontrun{
-# Load the contents of a database and display the start
-# of the FlameSummaries table
-tbls <- ffm_db_load("c:/michael/somewhere/my_results.db")
-head( tbls$FlameSummaries)
-}
-
-SPECIFY INPUTS AND RUN THE MODEL
-record <- 1
-data(site)
-data(structure)
-data(flora)
-data(traits)
-base.params <- paramBuilder(site, structure, flora, traits, record) 
-ffm_run(base.params, db.path = "out.db", db.recreate = TRUE)
-
-LOAD RESULTS
-res<-ffm_db_load("out.db")
-
 }

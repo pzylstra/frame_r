@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{transectLong}
 \alias{transectLong}
-\title{Combines multiple transects into one}
+\title{transectLong}
 \usage{
 transectLong(alldata, pN = "Point")
 }

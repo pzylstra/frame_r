@@ -2,8 +2,7 @@
 % Please edit documentation in R/FMC.R
 \name{climDynamics}
 \alias{climDynamics}
-\title{Models input weather parameters from a climate dataset,
-each age is modelled on a separate core}
+\title{climDynamics}
 \usage{
 climDynamics(
   fireDat,
@@ -20,17 +19,29 @@ climDynamics(
 )
 }
 \arguments{
-\item{fireDat}{}
+\item{fireDat}{A list with three dataframes: Flora, Structure, and default.species.params.}
 
-\item{clim}{}
+\item{clim}{A dataset with the fields:
+tAM (9am temp, degC)
+tPM (3pm temp, degC)
+tMin (Minimum daily temp, degC)
+tMax (Maximum daily temp, degC)
+rhAM (9am Relative humidity, percent)
+rhPM (3pm Relative humidity, percent)
+wAM (9am wind, km/h)
+wPM (3pm wind, km/h)
+cAM (Morning cloud, oktas)
+cPM (Afternoon cloud, oktas)
+MSLP (Mean Sea Level Pressure, hPa)
+Rain (Daily rainfall, mm)}
 
-\item{m}{}
+\item{m}{The starting moisture (proportion ODW)}
 
 \item{slope}{(degrees)}
 
 \item{slopeSD}{Standard deviation of the slope}
 
-\item{rholitter}{}
+\item{rholitter}{Density of litter particles (kg/m3)}
 
 \item{lat}{Latitude (degrees)}
 
@@ -38,7 +49,7 @@ climDynamics(
 
 \item{rangeDir}{Cardinal direction of the ridgelines - either Nth/Sth (0) or west/east (270)}
 
-\item{cardinal}{}
+\item{cardinal}{Simplify compass directions to cardinal (TRUE/FALSE)}
 
 \item{freeCores}{Number of cores to leave unused by the model}
 }

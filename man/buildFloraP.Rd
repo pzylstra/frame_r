@@ -2,7 +2,7 @@
 % Please edit documentation in R/plant_interface.R
 \name{buildFloraP}
 \alias{buildFloraP}
-\title{Creates an 'F_flora' table for FRaME from plant modelling}
+\title{buildFloraP}
 \usage{
 buildFloraP(comm, tr, age, rec = 1, moist = 1, sLitter = 15, diameter = 0.005)
 }

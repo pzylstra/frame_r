@@ -6,6 +6,9 @@
 \usage{
 ffm_param_table_summary(tbl)
 }
+\arguments{
+\item{tbl}{The input simulation parameter table (data frame).}
+}
 \description{
 Returns a summary of the given parameter table.
 }

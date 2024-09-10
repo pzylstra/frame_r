@@ -7,10 +7,10 @@
 ffm_check_params(params, quiet = FALSE)
 }
 \arguments{
+\item{params}{The input simulation parameter table (data frame).}
+
 \item{quiet}{Set to TRUE to suppress details of missing parameters being
 written to the console.}
-
-\item{tbl}{The input simulation parameter table (data frame).}
 }
 \value{
 \code{TRUE} is all required parameters are present; \code{FALSE}

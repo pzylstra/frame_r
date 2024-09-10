@@ -2,7 +2,7 @@
 % Please edit documentation in R/Building.R
 \name{siteBuilder}
 \alias{siteBuilder}
-\title{Builds the dataframe site.meta from input tables}
+\title{siteBuilder}
 \usage{
 siteBuilder(site, Structure, a)
 }

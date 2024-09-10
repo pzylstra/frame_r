@@ -2,12 +2,12 @@
 % Please edit documentation in R/Flora.R
 \name{windReduction}
 \alias{windReduction}
-\title{Finds the Wind Reduction Factor for a param file}
+\title{windReduction}
 \usage{
 windReduction(base.params, test = 1.2)
 }
 \arguments{
-\item{base.params}{}
+\item{base.params}{Parameter input file}
 
 \item{test}{Height at which the WRF is calculated (m)}
 }

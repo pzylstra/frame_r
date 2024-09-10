@@ -2,7 +2,7 @@
 % Please edit documentation in R/ffm_db_functions.R
 \name{ffm_db_summary}
 \alias{ffm_db_summary}
-\title{Summarize the contents of a model results database.}
+\title{ffm_db_summary}
 \usage{
 ffm_db_summary(db.path)
 }
@@ -10,6 +10,8 @@ ffm_db_summary(db.path)
 \item{db.path}{Path and filename for the database.}
 }
 \description{
+Summarize the contents of a model results database.
+
 At the moment this function simply prints the number of
 simulation runs found in the database.
 }

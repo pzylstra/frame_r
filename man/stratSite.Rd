@@ -2,8 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{stratSite}
 \alias{stratSite}
-\title{Divides site data into consecutively numbered strata with
-base and top heights}
+\title{stratSite}
 \usage{
 stratSite(dat, thres = 0, sepSig = 0.001)
 }
@@ -13,11 +12,14 @@ veg, pN, spName, base, top, he, ht, wid, Site, sN}
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
-\item{sepSig}{}
+\item{sepSig}{Threshold for determining significance}
 }
 \value{
 dataframe
 }
 \description{
+Divides site data into consecutively numbered strata with
+base and top heights
+
 Species that are less common than the set threshold are combined as "Minor Species"
 }

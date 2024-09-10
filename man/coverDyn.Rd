@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{coverDyn}
 \alias{coverDyn}
-\title{Builds models for cover dynamics of surveyed Species}
+\title{coverDyn}
 \usage{
 coverDyn(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000)
 }
@@ -24,11 +24,12 @@ beyond the observed mean + standard deviation}
 dataframe
 }
 \description{
+Builds models for cover dynamics of surveyed Species
+
 Input table requires the following fields:
 Point - numbered point in a transect
 Species - name of the surveyed Species
 Age - age of the site since the triggering disturbance
-}
-\details{
+
 Species that are less common than the set threshold are combined as "Minor Species"
 }

@@ -1,5 +1,6 @@
 
-#' Finds solar radiation reaching the ground surface
+#' @title insol
+#' @description Finds solar radiation reaching the ground surface
 #' 
 #' @param lat Latitude in degrees
 #' @param hr Hour of the day, 0-24, decimal format
@@ -33,15 +34,30 @@ insol <- function(lat = -32, hr = 12, month = "December", aspect = 0, slope = 0,
   return(out)
 }
 
-# Finds saturation specific humidity from Stull (1988) Eqn 7.5.2c and d
+
+#' @title QSat
+#' @description Finds saturation specific humidity from Stull (1988) Eqn 7.5.2c and d
+#' @param tAir Temperature in Kelvin
+#' @param pAir Atmospheric pressure in Pascals
+#'
 
 QSat <- function(tAir = 293.46, pAir = 101180){
   Q <- 0.622 * (611.2 * exp(17.67 * (tAir - 273.15) / (tAir - 29.66))) / pAir
   return(Q)
 }
 
-# Finds water vapour flux
-# Calculates RH at the litter surface from inversion of Nelson (1984) EMC equation
+#' @title Ema
+#' @description Finds water vapour flux
+#' Calculates RH at the litter surface from inversion of Nelson (1984) EMC equation
+#' @param m The starting moisture (proportion ODW)
+#' @param nelsonA Constant from Nelson FMC model
+#' @param nelsonB Constant from Nelson FMC model
+#' @param conLitter Litter conductance (m/s). Using value from Matthews spreadsheet rather than paper
+#' @param tAir Atmospheric temperature (K)
+#' @param vAir Wind speed (m/s)
+#' @param pAir Atmospheric pressure (Pa)
+#' @param insolation Solar energy at the soil surface (kW/m2)
+#' @param rhAir Relative humidity (Percent)
 
 Ema <- function(m, nelsonA = 5.2, nelsonB = -19, conLitter = 0.0006, tAir = 293.46, vAir = 3.52, pAir = 101180, insolation = 0, rhAir = 58){
   SpecHum <- rhAir/100 *QSat(tAir, pAir) # Specific humidity
@@ -52,7 +68,8 @@ Ema <- function(m, nelsonA = 5.2, nelsonB = -19, conLitter = 0.0006, tAir = 293.
   return(out)}
 
 
-#' Finds the moisture content of dead leaf litter at a given time-step
+#' @title simplefmc
+#' @description Finds the moisture content of dead leaf litter at a given time-step
 #' 
 #' Function uses the 'Single differential equation model' of Matthews et al (2010)
 #' 
@@ -107,9 +124,22 @@ simplefmc <- function(m, tAir = 293.46, vAir = 3.52, pAir = 101180, rhAir = 58, 
 
 
 
-#' Helper function for frameWeather
+#' @title tidyWeather
+#' @description Helper function for frameWeather
 #'
-#' @param clim 
+#' @param clim A dataset with the fields:
+#' tAM (9am temp, degC)
+#' tPM (3pm temp, degC)
+#' tMin (Minimum daily temp, degC)
+#' tMax (Maximum daily temp, degC)
+#' rhAM (9am Relative humidity, percent)
+#' rhPM (3pm Relative humidity, percent)
+#' wAM (9am wind, km/h)
+#' wPM (3pm wind, km/h)
+#' cAM (Morning cloud, oktas)
+#' cPM (Afternoon cloud, oktas)
+#' MSLP (Mean Sea Level Pressure, hPa)
+#' Rain (Daily rainfall, mm)
 #' 
 tidyWeather <- function(clim) {
   
@@ -182,8 +212,8 @@ tidyWeather <- function(clim) {
                            dPM == "WNW" ~ 292,
                            dPM == "NW" ~ 315,
                            dPM == "NNW" ~ 338),
-           specHumAM = (rhAM/100)*frame::QSat(tAM, MSLP),
-           specHumPM = (rhPM/100)*frame::QSat(tPM, MSLP))
+           specHumAM = (rhAM/100)*QSat(tAM, MSLP),
+           specHumPM = (rhPM/100)*QSat(tPM, MSLP))
   
   # Create sequence
   Temp  <- clim[,c('tAM','tPM','tMin','tMax','Day')] %>% pivot_longer(c(tMin, tAM, tMax, tPM), names_to = "Time", values_to = "Temp")  %>%
@@ -223,7 +253,8 @@ tidyWeather <- function(clim) {
 }
 
 
-#' Formats hourly weather data for frame, with DFMC
+#' @title frameWeather
+#' @description Formats hourly weather data for frame, with DFMC
 #' 
 #' Function uses the 'Single differential equation model' of Matthews et al (2010)
 #' 
@@ -299,8 +330,8 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
   out$Temp = (-(0.0009*exp(0.1195*(out$TempA-273.15)))*log(hCan)+1)*(out$TempA-273.15)+273.15
   out$sRH <- sRH
   out$MSLP <- MSLP
-  out$RHA <- (sRH / frame::QSat(out$TempA, out$MSLP))*100
-  out$RH <- (sRH / frame::QSat(out$Temp, out$MSLP))*100
+  out$RHA <- (sRH / QSat(out$TempA, out$MSLP))*100
+  out$RH <- (sRH / QSat(out$Temp, out$MSLP))*100
   out$Wind <- Wind / WRF
   out$Cloud <- Cloud
   
@@ -398,7 +429,7 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
       mC <- out$moistureC[t-1]
       mD <- out$moistureD[t-1]
     } 
-    out$moistureA[t] <- pmax(0.01,(frame::simplefmc(m = mA,
+    out$moistureA[t] <- pmax(0.01,(simplefmc(m = mA,
                                                             tAir = out$Temp[t],
                                                             vAir = out$Wind[t],
                                                             pAir = out$MSLP[t],
@@ -411,7 +442,7 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
                                                             conLitter = conLitter,
                                                             sigma = sigma,
                                                             EPS = EPS))) - max(0,0.5*(mA-1)) + out$Wetting[t]
-    out$moistureB[t] <- pmax(0.01,(frame::simplefmc(m = mB,
+    out$moistureB[t] <- pmax(0.01,(simplefmc(m = mB,
                                                             tAir = out$Temp[t],
                                                             vAir = out$Wind[t],
                                                             pAir = out$MSLP[t],
@@ -424,7 +455,7 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
                                                             conLitter = conLitter,
                                                             sigma = sigma,
                                                             EPS = EPS))) - max(0,0.5*(mB-1)) + out$Wetting[t]
-    out$moistureC[t] <- pmax(0.01,(frame::simplefmc(m = mC,
+    out$moistureC[t] <- pmax(0.01,(simplefmc(m = mC,
                                                             tAir = out$Temp[t],
                                                             vAir = out$Wind[t],
                                                             pAir = out$MSLP[t],
@@ -437,7 +468,7 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
                                                             conLitter = conLitter,
                                                             sigma = sigma,
                                                             EPS = EPS))) - max(0,0.5*(mC-1)) + out$Wetting[t]
-    out$moistureD[t] <- pmax(0.01,(frame::simplefmc(m = mD,
+    out$moistureD[t] <- pmax(0.01,(simplefmc(m = mD,
                                                             tAir = out$Temp[t],
                                                             vAir = out$Wind[t],
                                                             pAir = out$MSLP[t],
@@ -463,10 +494,10 @@ frameWeather <- function(clim, m = 0.15, LAI = 3, WRF = 3, hCan = 20, rholitter 
 
 
 
-#' Internal function for climDynamics
+#' @title parClim
+#' @description Internal function for climDynamics
 #'
-#' @param a 
-#'
+#' @param a Record number
 #' @return dataframe
 #' @export
 #'
@@ -475,7 +506,7 @@ parClim <- function(a) {
   
   FloraA <- filter(Flora, record == a)
   StructureA <- filter(Structure, record == a)
-  base.params <- suppressWarnings(frame::buildParams(StructureA, FloraA, default.species.params, a,
+  base.params <- suppressWarnings(buildParams(StructureA, FloraA, default.species.params, a,
                                                      fLine = 1, slope = 0, temp = 30, dfmc = 0.05, wind = 10))
   
   hCan <- max(as.numeric(FloraA$top), na.rm = TRUE)
@@ -483,7 +514,7 @@ parClim <- function(a) {
   WRF <- windReduction(base.params, test = 1.2)
   litterW <- as.numeric(max(FloraA$weight, na.rm = TRUE))
   
-  out <- frame::frameWeather(clim = clim, m, LAI, WRF, hCan, rholitter, litterW,
+  out <- frameWeather(clim = clim, m, LAI, WRF, hCan, rholitter, litterW,
                              lat, slope, slopeSD, rangeDir, cardinal) %>%
     mutate(Record = a,
            site = StructureA$site[1])
@@ -492,18 +523,31 @@ parClim <- function(a) {
 }
 
 
-#' Models input weather parameters from a climate dataset,
+#' @title climDynamics
+#' @description Models input weather parameters from a climate dataset,
 #' each age is modelled on a separate core
 #'
-#' @param fireDat 
-#' @param clim 
-#' @param m 
-#' @param rholitter 
+#' @param fireDat A list with three dataframes: Flora, Structure, and default.species.params.
+#' @param clim A dataset with the fields:
+#' tAM (9am temp, degC)
+#' tPM (3pm temp, degC)
+#' tMin (Minimum daily temp, degC)
+#' tMax (Maximum daily temp, degC)
+#' rhAM (9am Relative humidity, percent)
+#' rhPM (3pm Relative humidity, percent)
+#' wAM (9am wind, km/h)
+#' wPM (3pm wind, km/h)
+#' cAM (Morning cloud, oktas)
+#' cPM (Afternoon cloud, oktas)
+#' MSLP (Mean Sea Level Pressure, hPa)
+#' Rain (Daily rainfall, mm)
+#' @param m The starting moisture (proportion ODW)
+#' @param rholitter Density of litter particles (kg/m3)
 #' @param lat Latitude (degrees)
 #' @param slope (degrees)
 #' @param slopeSD  Standard deviation of the slope
 #' @param rangeDir Cardinal direction of the ridgelines - either Nth/Sth (0) or west/east (270)
-#' @param cardinal 
+#' @param cardinal Simplify compass directions to cardinal (TRUE/FALSE)
 #' @param freeCores Number of cores to leave unused by the model
 #' @param lAngleAccounting Set to TRUE to automatically modify leaf angle by number of strata
 #'

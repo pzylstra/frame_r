@@ -21,14 +21,15 @@
 #' @param fibreCount The number of fibres per square mm
 #' @param fibreDiameter The mean fibre diameter of hairs (mm)
 #' @param fibreCp Specific heat of fibres (kJ/kg/C)
-#' @param Specific_heat The specific heat of the fur (kJ/kg/deg C)
 #' @param fiberSolid The proportion of the fibre (0-1)
 #' @param skinCp Specific heat of the animal skin (kJ/kg/C)
 #' @param skinDensity Density of the animal skin (kg/m3)
 #' @param skinK Thermal conductivity of the animal skin (W/m/C)
 #' @param bodyTemp The body temperature of the animal (deg C)
 #' @param Shape The approximate shape of the animal - either "Flat", "Sphere", or "Cylinder"
+#' @param surfDecl The slope of the surface (degrees)
 #' @param updateProgress Progress bar for use in the dashboard
+#'
 #' @return dataframe
 #' @export
 
@@ -67,10 +68,10 @@ mammal <- function(Surf, Plant, Height = 1, distance = 5, trail = 360, diameter 
            furCp = (fibreCp*dens)+(1-dens)*cpAir,
            pelMass = Volume * furDensity,
            Re = (Plume_velocity*Density*bodyLength)/viscosity,
-           h = frame::hFauna(Shape = Shape, Re = Re),
+           h = hFauna(Shape = Shape, Re = Re),
            #Incoming
            qc = h * surfaceArea *(tempAir - tPelage),
-           att = frame::tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+           att = tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
            qr = 0.86*qr*att,
            Qi = pmax(0, qc)+qr,
            
@@ -123,10 +124,10 @@ mammal <- function(Surf, Plant, Height = 1, distance = 5, trail = 360, diameter 
              furCp = (fibreCp*dens)+(1-dens)*cpAir,
              pelMass = Volume * furDensity,
              Re = (Plume_velocity*Density*bodyLength)/viscosity,
-             h = frame::hFauna(Shape = Shape, Re = Re),
+             h = hFauna(Shape = Shape, Re = Re),
              #Incoming
              qc = h * surfaceArea *(tempAir - tPelage),
-             att = frame::tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+             att = tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
              qr = 0.86*qr*att,
              Qi = pmax(0, qc)+qr,
              
@@ -230,7 +231,6 @@ mammal <- function(Surf, Plant, Height = 1, distance = 5, trail = 360, diameter 
 #'
 #' @param Surf The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'
 #' @param Plant The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.
-#' @param percentile defines which heating statistics are used for each second, from 0 (min) to 1 (max)
 #' @param Height The height directly over ground (m) at which the species is expected to shelter from a fire.
 #' @param woodDensity The density of wood in the tree or log housing the hollow (kg/m3)
 #' @param barkDensity The density of bark in the tree or log housing the hollow (kg/m3)
@@ -249,9 +249,11 @@ mammal <- function(Surf, Plant, Height = 1, distance = 5, trail = 360, diameter 
 #' @param Dimension The "Characteristic length" of the hollow (m)
 #' @param Area The surface area of the thinnest side of the hollow (m^2)
 #' @param diameter depth of the litter layer (mm)
-#' @param hollowTemp The starting temperature inside the hollow (deg C)
 #' @param Shape The approximate shape of the hollow exterior - either "Flat", "Sphere", or "Cylinder"
+#' @param surfDecl The slope of the surface (degrees)
+#' @param startTemp The initial temperature of the hollow (C)
 #' @param updateProgress Progress bar for use in the dashboard
+#'
 #' @return dataframe
 #' @export
 
@@ -300,11 +302,11 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
            #Incoming heat from surface
            pt = pmax(0, t-Tb),
            comBark = ifelse(pt <= resBark, comBark, 0), #Set comBark = 0 after its residence time
-           postS = frame::bole(lengthSurface,residence, depth, h = Height,
+           postS = bole(lengthSurface,residence, depth, h = Height,
                                 surfDecl = 10, t = pt),
            tempS = ifelse(Horiz <=0, pmax(tempAir, postS, comBark), tempAir),
            qc = h * Area * (tempS - startTemp),
-           att = frame::tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+           att = tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
            qr = 0.86*qr*att,
            Qi = pmax(0, qc)+qr,
            
@@ -316,8 +318,8 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
            drainA = ifelse(startTemp>99,
                            ifelse(bMoisture>0,mWaterA*2256400,0),0),
            #Thermal values - (cp: J/kg/deg, k: W/m/deg)
-           cpA = frame::cp(Material = Material, temp = startTemp, moist = bMoisture),
-           kA = frame::k(Material = Material, temp = startTemp, moist = bMoisture, density = barkDensity),
+           cpA = cp(Material = Material, temp = startTemp, moist = bMoisture),
+           kA = k(Material = Material, temp = startTemp, moist = bMoisture, density = barkDensity),
            # Conduction from above and below, less latent heat of evaporation
            fAD = ((Area * kA * (tempS - startTemp)) / step),
            fAU = 0,
@@ -335,8 +337,8 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
            drainB = ifelse(startTemp>99,
                            ifelse(moisture>0,mWaterB*2256400,0),0),
            #Thermal values - (cp: J/kg/deg, k: W/m/deg)
-           cpB = frame::cp(Material = Material, temp = startTemp, moist = bMoisture),
-           kB = frame::k(Material = Material, temp = startTemp, moist = bMoisture, density = barkDensity),
+           cpB = cp(Material = Material, temp = startTemp, moist = bMoisture),
+           kB = k(Material = Material, temp = startTemp, moist = bMoisture, density = barkDensity),
            # Conduction from above and below, less latent heat of evaporation
            fBD = ((Area * kB * (tempA - startTemp)) / step),
            fBU = 0,
@@ -354,8 +356,8 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
            drainC = ifelse(startTemp>99,
                            ifelse(moisture>0,mWaterC*2256400,0),0),
            #Thermal values - (cp: J/kg/deg, k: W/m/deg)
-           cpC = frame::cp(Material = Material, temp = startTemp, moist = bMoisture),
-           kC = frame::k(Material = Material, temp = startTemp, moist = bMoisture, density = barkDensity),
+           cpC = cp(Material = Material, temp = startTemp, moist = bMoisture),
+           kC = k(Material = Material, temp = startTemp, moist = bMoisture, density = barkDensity),
            # Conduction from above and below, less latent heat of evaporation
            fCD = ((Area * kC * (tempB - startTemp)) / step),
            fCU = 0,
@@ -373,8 +375,8 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
            drainD = ifelse(startTemp>99,
                            ifelse(moisture>0,mWaterD*2256400,0),0),
            #Thermal values - (cp: J/kg/deg, k: W/m/deg)
-           cpD = frame::cp(Material = Material, temp = startTemp, moist = bMoisture),
-           kD = frame::k(Material = Material, temp = startTemp, moist = bMoisture, density = barkDensity),
+           cpD = cp(Material = Material, temp = startTemp, moist = bMoisture),
+           kD = k(Material = Material, temp = startTemp, moist = bMoisture, density = barkDensity),
            # Conduction from above and below, less latent heat of evaporation
            fDD = ((Area * kD * (tempC - startTemp)) / step),
            fDU = 0,
@@ -392,8 +394,8 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
            drainE = ifelse(startTemp>99,
                            ifelse(moisture>0,mWaterE*2256400,0),0),
            #Thermal values - (cp: J/g/deg, k: W/m/deg)
-           cpE = frame::cp(temp = startTemp, moist = moisture),
-           kE = frame::k(temp = startTemp, moist = moisture, density = woodDensity),
+           cpE = cp(temp = startTemp, moist = moisture),
+           kE = k(temp = startTemp, moist = moisture, density = woodDensity),
            # Conduction from above and below, less latent heat of evaporation
            fED = ((Area * kE * (tempD - startTemp)) / step),
            fEU = 0,
@@ -434,11 +436,11 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
              #Incoming heat from surface
              pt = pmax(0, t-Tb),
              comBark = ifelse(pt <= resBark, comBark, 0),
-             postS = frame::bole(lengthSurface,residence, depth, h = Height,
+             postS = bole(lengthSurface,residence, depth, h = Height,
                                   surfDecl = 10, t = pt),
              tempS = ifelse(t>Ta, tempAir, ifelse(Horiz <=0, pmax(tempAir, postS, comBark), tempAir)),
              qc = h * Area * (tempS - tempA),
-             att = frame::tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+             att = tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
              qr = 0.86*qr*att,
              Qi = pmax(0, qc)+qr,
              
@@ -451,8 +453,8 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
              drainA = ifelse(tempA>99,
                              ifelse(moistureA>0,mWaterA*2256400,0),0),
              #Bark thermal values - (cp: J/kg/deg, k: W/m/deg)
-             cpA = frame::cp(Material = Material, temp = tempA, moist = moistureA),
-             kA = frame::k(Material = Material, temp = tempA, moist = moistureA, density = barkDensity),
+             cpA = cp(Material = Material, temp = tempA, moist = moistureA),
+             kA = k(Material = Material, temp = tempA, moist = moistureA, density = barkDensity),
              # Conduction from above and below, less latent heat of evaporation
              fAD = ((Area * kA * (tempS - tempA)) / step),
              fAU = ((Area * kB * (tempB - tempA)) / step),
@@ -471,8 +473,8 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
              drainB = ifelse(tempB>99,
                              ifelse(moistureB>0,mWaterB*2256400,0),0),
              #Thermal values - (cp: J/kg/deg, k: W/m/deg)
-             cpB = frame::cp(Material = Material, temp = tempB, moist = moistureB),
-             kB = frame::k(Material = Material, temp = tempB, moist = moistureB, density = barkDensity),
+             cpB = cp(Material = Material, temp = tempB, moist = moistureB),
+             kB = k(Material = Material, temp = tempB, moist = moistureB, density = barkDensity),
              # Conduction from above and below, less latent heat of evaporation
              fBD = ((Area * kB * (tempA - tempB)) / step),
              fBU = ((Area * kC * (tempC - tempB)) / step),
@@ -490,8 +492,8 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
              drainC = ifelse(tempC>99,
                              ifelse(moistureC>0,mWaterC*2256400,0),0),
              #Thermal values - (cp: J/kg/deg, k: W/m/deg)
-             cpC = frame::cp(Material = Material, temp = tempC, moist = moistureC),
-             kC = frame::k(Material = Material, temp = tempC, moist = moistureC, density = barkDensity),
+             cpC = cp(Material = Material, temp = tempC, moist = moistureC),
+             kC = k(Material = Material, temp = tempC, moist = moistureC, density = barkDensity),
              # Conduction from above and below, less latent heat of evaporation
              fCD = ((Area * kC * (tempB - tempC)) / step),
              fCU = ((Area * kC * (tempD - tempC)) / step),
@@ -509,8 +511,8 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
              drainD = ifelse(tempD>99,
                              ifelse(moistureD>0,mWaterD*2256400,0),0),
              #Thermal values - (cp: J/kg/deg, k: W/m/deg)
-             cpD = frame::cp(Material = Material, temp = tempD, moist = moistureD),
-             kD = frame::k(Material = Material, temp = tempD, moist = moistureD, density = barkDensity),
+             cpD = cp(Material = Material, temp = tempD, moist = moistureD),
+             kD = k(Material = Material, temp = tempD, moist = moistureD, density = barkDensity),
              # Conduction from above and below, less latent heat of evaporation
              fDD = ((Area * kD * (tempC - tempD)) / step),
              fDU = ((Area * kD * (tempE - tempD)) / step),
@@ -528,8 +530,8 @@ hollow <- function(Surf, Plant, Height = 1, woodDensity = 700, barkDensity = 500
              drainE = ifelse(tempE>99,
                              ifelse(moistureE>0,mWaterE*2256400,0),0),
              #Thermal values - (cp: J/g/deg, k: W/m/deg)
-             cpE = frame::cp(temp = tempE, moist = moistureE),
-             kE = frame::k(temp = tempE, moist = moistureE, density = barkDensity),
+             cpE = cp(temp = tempE, moist = moistureE),
+             kE = k(temp = tempE, moist = moistureE, density = barkDensity),
              # Conduction from above and below, less latent heat of evaporation. Below unknown.
              fED = ((Area * kE * (tempD - tempE)) / wood),
              fEU = 0,

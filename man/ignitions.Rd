@@ -2,7 +2,7 @@
 % Please edit documentation in R/Risk.R
 \name{ignitions}
 \alias{ignitions}
-\title{Finds randomised lightning ignition time and location}
+\title{ignitions}
 \usage{
 ignitions(weather, smoulder = 24, Extinction = 0.15)
 }

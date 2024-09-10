@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{pTop}
 \alias{pTop}
-\title{Predicts plant top height at a given age}
+\title{pTop}
 \usage{
 pTop(mods, sp, Age = 10)
 }
@@ -17,5 +17,7 @@ pTop(mods, sp, Age = 10)
 value
 }
 \description{
+Predicts plant top height at a given age
+
 Selects model from tabled models per species
 }

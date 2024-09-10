@@ -2,7 +2,7 @@
 % Please edit documentation in R/Risk.R
 \name{burnPrint}
 \alias{burnPrint}
-\title{Finds the area burned and effects of a fire}
+\title{burnPrint}
 \usage{
 burnPrint(
   Flora,
@@ -82,79 +82,79 @@ nsR, eR, mR, cR. Species richness (number of species) in each stratum}
 
 \item{a}{A unique identifier for the record being run}
 
-\item{weather}{}
+\item{weather}{Formatted weather dataset}
 
-\item{smoulder}{}
+\item{smoulder}{Time for which an ignition may smoulder (hours)}
 
-\item{Extinction}{}
+\item{Extinction}{Extinction litter moisture content (Percent ODW)}
 
-\item{hourStep}{}
+\item{hourStep}{Number of hours for which to model}
 
-\item{tArea}{}
+\item{tArea}{Area of the fire (ha)}
 
-\item{slopeM}{}
+\item{slopeM}{Mean slope}
 
-\item{slopeSD}{}
+\item{slopeSD}{Slope standard deviation}
 
-\item{slopeLength}{}
+\item{slopeLength}{Distance from ridgeline to river}
 
-\item{rangeDir}{}
+\item{rangeDir}{Wind direction in relation to slope exposure: Up sun slope = 1, cross slope = 0, down sun slope = -1}
 
-\item{mRiver}{}
+\item{mRiver}{Likelihood of encountering a medium river}
 
-\item{lRiver}{}
+\item{lRiver}{Likelihood of encountering a large river}
 
-\item{l}{}
+\item{l}{Variability in leaf thickness}
 
-\item{Ms}{}
+\item{Ms}{Standard deviation of leaf moisture content}
 
-\item{Pm}{}
+\item{Pm}{Leaf moisture multiplier}
 
-\item{Mr}{}
+\item{Mr}{Leaf moisture range}
 
-\item{Test}{}
+\item{Test}{Temperature at which to test for scorching (C)}
 
-\item{sensitive}{}
+\item{sensitive}{Sensitivity of plants to scorching}
 
-\item{fireN}{}
+\item{fireN}{Number of fires}
 
-\item{girdleH}{}
+\item{girdleH}{Height at which to test for girdling}
 
-\item{woodDensity}{}
+\item{woodDensity}{Density of wood (kg/m^3)}
 
-\item{phloem}{}
+\item{phloem}{Thickness of phloem (m)}
 
-\item{moisture}{}
+\item{moisture}{Moisture content of wood}
 
-\item{barkDensity}{}
+\item{barkDensity}{Density of bark (kg/m^3)}
 
-\item{bark}{}
+\item{bark}{Bark thickness (m)}
 
-\item{comBark}{}
+\item{comBark}{Temperature of burning bark (C)}
 
-\item{resBark}{}
+\item{resBark}{Flame residence time on bark (s)}
 
-\item{bMoisture}{}
+\item{bMoisture}{Moisture content of bark}
 
 \item{vAir500}{Multiplier for wind speed at 500hPa}
 
-\item{distance}{}
+\item{distance}{Distance between tree and flame start (m)}
 
-\item{trail}{}
+\item{trail}{Modelling time after flame has passed (s)}
 
-\item{var}{}
+\item{var}{Variability in flame angle}
 
-\item{Altitude}{}
+\item{Altitude}{Altitude of the site (m)}
 
-\item{necT}{}
+\item{necT}{Temperature at which wood necrosis occurs (C)}
 
-\item{surfDecl}{}
+\item{surfDecl}{Decline in surface temperature with height (C/m)}
 
 \item{minR}{Minimum ROS (m/h)}
 
-\item{targSp}{}
+\item{targSp}{Target species for scorching}
 
-\item{testN}{}
+\item{testN}{Number of test runs}
 }
 \value{
 list

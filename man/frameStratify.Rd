@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{frameStratify}
 \alias{frameStratify}
-\title{Arranges survey data into strata using k-means clustering}
+\title{frameStratify}
 \usage{
 frameStratify(veg, mStrat = 4, sepSig = 0.001)
 }
@@ -18,10 +18,11 @@ veg, pN, spName, base, top, he, ht, wid, Site, sN}
 Dataframe
 }
 \description{
+Arranges survey data into strata using k-means clustering
+
 Data are stratified into 2-4 strata, then the largest number of strata 
 are chosen where p<0.01. If none qualify, then the most significant
 division is chosen.
-}
-\details{
+
 Strata are sorted by top height and appended to the original data
 }

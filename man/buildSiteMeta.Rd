@@ -2,8 +2,7 @@
 % Please edit documentation in R/Building.R
 \name{buildSiteMeta}
 \alias{buildSiteMeta}
-\title{Builds the dataframe site.meta from input tables
-Building from MEE inputs requires function siteBuilder}
+\title{buildSiteMeta}
 \usage{
 buildSiteMeta(
   Structure,

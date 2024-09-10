@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{baseDyn}
 \alias{baseDyn}
-\title{Builds models for top-base height allometry dynamics of surveyed Species}
+\title{baseDyn}
 \usage{
 baseDyn(
   dat,
@@ -20,6 +20,14 @@ baseDyn(
 \arguments{
 \item{dat}{The dataframe containing the input data,}
 
+\item{base}{Name of the base height field}
+
+\item{top}{Name of the top height field}
+
+\item{he}{Name of the lower edge height (he) field}
+
+\item{ht}{Name of the upper edge height (ht) field}
+
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
 \item{pnts}{The number of points measured in a transect}
@@ -35,11 +43,12 @@ beyond the observed mean + standard deviation}
 dataframe
 }
 \description{
+Builds models for top-base height allometry dynamics of surveyed Species
+
 Input table requires the following fields:
 Point - numbered point in a transect
 Species - name of the surveyed Species
 Age - age of the site since the triggering disturbance
-}
-\details{
+
 Species that are less common than the set threshold are combined as "Minor Species"
 }

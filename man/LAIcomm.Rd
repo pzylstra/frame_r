@@ -2,12 +2,12 @@
 % Please edit documentation in R/Flora.R
 \name{LAIcomm}
 \alias{LAIcomm}
-\title{Calculates LAI for a horizontal slice of a plant community}
+\title{LAIcomm}
 \usage{
 LAIcomm(base.params, yu = 100, yl = 0)
 }
 \arguments{
-\item{base.params}{}
+\item{base.params}{Parameter input file}
 
 \item{yu}{Top of slice (m)}
 

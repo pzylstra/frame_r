@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{specCover}
 \alias{specCover}
-\title{Finds percent cover of surveyed Species and groups minor Species}
+\title{specCover}
 \usage{
 specCover(dat, thres = 5, pnts = 10)
 }
@@ -17,11 +17,12 @@ specCover(dat, thres = 5, pnts = 10)
 dataframe
 }
 \description{
+Finds percent cover of surveyed Species and groups minor Species
+
 Input table requires the following fields:
 Point - numbered point in a transect
 Species - name of the surveyed Species
 Age - age of the site since the triggering disturbance
-}
-\details{
+
 Species that are less common than the set threshold are combined as "Minor Species"
 }

@@ -1,4 +1,5 @@
-#' Calculates ignition temperature from proportion of silica free ash.
+#' @title Ignition Temperature from Proportion of Silica Free Ash
+#' @description Calculates ignition temperature from proportion of silica free ash.
 #' 
 #' @param prop Value(s) in the interval (0, 1] for the proportion of 
 #'   silica free ash, 

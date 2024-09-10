@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{ctrlDiversity}
 \alias{ctrlDiversity}
-\title{Removes leaf trait diversity}
+\title{ctrlDiversity}
 \usage{
 ctrlDiversity(default.species.params)
 }
@@ -13,5 +13,7 @@ ctrlDiversity(default.species.params)
 dataframe
 }
 \description{
+Removes leaf trait diversity
+
 Initially pulls out species names "suspNS" and "Log"
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{buildFlora}
 \alias{buildFlora}
-\title{Constructs the table F_flora from formatted survey data}
+\title{buildFlora}
 \usage{
 buildFlora(veg, surf = 20, sepSig = 0.001)
 }
@@ -12,7 +12,7 @@ veg, pN, spName, base, top, he, ht, wid, Site, sN}
 
 \item{surf}{Weight of surface litter in t/ha}
 
-\item{sepSig}{}
+\item{sepSig}{Significance at which to recognise separate strata}
 }
 \value{
 dataframe

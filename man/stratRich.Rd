@@ -2,8 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{stratRich}
 \alias{stratRich}
-\title{Calculates the range, mean and sd of 
-species richness in each plant stratum}
+\title{stratRich}
 \usage{
 stratRich(dat, thres = 5, pnts = 10)
 }
@@ -13,28 +12,18 @@ stratRich(dat, thres = 5, pnts = 10)
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
 \item{pnts}{The number of points measured in a transect}
-
-\item{pN}{The number of the point in the transect}
-
-\item{spName}{Name of the field with the species name}
-
-\item{base}{Name of the field with the base height}
-
-\item{top}{Name of the field with the top height}
-
-\item{he}{Name of the field with dimension he}
-
-\item{ht}{Name of the field with dimension ht}
 }
 \value{
 dataframe
 }
 \description{
+Calculates the range, mean and sd of 
+species richness in each plant stratum
+
 Input table requires the following fields:
 Point - numbered point in a transect
 A field with the base height of the plants
 A field with the top height of the plants
-}
-\details{
+
 Species that are less common than the set threshold are combined as "Minor Species"
 }

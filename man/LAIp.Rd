@@ -2,12 +2,12 @@
 % Please edit documentation in R/Flora.R
 \name{LAIp}
 \alias{LAIp}
-\title{Calculates LAI for a slice of a plant}
+\title{LAIp}
 \usage{
 LAIp(base.params, sp = 1, yu = 100, yl = 0)
 }
 \arguments{
-\item{base.params}{}
+\item{base.params}{Parameter input file}
 
 \item{sp}{Number of the species}
 

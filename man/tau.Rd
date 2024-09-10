@@ -2,20 +2,22 @@
 % Please edit documentation in R/Threat.R
 \name{tau}
 \alias{tau}
-\title{Atmospheric attenuation}
+\title{tau}
 \usage{
 tau(D = 200, flameTemp = 1300, temperature = 288, rh = 0.51)
 }
 \arguments{
-\item{D}{}
+\item{D}{Horizontal distance from the flame origin to the point (m)}
 
-\item{flameTemp}{}
+\item{flameTemp}{Flame temperature}
 
-\item{temperature}{}
+\item{temperature}{Air temperature}
 
-\item{rh}{}
+\item{rh}{Relative humidity}
 }
 \description{
+Atmospheric attenuation
+
 Calculates the atmospheric transmissivity of radiation as used
 in AS3959 for bushfire risk assessment of built structures. Equations from
 Fuss & Hamins

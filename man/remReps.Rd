@@ -2,7 +2,7 @@
 % Please edit documentation in R/Building.R
 \name{remReps}
 \alias{remReps}
-\title{Removes replicates in a formatted trait table}
+\title{remReps}
 \usage{
 remReps(traits, printReplicates = TRUE)
 }

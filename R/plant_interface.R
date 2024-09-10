@@ -1,66 +1,5 @@
-#' Creates an 'F_structure' table for FRaME from plant modelling
-#' Discontinued
-#'
-#' @param dat The output from stratify_community
-#' @param age Years since disturbance
-#' @param rec Number of the record
-#'
-#'
-
-buildStructurePP <- function(dat, age, rec = 1) {
-  # Summarise strata
-  datW <- dat %>%
-    group_by(Stratum) %>%
-    summarise_if(is.numeric, mean) %>%
-    select(Stratum, w)
-  strata <- dat %>%
-    group_by(Stratum) %>%
-    summarise_if(is.numeric, sum) %>%
-    mutate(di = sqrt(2/d),
-           cr = sqrt(1/d),
-           sep = (di+cr)/2) %>%
-    select(Stratum, sep)
-  strata <- left_join(strata, datW) %>%
-    mutate(sep = pmax(sep,w)) %>%
-    select(Stratum, sep)
-  
-  # Create structure table
-  struct <- data.frame(matrix(ncol = 15, nrow = 1))
-  colnames(struct) <- c("record", "site", "NS", "El", "Mid", "Can", "ns_e", "ns_m", "e_m", "e_c", "m_c", "nsR", "eR", "mR", "cR")
-  struct$record <- rec
-  struct$site <- age
-  struct$NS <- signif(strata$sep[1],digits = 3)
-  ns <- filter(dat, dat$Stratum == 1)
-  struct$nsR <- length(unique(ns$species))
-  if (nrow(strata) == 4) {
-    E <- filter(dat, dat$Stratum == 2)
-    struct$eR <- length(unique(E$species))
-    struct$El <- signif(strata$sep[2],digits = 3)
-    M <- filter(dat, dat$Stratum == 3)
-    struct$mR <- length(unique(M$species))
-    struct$Mid <- signif(strata$sep[3],digits = 3)
-    C <- filter(dat, dat$Stratum == 4)
-    struct$cR <- length(unique(C$species))
-    struct$Can <- signif(strata$sep[4],digits = 3)
-    
-  } else if (nrow(strata) == 3) {
-    E <- filter(dat, dat$Stratum == 2)
-    struct$eR <- length(unique(E$species))
-    struct$El <- signif(strata$sep[2],digits = 3)
-    C <- filter(dat, dat$Stratum == 3)
-    struct$cR <- length(unique(C$species))
-    struct$Can <- signif(strata$sep[3],digits = 3)
-  } else {
-    C <- filter(dat, dat$Stratum == 2)
-    struct$cR <- length(unique(C$species))
-    struct$Can <- signif(strata$sep[2],digits = 3)
-  }
-  return(struct)
-}
-
-
-
-#' Creates an 'F_structure' table for FRaME from plant modelling
+#' @title buildStructureP
+#' @description Creates an 'F_structure' table for FRaME from plant modelling
 #'
 #' @param dat The output from stratify_community
 #' @param age Years since disturbance
@@ -132,7 +71,8 @@ buildStructureP <- function(dat, age, rec = 1) {
 }
 
 
-#' Creates an 'F_flora' table for FRaME from plant modelling
+#' @title buildFloraP
+#' @description Creates an 'F_flora' table for FRaME from plant modelling
 #'
 #' @param comm The output from stratify_community
 #' @param tr An optional table of input traits
@@ -218,7 +158,8 @@ buildFloraP <- function(comm, tr, age, rec = 1, moist = 1, sLitter = 15, diamete
 }
 
 
-#' Creates traits table for FRaME from plant modelling
+#' @title buildTraitsP
+#' @description Creates traits table for FRaME from plant modelling
 #' 
 #' Leaf dimensions default to ausTraits mean leaf size
 #'
@@ -281,7 +222,8 @@ buildTraitsP <- function(comm, propDead = 0, leafForm = "Flat", lwRat = 3, leafA
 }
 
 
-#' Creates traits table for FRaME from plant modelling
+#' @title collectTraitsP
+#' @description Creates traits table for FRaME from plant modelling
 #' 
 #' Reads traits from an input table
 #'
@@ -369,7 +311,8 @@ collectTraitsP <- function(comm, tr,
 }
 
 
-#' Constructs parameter files for FRaME using 
+#' @title frameTables
+#' @description Constructs parameter files for FRaME using 
 #' outputs from plant
 #'
 #' @param dat The results of run_scm_collect
@@ -390,6 +333,10 @@ collectTraitsP <- function(comm, tr,
 #' @param lwRat Ratio of leaf length to width
 #' @param ram Stem ramification
 #' @param hw Environmental difference in plant height: width ratio
+#' @param propSamp Values closer to 0 have more accurate ratios of components but miss some cohorts
+#' @param transects More transects ensure more cohorts
+#' @param sepSig Significance test for separation of strata
+#' @param minCov Minimum cover for a species to be included
 #'
 #' @export
 #'
@@ -409,7 +356,8 @@ frameTables <- function(dat, tr, age, propSamp = 0.75, transects = 10, sepSig = 
   return(list(Flora, Structure, Traits))
 }
 
-#' Updates species names from an optional table
+#' @title updateSpecies
+#' @description Updates species names from an optional table
 #'
 #' @param comm The output from stratify_community
 #' @param tr An optional table of input traits
@@ -425,7 +373,8 @@ updateSpecies <- function(comm, tr){
 }
 
 
-#' Constructs an age sequence of parameter files 
+#' @title frameDynTab
+#' @description Constructs an age sequence of parameter files 
 #' built from plant modelling
 #' 
 #'
@@ -450,7 +399,8 @@ updateSpecies <- function(comm, tr){
 #' @param mat Mean annual temperature (deg C)
 #' @param propSamp Values closer to 0 have more accurate ratios of components but miss some cohorts
 #' @param transects More transects ensure more cohorts 
-#' @param sepSig 
+#' @param sepSig Significance test for separation of strata
+#' @param minCov Minimum cover for a species to be included
 #'
 #' @export
 
@@ -480,7 +430,7 @@ frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), pr
   rate <- 0.12775*exp(0.109*mat)
   rec <- 1
   for (age in steps) {
-    sLitter <- frame::litter(negEx = 1, max, rate, a = 1, b = 1, age)
+    sLitter <- litter(negEx = 1, max, rate, a = 1, b = 1, age)
     tabs <- frameTables(dat, tr, age, propSamp, transects, sepSig, rec, propDead, leafForm, lwRat, leafA, ram,
                         ignitionTemp, moist, G.C_rat, C.C_rat, deltaL, hw, sLitter, diameter, minCov = minCov)
     Flora <- rbind(Flora,tabs[[1]])
@@ -498,30 +448,32 @@ frameDynTab <- function(dat, tr, breaks = c(20,50,200), interval = c(2,5,10), pr
 
 
 
-#' Models fire behaviour across a range of ages
+#' @title firePlant
+#' @description Models fire behaviour across a range of ages
 #' from plant modelling
 #'
-#' @param db.path 
-#' @param reps 
-#' @param slope 
-#' @param slopeSD 
-#' @param slopeRange 
-#' @param temp 
-#' @param tempSD 
-#' @param tempRange 
-#' @param DFMC 
-#' @param DFMCSD 
-#' @param DFMCRange 
-#' @param wind 
-#' @param windSD 
-#' @param windRange 
-#' @param moistureMultiplier 
-#' @param moistureSD 
-#' @param moistureRange 
+#' @param db.path Pathway to the database storing model results
+#' @param reps Number of runs per age
+#' @param slope Slope of the site (degrees)
+#' @param slopeSD Standard deviation of slope
+#' @param slopeRange Range of slope
+#' @param temp Temperature of the site (degrees C)
+#' @param tempSD Standard deviation of temperature
+#' @param tempRange Range of temperature
+#' @param DFMC Dead fuel moisture content (Proportion ODW)
+#' @param DFMCSD Standard deviation of DFMC
+#' @param DFMCRange Range of DFMC
+#' @param wind Wind speed (kph)
+#' @param windSD Standard deviation of wind speed
+#' @param windRange Range of wind speed
+#' @param moistureMultiplier Multiplies leaf moisture
+#' @param moistureSD Standard deviation of leaf moisture
+#' @param moistureRange Range of leaf moisture
 #' @param fLine Length of the active fire front (m)
-#' @param leafVar 
-#' @param updateProgress 
+#' @param leafVar Variability in leaf thickness
+#' @param updateProgress Function to update progress
 #' @param dat The results of frameDynTab
+#' @param vAir500 Wind speed at 500m (kph)
 #'
 #' @export
 
@@ -545,7 +497,7 @@ firePlant <- function(dat, db.path = "out.plant.db", reps = 5,
     cat("Modelling age", Ages[n], "\n")
     f <- filter(Flora, record == n)
     s <- filter(Structure, record == n)
-    base.params <- suppressWarnings(frame::buildParams(Structure = s, Flora = f, default.species.params, a = n,
+    base.params <- suppressWarnings(buildParams(Structure = s, Flora = f, default.species.params, a = n,
                                                        fLine = fLine, slope = slope, temp = temp, dfmc = DFMC, wind = wind))
     
     Strata <- strata(base.params)
@@ -570,14 +522,14 @@ firePlant <- function(dat, db.path = "out.plant.db", reps = 5,
     
     #SUMMARISE BEHAVIOUR
     res<-ffm_db_load(db.path)
-    runs <- suppressMessages(frame::frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)%>%
+    runs <- suppressMessages(frameSummary(res$FlameSummaries, res$Sites, res$ROS, res$SurfaceResults)%>%
                                mutate(site = f$site[1],
                                       FPC = FPC,
                                       Spotting = spotFire(flameHeight = fh, slope = slope_degrees, FPC, windExposure = 1, vAir = wind_kph, vAir500, fireArea = ros_kph*(fLine/1000)),
                                       fReach = max(lengthPlant * cos(flameAngle), lengthSurface * cos(angleSurface), Spotting)))
-    IP <- frame::repFlame(res$IgnitionPaths) %>%
+    IP <- repFlame(res$IgnitionPaths) %>%
       mutate(site = f$site[1])
-    scorch <- suppressMessages(frame::flora(runs, IP, Param = base.params, Test = 80)) %>%
+    scorch <- suppressMessages(flora(runs, IP, Param = base.params, Test = 80)) %>%
       select(!wind_kph)
     outa <- suppressMessages(left_join(runs,scorch, by = "repId") )
     RUNS <- rbind(RUNS, outa)

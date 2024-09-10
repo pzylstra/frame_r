@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{floraDynamics}
 \alias{floraDynamics}
-\title{Builds the plant growth table used in dynamic modelling}
+\title{floraDynamics}
 \usage{
 floraDynamics(
   dat,
@@ -33,9 +33,9 @@ floraDynamics(
 
 \item{p}{The maximum allowable p value for a model}
 
-\item{bTest}{}
+\item{bTest}{Multiples of mean + mRSE for which Burr & quadratic models can predict}
 
-\item{cTest}{}
+\item{cTest}{Multiples of mean + mRSE for which cover models can predict}
 
 \item{maxiter}{The maximum number of iterations for model fitting}
 
@@ -43,30 +43,31 @@ floraDynamics(
 
 \item{Sk}{Asymptote for surface litter in a negative exponential curve}
 
-\item{Sa}{}
+\item{Sa}{Parameter for quadratic modelling of surface litter weight}
 
-\item{Sb}{}
+\item{Sb}{Parameter for quadratic modelling of surface litter weight}
 
-\item{Sc}{}
+\item{Sc}{Parameter for quadratic modelling of surface litter weight}
 
 \item{NSr}{Rate of increase for NS fuels in a negative exponential curve}
 
 \item{NSk}{Asymptote for NS fuels in a negative exponential curve}
 
-\item{NSa}{}
+\item{NSa}{Parameter for quadratic modelling of NS fuels weight}
 
-\item{NSb}{}
+\item{NSb}{Parameter for quadratic modelling of NS fuels weight}
 
-\item{NSc}{}
+\item{NSc}{Parameter for quadratic modelling of NS fuels weight}
 }
 \value{
 dataframe
 }
 \description{
+Builds the plant growth table used in dynamic modelling
+
 Models plant growth from field data in a series of models,
 selecting the best model and providing error statistics.
-}
-\details{
+
 Input table requires the following fields:
 Point - numbered point in a transect
 Species - name of the surveyed Species

@@ -2,7 +2,7 @@
 % Please edit documentation in R/FMC.R
 \name{frameWeather}
 \alias{frameWeather}
-\title{Formats hourly weather data for frame, with DFMC}
+\title{frameWeather}
 \usage{
 frameWeather(
   clim,
@@ -78,5 +78,7 @@ Rain (Daily rainfall, mm)}
 \item{EPS}{Sensitivity of iteration}
 }
 \description{
+Formats hourly weather data for frame, with DFMC
+
 Function uses the 'Single differential equation model' of Matthews et al (2010)
 }

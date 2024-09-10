@@ -2,7 +2,7 @@
 % Please edit documentation in R/plant_interface.R
 \name{buildTraitsP}
 \alias{buildTraitsP}
-\title{Creates traits table for FRaME from plant modelling}
+\title{buildTraitsP}
 \usage{
 buildTraitsP(
   comm,
@@ -42,5 +42,7 @@ buildTraitsP(
 \item{deltaL}{Leaf density (g/cm3)}
 }
 \description{
+Creates traits table for FRaME from plant modelling
+
 Leaf dimensions default to ausTraits mean leaf size
 }

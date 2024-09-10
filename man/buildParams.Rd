@@ -2,7 +2,7 @@
 % Please edit documentation in R/Building.R
 \name{buildParams}
 \alias{buildParams}
-\title{Constructs parameter files from imported tables}
+\title{buildParams}
 \usage{
 buildParams(
   Structure,
@@ -48,7 +48,7 @@ diameter - mean diameter of surface and suspNS litter in m}
 
 \item{default.species.params}{Plant traits database}
 
-\item{a}{The record number for which to build the table}
+\item{a}{The number of the record for the site}
 
 \item{fLine}{The fireline length in m}
 

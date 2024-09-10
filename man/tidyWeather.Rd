@@ -2,12 +2,24 @@
 % Please edit documentation in R/FMC.R
 \name{tidyWeather}
 \alias{tidyWeather}
-\title{Helper function for frameWeather}
+\title{tidyWeather}
 \usage{
 tidyWeather(clim)
 }
 \arguments{
-\item{clim}{}
+\item{clim}{A dataset with the fields:
+tAM (9am temp, degC)
+tPM (3pm temp, degC)
+tMin (Minimum daily temp, degC)
+tMax (Maximum daily temp, degC)
+rhAM (9am Relative humidity, percent)
+rhPM (3pm Relative humidity, percent)
+wAM (9am wind, km/h)
+wPM (3pm wind, km/h)
+cAM (Morning cloud, oktas)
+cPM (Afternoon cloud, oktas)
+MSLP (Mean Sea Level Pressure, hPa)
+Rain (Daily rainfall, mm)}
 }
 \description{
 Helper function for frameWeather

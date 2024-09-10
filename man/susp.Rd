@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{susp}
 \alias{susp}
-\title{Finds the height of near-surface litter}
+\title{susp}
 \usage{
 susp(
   default.species.params,
@@ -20,7 +20,7 @@ susp(
 \arguments{
 \item{default.species.params}{Plant traits database}
 
-\item{density}{Wood density (kg.m-3)}
+\item{density}{Wood density (kg per cubic metre)}
 
 \item{cover}{Percent cover of suspended layer}
 
@@ -37,8 +37,6 @@ susp(
 \item{rateNS}{Rate for negative exponential increase in NS}
 
 \item{dec}{Logical - TRUE allows for quadratic model to decline as vegetation thins,}
-
-\item{wNS}{Width of NS patches (m)}
 }
 \value{
 List

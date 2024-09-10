@@ -12,16 +12,21 @@
 #' of Java version 1.8 (aka Java 8) or higher on the host system.
 #'
 #' @references
+#' Zylstra, P. J. (2011) Forest flammability: modelling and managing a complex system. 
+#' PhD Thesis, (University of NSW). doi:10.13140/2.1.3722.0166
+#' 
 #' Zylstra, P. J., Bradstock, R. A., Bedward, M., Penman, T. D., Doherty, M. D., 
 #' Weber, R. O., … Cary, G. J. (2016). Biophysical mechanistic modelling quantifies 
 #' the effects of plant traits on fire severity: species, not surface fuel loads 
 #' determine flame dimensions in eucalypt forests. PLoS One, 11(8), e0160715. 
-#' doi:10.1371/journal.pone.0160715
 #' 
-#' Zylstra P. J. (2020) Linking fire behaviour and its ecological effects to 
-#' plant traits, using FRaME in R. Methods Ecol. Evol., In Review
+#' Zylstra P. J. (2021) Linking fire behaviour and its ecological effects to 
+#' plant traits, using FRaME in R. Methods Ecol. Evol., 12(8), 1365-1378
+#' 
+#' Zylstra, P. J. (2023) Quantifying the direct fire threat to a critically endangered 
+#' arboreal marsupial using biophysical, mechanistic modelling. Austral Ecol. 48, 266–288.
 #'
-#' @docType package
+#' @docType _PACKAGE
 #' @name frame
 #'
 NULL

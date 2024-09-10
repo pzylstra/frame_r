@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{richS}
 \alias{richS}
-\title{Finds the distribution of species richness per stratum}
+\title{richS}
 \usage{
 richS(dat, thres = 0, pnts = 10, sepSig = 0.001)
 }
@@ -20,5 +20,7 @@ veg, pN, spName, base, top, he, ht, wid, Site, sN}
 dataframe
 }
 \description{
+Finds the distribution of species richness per stratum
+
 Species that are less common than the set threshold are combined as "Minor Species"
 }

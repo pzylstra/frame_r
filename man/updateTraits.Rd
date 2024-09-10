@@ -2,7 +2,7 @@
 % Please edit documentation in R/Building.R
 \name{updateTraits}
 \alias{updateTraits}
-\title{Checks traits table for column names and adds data from a new table}
+\title{updateTraits}
 \usage{
 updateTraits(
   traits,
@@ -19,6 +19,8 @@ updateTraits(
 
 \item{deleteReplicates}{If set to TRUE, retains the first mention of a species, then removes all following mentions}
 
+\item{printReplicates}{If set to TRUE, prints the names of species that are repeated in the new table}
+
 \item{fill}{If set to TRUE, fills empty numeric values with mean values of the genus}
 }
 \value{
@@ -26,10 +28,4 @@ table
 }
 \description{
 Checks traits table for column names and adds data from a new table
-}
-\examples{
-Traits <- ausTraitTable(version = "3.0.2", path = "data/austraits")
-TraitsNew <- read.csv("Traits.csv")
-Tr <- updateTraits(traits = Traits, traitsNew = TraitsNew, deleteReplicates = TRUE, fill = TRUE)
-
 }

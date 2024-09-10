@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{pHe}
 \alias{pHe}
-\title{Predicts plant He at a given age}
+\title{pHe}
 \usage{
 pHe(mods, sp, Age = 10)
 }
@@ -17,5 +17,7 @@ pHe(mods, sp, Age = 10)
 value
 }
 \description{
+Predicts plant He at a given age
+
 Selects model from tabled models per species
 }

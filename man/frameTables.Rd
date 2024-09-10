@@ -2,8 +2,7 @@
 % Please edit documentation in R/plant_interface.R
 \name{frameTables}
 \alias{frameTables}
-\title{Constructs parameter files for FRaME using 
-outputs from plant}
+\title{frameTables}
 \usage{
 frameTables(
   dat,
@@ -36,6 +35,12 @@ frameTables(
 
 \item{age}{Years since disturbance}
 
+\item{propSamp}{Values closer to 0 have more accurate ratios of components but miss some cohorts}
+
+\item{transects}{More transects ensure more cohorts}
+
+\item{sepSig}{Significance test for separation of strata}
+
 \item{rec}{Number of the record}
 
 \item{propDead}{Proportion of foliage dead}
@@ -63,6 +68,8 @@ frameTables(
 \item{sLitter}{Weight of surface litter (t/ha)}
 
 \item{diameter}{Mean diameter of surface litter pieces (m)}
+
+\item{minCov}{Minimum cover for a species to be included}
 }
 \description{
 Constructs parameter files for FRaME using 

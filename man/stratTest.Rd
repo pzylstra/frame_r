@@ -2,12 +2,12 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{stratTest}
 \alias{stratTest}
-\title{Stratum test}
+\title{stratTest}
 \usage{
 stratTest(clust)
 }
 \arguments{
-\item{clust}{}
+\item{clust}{A dataframe with columns for cluster, base, top, he, ht}
 }
 \description{
 Stratum test

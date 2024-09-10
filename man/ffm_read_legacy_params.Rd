@@ -2,7 +2,7 @@
 % Please edit documentation in R/readLegacyParamFile.R
 \name{ffm_read_legacy_params}
 \alias{ffm_read_legacy_params}
-\title{Reads a legacy format parameters file}
+\title{ffm_read_legacy_params}
 \usage{
 ffm_read_legacy_params(path, raw = FALSE)
 }
@@ -27,13 +27,4 @@ implementation of the model. It does not conform to any more general format
 about the relationship between variables. For new parameter sets it is
 preferable to compose them as tables in R or elsewhere and save them as
 CSV-format files.
-}
-\examples{
-\dontrun{
-# Import a legacy format parameter file and save it as a CSV format file
-# in standard tabular parameter format.
-params <- ffm_read_legacy_params("old_params.txt")
-ffm_write_params(params, file = "beautiful_params.csv")
-}
-
 }

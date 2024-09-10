@@ -2,7 +2,7 @@
 % Please edit documentation in R/Risk.R
 \name{parRisk}
 \alias{parRisk}
-\title{Internal function for riskDynamics}
+\title{parRisk}
 \usage{
 parRisk(a)
 }

@@ -2,8 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{pseudoTransect}
 \alias{pseudoTransect}
-\title{Creates a dataset of plants with expected size and cover
-randomly varied within natural ranges}
+\title{pseudoTransect}
 \usage{
 pseudoTransect(
   Dynamics,

@@ -2,8 +2,7 @@
 % Please edit documentation in R/Building.R
 \name{buildStrataMeta}
 \alias{buildStrataMeta}
-\title{Builds the dataframe strata.meta from input tables
-Compatible with MEE inputs}
+\title{buildStrataMeta}
 \usage{
 buildStrataMeta(Structure, a)
 }

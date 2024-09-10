@@ -1,6 +1,6 @@
-#' Reads a legacy format parameters file
+#' @title ffm_read_legacy_params
 #' 
-#' The legacy parameters file format was designed for use with a C++
+#' @description The legacy parameters file format was designed for use with a C++
 #' implementation of the model. It does not conform to any more general format
 #' (e.g. json or yaml) and, to be read correctly, relies on implicit assumptions
 #' about the relationship between variables. For new parameter sets it is
@@ -19,13 +19,6 @@
 #'   If \code{raw} is \code{FALSE} (the default), a data frame in a form 
 #'   suitable for use with \code{\link{ffm_run}}.
 #'   
-#' @examples 
-#' \dontrun{
-#' # Import a legacy format parameter file and save it as a CSV format file
-#' # in standard tabular parameter format.
-#' params <- ffm_read_legacy_params("old_params.txt")
-#' ffm_write_params(params, file = "beautiful_params.csv")
-#' }
 #'
 #' @importFrom dplyr %>%
 #'
@@ -56,7 +49,8 @@ ffm_read_legacy_params <- function(path, raw = FALSE) {
 }
 
 
-#' Reads a legacy format parameters file.
+#' @title readLegacyParamFile
+#' @description Reads a legacy format parameters file.
 #' 
 #' This function has been deprecated and will be removed in a future version of
 #' the package. New code should use function
@@ -73,6 +67,7 @@ ffm_read_legacy_params <- function(path, raw = FALSE) {
 #'   
 #' @export
 #'
+
 readLegacyParamFile <- function(path, raw = FALSE) {
   .Deprecated("ffm_read_legacy_params")
   
@@ -104,11 +99,14 @@ readLegacyParamFile <- function(path, raw = FALSE) {
 }
 
 
-# Parses pre-processed parameter file text
-# into a structured form.
-#
+#' @param txt A character vector of text lines.
+#'
+#' @title parse_text
+#' @description Parses pre-processed parameter file text
+#' into a structured form.
+#'
 #' @importFrom dplyr %>% group_by left_join mutate n ungroup
-#
+#'
 .parse_text <- function(txt) {
   # partition by strata
   strata <- .get_chunks(txt, "begin stratum", "end stratum", "stratum")
@@ -142,6 +140,17 @@ readLegacyParamFile <- function(path, raw = FALSE) {
   out
 }
 
+
+#' @title parse_params
+#'
+#' @param dat tbl or dbf object
+#' @param in.param.col input 1
+#' @param in.delim.col input 2
+#' @param out.name.col output 1
+#' @param out.value.col output 2
+#'
+#' @return A data frame with parsed parameters.
+#' @export
 
 .parse_params <- function(dat,
                           in.param.col = "txt", in.delim.col = "delim",

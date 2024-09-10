@@ -2,8 +2,7 @@
 % Please edit documentation in R/plant_interface.R
 \name{firePlant}
 \alias{firePlant}
-\title{Models fire behaviour across a range of ages
-from plant modelling}
+\title{firePlant}
 \usage{
 firePlant(
   dat,
@@ -33,45 +32,47 @@ firePlant(
 \arguments{
 \item{dat}{The results of frameDynTab}
 
-\item{db.path}{}
+\item{db.path}{Pathway to the database storing model results}
 
-\item{reps}{}
+\item{reps}{Number of runs per age}
 
-\item{slope}{}
+\item{slope}{Slope of the site (degrees)}
 
-\item{slopeSD}{}
+\item{slopeSD}{Standard deviation of slope}
 
-\item{slopeRange}{}
+\item{slopeRange}{Range of slope}
 
-\item{temp}{}
+\item{temp}{Temperature of the site (degrees C)}
 
-\item{tempSD}{}
+\item{tempSD}{Standard deviation of temperature}
 
-\item{tempRange}{}
+\item{tempRange}{Range of temperature}
 
-\item{DFMC}{}
+\item{DFMC}{Dead fuel moisture content (Proportion ODW)}
 
-\item{DFMCSD}{}
+\item{DFMCSD}{Standard deviation of DFMC}
 
-\item{DFMCRange}{}
+\item{DFMCRange}{Range of DFMC}
 
-\item{wind}{}
+\item{wind}{Wind speed (kph)}
 
-\item{windSD}{}
+\item{windSD}{Standard deviation of wind speed}
 
-\item{windRange}{}
+\item{windRange}{Range of wind speed}
 
-\item{moistureMultiplier}{}
+\item{vAir500}{Wind speed at 500m (kph)}
 
-\item{moistureSD}{}
+\item{moistureMultiplier}{Multiplies leaf moisture}
 
-\item{moistureRange}{}
+\item{moistureSD}{Standard deviation of leaf moisture}
+
+\item{moistureRange}{Range of leaf moisture}
 
 \item{fLine}{Length of the active fire front (m)}
 
-\item{leafVar}{}
+\item{leafVar}{Variability in leaf thickness}
 
-\item{updateProgress}{}
+\item{updateProgress}{Function to update progress}
 }
 \description{
 Models fire behaviour across a range of ages

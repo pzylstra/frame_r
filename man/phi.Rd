@@ -2,22 +2,24 @@
 % Please edit documentation in R/Threat.R
 \name{phi}
 \alias{phi}
-\title{Configuration or view factor}
+\title{phi}
 \usage{
 phi(Fl, Fa, S, D, H)
 }
 \arguments{
-\item{Fl}{}
+\item{Fl}{Flame length (m)}
 
-\item{Fa}{}
+\item{Fa}{Flame angle (degrees)}
 
-\item{S}{}
+\item{S}{Slope angle (degrees)}
 
-\item{D}{}
+\item{D}{Horizontal distance from the flame origin to the point (m)}
 
-\item{H}{}
+\item{H}{Vertical distance from the flame origin to the point (m)}
 }
 \description{
+Configuration or view factor
+
 Calculates the configuration factor for radiative heat transfer as used
 in AS3959 for bushfire risk assessment of built structures
 }

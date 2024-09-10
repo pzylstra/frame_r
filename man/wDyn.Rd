@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{wDyn}
 \alias{wDyn}
-\title{Builds models for top-w height allometry dynamics of surveyed Species}
+\title{wDyn}
 \usage{
 wDyn(
   dat,
@@ -17,6 +17,10 @@ wDyn(
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}
+
+\item{width}{Name of the field containing the width of the tree canopy}
+
+\item{top}{Name of the field containing the height of the tree canopy}
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
@@ -33,11 +37,12 @@ beyond the observed mean + standard deviation}
 dataframe
 }
 \description{
+Builds models for top-w height allometry dynamics of surveyed Species
+
 Input table requires the following fields:
 Point - numbered point in a transect
 Species - name of the surveyed Species
 Age - age of the site since the triggering disturbance
-}
-\details{
+
 Species that are less common than the set threshold are combined as "Minor Species"
 }

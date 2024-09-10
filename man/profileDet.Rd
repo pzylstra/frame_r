@@ -2,12 +2,12 @@
 % Please edit documentation in R/Flora.R
 \name{profileDet}
 \alias{profileDet}
-\title{Calculates a vertical wind profile}
+\title{profileDet}
 \usage{
 profileDet(base.params, slices = 10)
 }
 \arguments{
-\item{base.params}{}
+\item{base.params}{Parameter input file}
 
 \item{slices}{Number of horizontal slices to use in calculation}
 }

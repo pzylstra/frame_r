@@ -12,6 +12,8 @@
 "ParamInfo"
 
 
+#' @title Flora data
+#' @description A data frame containing the flora data for the model
 #' @format a data frame with 13 columns, and a row for each species per stratum, per site
 #'\describe{
 #' \item{record}{Consecutive integer to reference the row}
@@ -34,6 +36,8 @@
 
 
 
+#'@title Site data
+#'@description A data frame containing the site data for the model
 #'@format a dataframe with 8 columns, and a row for each site
 #' \describe{
 #' \item{record}{Consecutive integer to reference the row}
@@ -52,6 +56,8 @@
 
 
 
+#'@title Structure data
+#'@description A data frame containing the structure data for the model
 #'@format a dataframe with 11 columns and 1 row for each site
 #'\describe{  
 #' \item{record}{Consecutive integer to reference the row} 
@@ -94,10 +100,12 @@
 
 
 
+#'@title Plant trait data
+#'@description A data frame containing the plant trait data for the model
 #'@format a data frame with 9 columns, and a row for each species
 #'\describe{
 #' \item{name}{The name of the species}
-#' \tem{propDead}{Proportion of the foliage that is dead}
+#' \item{propDead}{Proportion of the foliage that is dead}
 #' \item{leafForm}{Allowable values are flat or round (e.g. terete)}
 #' \item{leafThickness}{Thickness of the leaf (m)}
 #' \item{leafWidth}{Width at the widest axis of the leaf (m)}
@@ -111,7 +119,8 @@
 
 
 
-#'
+#'@title Weather data
+#'@description A data frame containing the weather data for the model
 #'@format a data frame with 4 columns and a row for each time step
 #'\describe{
 #' \item{tm}{Consecutive integer to reference the time period}
@@ -125,7 +134,8 @@
 
 
 
-#'
+#'@title Sample Tuart data
+#'@description A data frame containing sample field survey data for tuart woodland
 #'@format a data frame with 9 columns and a row for each point of measurement
 #'\describe{
 #' \item{Site}{A numeric record of the site}
@@ -146,7 +156,8 @@
 
 
 
-#'
+#'@title Tuart traits
+#'@description A data frame containing the plant trait data for tuart woodland
 #'@format a data frame with 12 columns and a row for each species
 #'\describe{
 #' \item{name}{The name of the species, consistent with other tables}
@@ -170,7 +181,8 @@
 
 
 
-#'
+#'@title Tuart weather
+#'@description A data frame containing the weather data for modelling in tuart woodland
 #'@format a data frame with 5 columns and a row for each time step
 #'\describe{
 #' \item{tm}{Consecutive integer to reference the time period}

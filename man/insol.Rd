@@ -2,7 +2,7 @@
 % Please edit documentation in R/FMC.R
 \name{insol}
 \alias{insol}
-\title{Finds solar radiation reaching the ground surface}
+\title{insol}
 \usage{
 insol(
   lat = -32,

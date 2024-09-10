@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{pWidth}
 \alias{pWidth}
-\title{Predicts plant crown width at a given age}
+\title{pWidth}
 \usage{
 pWidth(mods, sp, Age = 10)
 }
@@ -17,5 +17,7 @@ pWidth(mods, sp, Age = 10)
 value
 }
 \description{
+Predicts plant crown width at a given age
+
 Selects model from tabled models per species
 }

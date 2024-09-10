@@ -1,4 +1,5 @@
-#' Builds the dataframe site.meta from input tables
+#' @title siteBuilder
+#' @description Builds the dataframe site.meta from input tables
 #' 
 #' @param site A dataframe with the six fields:
 #' record - a unique, consecutively numbered identifier per site
@@ -68,11 +69,26 @@ siteBuilder <- function(site, Structure, a)
 
 
 
-#' Builds the dataframe strata.meta
+#' @title strataBuilder
+#' @description Builds the dataframe strata.meta
 #'
-#' @param Structure 
-#' @param Flora 
-#' @param a 
+#' @param Structure A dataframe with the fields: 
+#' #' record - a unique, consecutively numbered identifier per site 
+#' #' site - a unique identifier per site 
+#' #' NS, El, Mid & Can - the mean separation between plants (m) per stratum 
+#' #' ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum 
+#' #' on the left grow directly beneath those in the stratum on the right. Acceptable values 
+#' #' are t, f, or blank, where the outcome will be decided by the relative stratum heights. 
+#' @param Flora A dataframe with the fields: 
+#' #' record - a unique, consecutively numbered identifier per site 
+#' #' species - the name of the species, which will call trait data from 'default.species.params' 
+#' #' moisture - the moisture content of the species in whole numbers (eg 1 for 100 percent ODW) 
+#' #' stratum - numeric value from 1 to 4, counting from lowest stratum 
+#' #' comp - Percent composition of that species in the stratum. If absent, all species will be considered equally 
+#' #' hc, he, ht, hp & w - canopy dimensions for that species (m) 
+#' #' clump - mean ratio of clump diameter to crown diameter 
+#' #' openness - proportion of plant canopy occupied by gaps between clumps
+#' @param a The record number for which to build the table
 #'
 #' @return dataframe
 #'
@@ -137,11 +153,29 @@ strataBuilder <- function(Structure, Flora, a)
 
 
 
-#' Builds the dataframe species.values
+#' @title speciesBuilder
+#' @description Builds the dataframe species.values
 #'
-#' @param Flora 
-#' @param site 
-#' @param a 
+#' @param Flora A dataframe with the fields: 
+#' #' record - a unique, consecutively numbered identifier per site 
+#' #' species - the name of the species, which will call trait data from 'default.species.params' 
+#' #' moisture - the moisture content of the species in whole numbers (eg 1 for 100 percent ODW) 
+#' #' stratum - numeric value from 1 to 4, counting from lowest stratum 
+#' #' comp - Percent composition of that species in the stratum. If absent, all species will be considered equally 
+#' #' hc, he, ht, hp & w - canopy dimensions for that species (m) 
+#' #' clump - mean ratio of clump diameter to crown diameter 
+#' #' openness - proportion of plant canopy occupied by gaps between clumps
+#' @param site  A dataframe with the six fields:
+#' record - a unique, consecutively numbered identifier per site
+#' site - a unique identifier per site
+#' slope - slope in degrees
+#' wind - velocity in km/h
+#' temp - ambient temperature deg. C
+#' dfmc - moisture content of fine dead fuels in whole numbers (eg 0.1 for 10 percent)
+#' litter - weight in t/ha of fine dead organic material forming the O horizon
+#' diameter - mean diameter of surface litter in m
+#' fline - the fireline length in m
+#' @param a The record number for which to build the table
 #'
 #' @return dataframe
 
@@ -202,7 +236,8 @@ speciesBuilder <- function(Flora, site, a)
 }
 
 
-#' Formats units for parameter files
+#' @title unitBuilder
+#' @description Formats units for parameter files
 #' 
 #' @param Flora A dataframe with the fields:
 #' record - a unique, consecutively numbered identifier per site
@@ -246,7 +281,8 @@ unitBuilder <- function(Flora, a)
 
 
 
-#' Constructs parameter files from formatted datasets
+#' @title paramBuilder
+#' @description Constructs parameter files from formatted datasets
 #' 
 #' @param site A dataframe with the six fields:
 #' record - a unique, consecutively numbered identifier per site
@@ -277,13 +313,6 @@ unitBuilder <- function(Flora, a)
 #' @param default.species.params Leaf traits database
 #' @param a The record number for which to build the table
 #' @export
-#' @examples
-#' record <- 1
-#' data(site)
-#' data(structure)
-#' data(flora)
-#' data(traits)
-#' base.params <- paramBuilder(site, structure, flora, traits, record)
 
 paramBuilder <- function(site, Structure, Flora, default.species.params, a)
 {
@@ -323,7 +352,8 @@ paramBuilder <- function(site, Structure, Flora, default.species.params, a)
 }
 
 
-#' Builds the dataframe site.meta from input tables
+#' @title buildSiteMeta
+#' @description Builds the dataframe site.meta from input tables
 #' Building from MEE inputs requires function siteBuilder
 #' 
 #' @param Flora A dataframe with the fields:
@@ -410,7 +440,8 @@ buildSiteMeta <- function(Structure, Flora, a, fLine = 100, slope = 0,
 
 
 
-#' Builds the dataframe strata.meta from input tables
+#' @title buildStrataMeta
+#' @description Builds the dataframe strata.meta from input tables
 #' Compatible with MEE inputs
 #' 
 #' @param Structure A dataframe with the fields:
@@ -481,7 +512,8 @@ buildStrataMeta <- function(Structure, a)
   return(strata.meta)
 }
 
-#' Builds the dataframe species.values from input tables
+#' @title buildSpeciesValues
+#' @description Builds the dataframe species.values from input tables
 #' 
 #' Building from MEE inputs requires function speciesBuilder
 #' 
@@ -503,6 +535,7 @@ buildStrataMeta <- function(Structure, a)
 #' weight - weight in t/ha of fine dead organic material forming 
 #'    the surface and suspNS layers
 #' diameter - mean diameter of surface and suspNS litter in m
+#' @param a The number of the record for the site
 #' @param default.species.params Plant traits database
 
 buildSpeciesValues <- function(Flora, default.species.params, a)
@@ -574,7 +607,8 @@ buildSpeciesValues <- function(Flora, default.species.params, a)
   return(species.values)
 }
 
-#' Constructs parameter files from imported tables
+#' @title buildParams
+#' @description Constructs parameter files from imported tables
 #'
 #' @param Structure A dataframe with the fields:
 #' record - a unique, consecutively numbered identifier per site
@@ -610,7 +644,6 @@ buildSpeciesValues <- function(Flora, default.species.params, a)
 #' @param dfmc Moisture content of fine dead fuels in whole numbers (eg 0.1 for 10 percent)
 #' @param wind Velocity in km/h
 #' @param default.species.params Plant traits database
-#' @param a The record number for which to build the table
 #' @export
 
 buildParams <- function(Structure, Flora, default.species.params, a,
@@ -656,18 +689,19 @@ buildParams <- function(Structure, Flora, default.species.params, a,
   return(param)
 }
 
-#' Constructs a default.species.params table using traits available in the austraits database
+
+
+#' @title ausTraitTable
+#' @description Constructs a default.species.params table using traits available in the austraits database
 #' Collects traits from ausTraits for use in shade and fire effects modelling
 #'
 #' @param version Version of austraits
-#' @param path 
+#' @param path Path to austraits database
 #' @param shadeTolerance The Whole Plant Light Compensation Point below which 
 #' plants are considered shade tolerant
 #'
 #' @return list of tables
 #' @export
-#' @examples
-#' Traits <- ausTraitTable(version = "3.0.2", path = "data/austraits")
 #'
 
 ausTraitTable <- function(version = "3.0.2", path = "data/austraits", shadeTolerance = 3) {
@@ -790,19 +824,17 @@ ausTraitTable <- function(version = "3.0.2", path = "data/austraits", shadeToler
 }
 
 
-#' Checks traits table for column names and adds data from a new table
+#' @title updateTraits
+#' @description Checks traits table for column names and adds data from a new table
 #'
 #' @param traits Existing trait table
 #' @param traitsNew Table containing new trait data
 #' @param deleteReplicates If set to TRUE, retains the first mention of a species, then removes all following mentions
 #' @param fill If set to TRUE, fills empty numeric values with mean values of the genus
+#' @param printReplicates If set to TRUE, prints the names of species that are repeated in the new table
 #'
 #' @return table
 #' @export
-#' @examples 
-#' Traits <- ausTraitTable(version = "3.0.2", path = "data/austraits")
-#' TraitsNew <- read.csv("Traits.csv")
-#' Tr <- updateTraits(traits = Traits, traitsNew = TraitsNew, deleteReplicates = TRUE, fill = TRUE)
 #'
 
 updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplicates = TRUE, fill = TRUE) {
@@ -901,7 +933,8 @@ updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplic
 }
 
 
-#' Removes replicates in a formatted trait table
+#' @title remReps
+#' @description Removes replicates in a formatted trait table
 #'
 #' @param traits the table default.species.params
 #' @param printReplicates Set TRUE if names of species removed are printed

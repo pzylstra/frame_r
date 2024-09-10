@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{buildStructure}
 \alias{buildStructure}
-\title{Constructs the table F_structure from formatted survey data}
+\title{buildStructure}
 \usage{
 buildStructure(veg, overlap = 0.5, sepSig = 0.001)
 }

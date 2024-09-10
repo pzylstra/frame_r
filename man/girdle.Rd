@@ -2,7 +2,7 @@
 % Please edit documentation in R/Flora.R
 \name{girdle}
 \alias{girdle}
-\title{Finds radial bole necrosis depth, dividing bark into four steps}
+\title{Girdling}
 \usage{
 girdle(
   Surf,
@@ -78,9 +78,10 @@ girdle(
 dataframe
 }
 \description{
+Finds radial bole necrosis depth, dividing bark into four steps
+
 Depth to which the stem of a plant recieves lethal heating
-}
-\details{
+
 Utilises the output tables from 'threat' and 'radiation', and adds to these
 the Reynolds Number, heat transfer coefficients, Newton's convective energy transfer coefficient,
 and the temperature of the object each second.

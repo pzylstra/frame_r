@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{standardiseNames}
 \alias{standardiseNames}
-\title{Adds standardised names to a table of field data}
+\title{standardiseNames}
 \usage{
 standardiseNames(dat, pN, spName, base, top, he, ht, wid, Site, sN)
 }

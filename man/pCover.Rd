@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{pCover}
 \alias{pCover}
-\title{Predicts proportion cover at a given age}
+\title{pCover}
 \usage{
 pCover(mods, sp, Age = 10)
 }
@@ -17,5 +17,7 @@ pCover(mods, sp, Age = 10)
 value
 }
 \description{
+Predicts proportion cover at a given age
+
 Selects model from tabled models per species
 }

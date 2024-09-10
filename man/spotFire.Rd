@@ -2,7 +2,7 @@
 % Please edit documentation in R/Risk.R
 \name{spotFire}
 \alias{spotFire}
-\title{Calculates spotting distance}
+\title{spotFire}
 \usage{
 spotFire(flameHeight, slope, FPC, windExposure, vAir, vAir500 = 2, fireArea)
 }

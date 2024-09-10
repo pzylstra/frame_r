@@ -2,8 +2,7 @@
 % Please edit documentation in R/Risk.R
 \name{riskDynamics}
 \alias{riskDynamics}
-\title{Calculates forest risk parameters over a growth series
-using parallel ports}
+\title{riskDynamics}
 \usage{
 riskDynamics(
   fireDat,
@@ -53,7 +52,7 @@ riskDynamics(
 \arguments{
 \item{fireDat}{List of three dataframes: Flora, Structure & default.species.params}
 
-\item{tr}{}
+\item{tr}{A dataframe with the fields:}
 
 \item{clim}{Formatted AM & PM weather conditions over a time sequence}
 
@@ -71,73 +70,69 @@ riskDynamics(
 
 \item{slopeLength}{Distance from ridge to gully (m)}
 
-\item{rangeDir}{}
+\item{rangeDir}{Wind direction in relation to slope exposure: Up sun slope = 1, cross slope = 0, down sun slope = -1}
 
-\item{mRiver}{}
+\item{mRiver}{Likelihood of encountering a medium river}
 
-\item{lRiver}{}
+\item{lRiver}{Likelihood of encountering a large river}
 
-\item{cardinal}{}
+\item{cardinal}{Logical, whether to use cardinal directions}
 
-\item{smoulder}{}
+\item{smoulder}{Time for which an ignition may smoulder (hours)}
 
-\item{Extinction}{}
+\item{Extinction}{Extinction litter moisture content (Percent ODW)}
 
-\item{m}{}
+\item{m}{Mean leaf moisture content}
 
-\item{rholitter}{}
+\item{rholitter}{Density of litter (kg/m^3)}
 
-\item{hourStep}{}
+\item{hourStep}{Number of hours for which to model}
 
-\item{l}{}
+\item{l}{Variability in leaf thickness}
 
-\item{Ms}{}
+\item{Ms}{Standard deviation of leaf moisture content}
 
-\item{Pm}{}
+\item{Pm}{Leaf moisture multiplier}
 
-\item{Mr}{}
+\item{Mr}{Leaf moisture range}
 
-\item{Test}{}
+\item{Test}{Temperature at which to test for scorching (C)}
 
-\item{sensitive}{}
+\item{sensitive}{Sensitivity of plants to scorching}
 
-\item{girdleH}{}
+\item{girdleH}{Height at which to test for girdling}
 
-\item{phloem}{}
+\item{phloem}{Thickness of phloem (m)}
 
-\item{moisture}{}
+\item{moisture}{Moisture content of wood}
 
-\item{barkDensity}{}
+\item{barkDensity}{Density of bark (kg/m^3)}
 
-\item{bark}{}
+\item{bark}{Bark thickness (m)}
 
-\item{comBark}{}
+\item{comBark}{Temperature of burning bark (C)}
 
-\item{resBark}{}
+\item{resBark}{Flame residence time on bark (s)}
 
-\item{bMoisture}{}
+\item{bMoisture}{Moisture content of bark}
 
-\item{vAir500}{}
+\item{vAir500}{Multiplier for wind speed at 500hPa}
 
-\item{testN}{}
+\item{testN}{Number of test runs}
 
-\item{distance}{}
+\item{distance}{Distance between tree and flame start (m)}
 
-\item{trail}{}
+\item{trail}{Modelling time after flame has passed (s)}
 
-\item{var}{}
+\item{var}{Variability in flame angle}
 
-\item{necT}{}
+\item{necT}{Temperature at which wood necrosis occurs (C)}
 
-\item{surfDecl}{}
+\item{surfDecl}{Decline in surface temperature with height (C/m)}
 
-\item{minR}{}
+\item{minR}{Minimum ROS (m/h)}
 
-\item{freeCores}{}
-
-\item{woodDensity}{}
-
-\item{targSp}{}
+\item{freeCores}{Number of cores to leave free}
 }
 \value{
 list

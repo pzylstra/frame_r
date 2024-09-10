@@ -2,7 +2,7 @@
 % Please edit documentation in R/Flora.R
 \name{dryside}
 \alias{dryside}
-\title{Calculates likelihood of basal scarring on a tree}
+\title{dryside}
 \usage{
 dryside(
   Surf,
@@ -31,56 +31,58 @@ dryside(
 )
 }
 \arguments{
-\item{Surf}{}
+\item{Surf}{The dataframe produced by the function 'summary',}
 
-\item{Plant}{}
+\item{Plant}{The dataframe produced by the function 'repFlame'.}
 
-\item{DBH}{}
+\item{DBH}{Diameter at breast height (m)}
 
-\item{Height}{}
+\item{Height}{Height of the tree (m)}
 
-\item{woodDensity}{}
+\item{woodDensity}{Density of the wood (kg/m^3)}
 
-\item{barkDensity}{}
+\item{barkDensity}{Density of the bark (kg/m^3)}
 
-\item{bark}{}
+\item{bark}{Thickness of the bark (m)}
 
-\item{comBark}{}
+\item{comBark}{Conductivity of the bark (W/m/deg)}
 
-\item{resBark}{}
+\item{resBark}{Resistance of the bark (deg)}
 
-\item{phloem}{}
+\item{phloem}{Thickness of the phloem (m)}
 
-\item{RH}{}
+\item{RH}{Relative humidity}
 
-\item{moisture}{}
+\item{moisture}{Moisture content of the wood}
 
-\item{bMoisture}{}
+\item{bMoisture}{Moisture content of the bark}
 
-\item{distance}{}
+\item{distance}{Distance from the flame front (m)}
 
-\item{trail}{}
+\item{trail}{Distance from the flame front to the tree (m)}
 
-\item{var}{}
+\item{var}{Variability of the flame front}
 
-\item{diameter}{}
+\item{diameter}{Diameter of the flame front (m)}
 
-\item{Pressure}{}
+\item{Pressure}{Atmospheric pressure (hPa)}
 
-\item{Altitude}{}
+\item{Altitude}{Altitude of the tree (m)}
 
-\item{startTemp}{}
+\item{startTemp}{Starting temperature (deg C)}
 
-\item{necT}{}
+\item{necT}{Temperature at which the tree is necrotic (deg C)}
 
-\item{surfDecl}{}
+\item{surfDecl}{Decline of the surface temperature (deg C)}
 
-\item{updateProgress}{}
+\item{updateProgress}{Function to update progress}
 }
 \value{
 dataframe
 }
 \description{
+Calculates likelihood of basal scarring on a tree
+
 Assumes lee-side vortex at bole causes flame to lean backward to a distance 2.5*DBH
 Estimate taken from Malcolm Gill A 1974 
 Toward an understanding of fire scar formation: field observation and laboratory simulation 

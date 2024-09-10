@@ -72,13 +72,13 @@ hollow(
 
 \item{diameter}{depth of the litter layer (mm)}
 
+\item{surfDecl}{The slope of the surface (degrees)}
+
+\item{startTemp}{The initial temperature of the hollow (C)}
+
 \item{Shape}{The approximate shape of the hollow exterior - either "Flat", "Sphere", or "Cylinder"}
 
 \item{updateProgress}{Progress bar for use in the dashboard}
-
-\item{percentile}{defines which heating statistics are used for each second, from 0 (min) to 1 (max)}
-
-\item{hollowTemp}{The starting temperature inside the hollow (deg C)}
 }
 \value{
 dataframe

@@ -4,10 +4,9 @@
 #' in the \code{\link{ParamInfo}} table other than the optional parameter
 #' \code{propSilicaFreeAsh}. Parameter name comparisons are done ignoring case.
 #' 
-#' @param tbl The input simulation parameter table (data frame).
-#' 
 #' @param quiet Set to TRUE to suppress details of missing parameters being
 #'   written to the console.
+#' @param params The input simulation parameter table (data frame).
 #' 
 #' @return \code{TRUE} is all required parameters are present; \code{FALSE}
 #'   otherwise.
@@ -283,7 +282,7 @@ ffm_assemble_table <- function(lst) {
 #' 
 
 ffm_complete_params <- function(tbl, default.species.params) {
-  if (!frame:::.is_param_table(tbl))
+  if (!.is_param_table(tbl))
     stop("Input table must be a validly structured parameters data frame\n",
          "with columns: stratum, species, param, value and (optionally) units.")
   
@@ -303,7 +302,7 @@ ffm_complete_params <- function(tbl, default.species.params) {
   default.species.params <- default.species.params %>%
     tidyr::gather(param, value, -name)
   
-  tbl <- frame:::.as_str_data_frame(tbl)
+  tbl <- .as_str_data_frame(tbl)
   
   Silica <- tolower("propSilicaFreeAsh")
   
@@ -374,7 +373,7 @@ ffm_complete_params <- function(tbl, default.species.params) {
     extra.recs
   }
   
-  ids <- frame:::.get_species_ids(tbl)
+  ids <- .get_species_ids(tbl)
   new.recs <- do.call(rbind, lapply(ids, do_species))
   
   if (is.null(new.recs) || nrow(new.recs) == 0) {
@@ -449,6 +448,8 @@ ffm_param_info <- function(label, section = NULL, no.match.error = FALSE) {
 
 #' Returns a summary of the given parameter table.
 #' 
+#' @param tbl The input simulation parameter table (data frame).
+#'
 #' @export
 #' 
 ffm_param_table_summary <- function(tbl) {

@@ -45,6 +45,8 @@ mammal(
 
 \item{diameter}{Diameter of the surface fuels burning (mm)}
 
+\item{surfDecl}{The slope of the surface (degrees)}
+
 \item{var}{The angle in degrees that the plume spreads above/below a central vector}
 
 \item{Pressure}{Sea level atmospheric pressure (hPa)}
@@ -80,8 +82,6 @@ mammal(
 \item{Shape}{The approximate shape of the animal - either "Flat", "Sphere", or "Cylinder"}
 
 \item{updateProgress}{Progress bar for use in the dashboard}
-
-\item{Specific_heat}{The specific heat of the fur (kJ/kg/deg C)}
 }
 \value{
 dataframe

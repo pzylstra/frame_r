@@ -2,12 +2,21 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{datClean}
 \alias{datClean}
-\title{Performs basic data checks on survey data, 
-fixes or removes data and lists changes}
+\title{datClean}
 \usage{
-datClean(veg, base = "base", top = "top", he = "he", ht = "ht", messages = F)
+datClean(
+  veg,
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht",
+  weight = "weight",
+  messages = F
+)
 }
 \arguments{
+\item{veg}{A dataframe listing plant species with columns describing crown dimensions using standardised names}
+
 \item{base}{Name of the field with the base height}
 
 \item{top}{Name of the field with the top height}
@@ -16,7 +25,9 @@ datClean(veg, base = "base", top = "top", he = "he", ht = "ht", messages = F)
 
 \item{ht}{Name of the field with dimension ht}
 
-\item{dat}{The dataframe to be cleaned}
+\item{weight}{Name of the field with dimension weight (litter weight)}
+
+\item{messages}{T or F to display messages}
 }
 \value{
 dataframe

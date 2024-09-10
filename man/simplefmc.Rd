@@ -2,7 +2,7 @@
 % Please edit documentation in R/FMC.R
 \name{simplefmc}
 \alias{simplefmc}
-\title{Finds the moisture content of dead leaf litter at a given time-step}
+\title{simplefmc}
 \usage{
 simplefmc(
   m,
@@ -48,5 +48,7 @@ simplefmc(
 \item{EPS}{Sensitivity of iteration}
 }
 \description{
+Finds the moisture content of dead leaf litter at a given time-step
+
 Function uses the 'Single differential equation model' of Matthews et al (2010)
 }

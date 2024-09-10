@@ -2,8 +2,7 @@
 % Please edit documentation in R/plant_interface.R
 \name{frameDynTab}
 \alias{frameDynTab}
-\title{Constructs an age sequence of parameter files 
-built from plant modelling}
+\title{frameDynTab}
 \usage{
 frameDynTab(
   dat,
@@ -68,7 +67,9 @@ frameDynTab(
 
 \item{transects}{More transects ensure more cohorts}
 
-\item{sepSig}{}
+\item{sepSig}{Significance test for separation of strata}
+
+\item{minCov}{Minimum cover for a species to be included}
 }
 \description{
 Constructs an age sequence of parameter files 

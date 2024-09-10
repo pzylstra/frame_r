@@ -2,7 +2,7 @@
 % Please edit documentation in R/Risk.R
 \name{river}
 \alias{river}
-\title{Support function to randomise river width}
+\title{river}
 \usage{
 river(lRiver, mRiver)
 }

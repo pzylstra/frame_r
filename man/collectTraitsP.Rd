@@ -2,7 +2,7 @@
 % Please edit documentation in R/plant_interface.R
 \name{collectTraitsP}
 \alias{collectTraitsP}
-\title{Creates traits table for FRaME from plant modelling}
+\title{collectTraitsP}
 \usage{
 collectTraitsP(
   comm,
@@ -48,5 +48,7 @@ collectTraitsP(
 \item{bark_density}{Default bark density (kg)}
 }
 \description{
+Creates traits table for FRaME from plant modelling
+
 Reads traits from an input table
 }

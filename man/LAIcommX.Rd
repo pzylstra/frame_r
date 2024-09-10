@@ -2,17 +2,17 @@
 % Please edit documentation in R/Flora.R
 \name{LAIcommX}
 \alias{LAIcommX}
-\title{Title}
+\title{LAIcommX}
 \usage{
 LAIcommX(base.params, yu = 100, yl = 0)
 }
 \arguments{
-\item{base.params}{}
+\item{base.params}{Parameter input file}
 
-\item{yu}{}
+\item{yu}{Upper height to measure (m)}
 
-\item{yl}{}
+\item{yl}{Lower height to measure (m)}
 }
 \description{
-Title
+Calculates LAI for a horizontal slice of a plant community
 }

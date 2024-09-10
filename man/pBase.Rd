@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{pBase}
 \alias{pBase}
-\title{Predicts plant base height at a given age}
+\title{pBase}
 \usage{
 pBase(mods, sp, Age = 10)
 }
@@ -17,5 +17,7 @@ pBase(mods, sp, Age = 10)
 value
 }
 \description{
+Predicts plant base height at a given age
+
 Selects model from tabled models per species
 }

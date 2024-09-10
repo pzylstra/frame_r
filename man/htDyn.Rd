@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{htDyn}
 \alias{htDyn}
-\title{Builds models for top-ht height allometry dynamics of surveyed Species}
+\title{htDyn}
 \usage{
 htDyn(dat, thres = 5, pnts = 10, p = 0.05)
 }
@@ -19,11 +19,12 @@ htDyn(dat, thres = 5, pnts = 10, p = 0.05)
 dataframe
 }
 \description{
+Builds models for top-ht height allometry dynamics of surveyed Species
+
 Input table requires the following fields:
 Point - numbered point in a transect
 Species - name of the surveyed Species
 Age - age of the site since the triggering disturbance
-}
-\details{
+
 Species that are less common than the set threshold are combined as "Minor Species"
 }

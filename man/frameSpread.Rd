@@ -2,7 +2,7 @@
 % Please edit documentation in R/Risk.R
 \name{frameSpread}
 \alias{frameSpread}
-\title{Finds distance of fire spread for a part of a landscape}
+\title{frameSpread}
 \usage{
 frameSpread(
   base.params,
@@ -68,7 +68,7 @@ frameSpread(
 
 \item{hourStep}{Number of hours for which to model}
 
-\item{strikeTime}{}
+\item{strikeTime}{Time of ignition}
 
 \item{Extinction}{Extinction litter moisture content (Percent ODW)}
 
@@ -76,11 +76,11 @@ frameSpread(
 
 \item{fEdge}{Fire edge: Head = 1, Flank = 0, Tail = -1}
 
-\item{fireArea}{}
+\item{fireArea}{Area of the fire (ha)}
 
 \item{wHeading}{Wind direction in relation to slope exposure: Up sun slope = 1, cross slope = 0, down sun slope = -1}
 
-\item{firelineW}{}
+\item{firelineW}{Width of the fireline (m)}
 
 \item{slopeM}{Mean slope}
 
@@ -92,51 +92,51 @@ frameSpread(
 
 \item{lRiver}{Likelihood of encountering a large river}
 
-\item{Test}{}
+\item{Test}{Temperature at which to test for scorching (C)}
 
-\item{sensitive}{}
+\item{sensitive}{Sensitivity of plants to scorching}
 
-\item{girdleH}{}
+\item{girdleH}{Height at which to test for girdling}
 
-\item{woodDensity}{}
+\item{woodDensity}{Density of wood (kg/m^3)}
 
-\item{barkDensity}{}
+\item{barkDensity}{Density of bark (kg/m^3)}
 
-\item{bark}{}
+\item{bark}{Bark thickness (m)}
 
-\item{comBark}{}
+\item{comBark}{Temperature of burning bark (C)}
 
-\item{resBark}{}
+\item{resBark}{Flame residence time on bark (s)}
 
-\item{phloem}{}
+\item{phloem}{Thickness of phloem (m)}
 
-\item{moisture}{}
+\item{moisture}{Moisture content of wood}
 
-\item{bMoisture}{}
+\item{bMoisture}{Moisture content of bark}
 
-\item{FPC}{}
+\item{FPC}{Foliage projective cover}
 
-\item{distance}{}
+\item{distance}{Distance between tree and flame start (m)}
 
-\item{trail}{}
+\item{trail}{Modelling time after flame has passed (s)}
 
-\item{var}{}
+\item{var}{Variability in flame angle}
 
-\item{Altitude}{}
+\item{Altitude}{Altitude of the site (m)}
 
-\item{vAir500}{}
+\item{vAir500}{Multiplier for wind speed at 500hPa}
 
-\item{necT}{}
+\item{necT}{Temperature at which wood necrosis occurs (C)}
 
-\item{surfDecl}{}
+\item{surfDecl}{Decline in surface temperature with height (C/m)}
 
-\item{minR}{}
+\item{minR}{Minimum ROS (m/h)}
 
-\item{targSp}{}
+\item{targSp}{Target species for scorching}
 
-\item{testN}{}
+\item{testN}{Number of test runs}
 
-\item{Strata}{}
+\item{Strata}{Strata descriptor table output by the function 'strata'}
 
 \item{Species}{Species descriptor table output by the function 'species'}
 
@@ -169,13 +169,13 @@ on the left grow directly beneath those in the stratum on the right.
    will be decided by the relative stratum heights.
 nsR, eR, mR, cR. Species richness (number of species) in each stratum}
 
-\item{l}{}
+\item{l}{Variability in leaf thickness}
 
-\item{Ms}{}
+\item{Ms}{Standard deviation of leaf moisture content}
 
-\item{Pm}{}
+\item{Pm}{Leaf moisture multiplier}
 
-\item{Mr}{}
+\item{Mr}{Leaf moisture range}
 }
 \value{
 dataframe

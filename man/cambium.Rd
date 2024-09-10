@@ -2,7 +2,7 @@
 % Please edit documentation in R/Flora.R
 \name{cambium}
 \alias{cambium}
-\title{Finds radial bole necrosis depth}
+\title{cambium}
 \usage{
 cambium(
   Surf,
@@ -81,9 +81,10 @@ cambium(
 dataframe
 }
 \description{
+Finds radial bole necrosis depth
+
 Depth to which the cambium of a tree recieves lethal heating
-}
-\details{
+
 Utilises the output tables from 'threat' and 'radiation', and adds to these
 the Reynolds Number, heat transfer coefficients, Newton's convective energy transfer coefficient,
 and the temperature of the object each second.

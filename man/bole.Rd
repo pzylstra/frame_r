@@ -2,7 +2,7 @@
 % Please edit documentation in R/Flora.R
 \name{bole}
 \alias{bole}
-\title{Air temperature above ambient at the tree bole behind the flame front}
+\title{bole}
 \usage{
 bole(
   lengthSurface = 2,
@@ -14,25 +14,26 @@ bole(
 )
 }
 \arguments{
-\item{lengthSurface}{}
+\item{lengthSurface}{Length of the surface flame (m)}
 
-\item{residence}{}
+\item{residence}{Residence time of the flame (s)}
 
-\item{depth}{}
+\item{depth}{Depth of the surface litter (m)}
 
-\item{h}{}
+\item{h}{Height of the bole above ground (m)}
 
-\item{surfDecl}{}
+\item{surfDecl}{Rate of decline of the surface flame length (m/s)}
 
-\item{t}{}
+\item{t}{Time since the flame front passed (s)}
 }
 \value{
 value
 }
 \description{
+Air temperature above ambient at the tree bole behind the flame front
+
 Dynamic air temperature at bole height, declining flame length exponentially
-}
-\details{
+
 Air temperature is modelled from dynamic flame segments using
 Weber R.O., Gill A.M., Lyons P.R.A., Moore P.H.R., Bradstock R.A., Mercer G.N. (1995)
 Modelling wildland fire temperatures. CALMScience Supplement, 4, 23–26.

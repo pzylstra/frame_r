@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{heDyn}
 \alias{heDyn}
-\title{Builds models for top-he height allometry dynamics of surveyed Species}
+\title{heDyn}
 \usage{
 heDyn(
   dat,
@@ -23,16 +23,25 @@ heDyn(
 \item{pnts}{The number of points measured in a transect}
 
 \item{p}{The maximum allowable p value for a model}
+
+\item{base}{Name of the base height field}
+
+\item{top}{Name of the top height field}
+
+\item{he}{Name of the field with the height of the lower edge (he)}
+
+\item{ht}{Name of the field with the height of the upper edge (ht)}
 }
 \value{
 dataframe
 }
 \description{
+Builds models for top-he height allometry dynamics of surveyed Species
+
 Input table requires the following fields:
 Point - numbered point in a transect
 Species - name of the surveyed Species
 Age - age of the site since the triggering disturbance
-}
-\details{
+
 Species that are less common than the set threshold are combined as "Minor Species"
 }

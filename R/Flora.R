@@ -1,4 +1,7 @@
-#' Scorch height using an isotherm, including target species
+#' @importFrom dplyr %>% arrange mutate count filter
+#' 
+#' @title floraTarget
+#' @description  Scorch height using an isotherm, including target species
 #'
 #' Calculates the height to which vegetation will be consumed,
 #' and the height to a designated temperature isotherm reached for one second.
@@ -135,7 +138,8 @@ floraTarget <- function(Surf, Plant, Param = Param, targSp = "a", Test = 70)
   return(Iso)
 }
 
-#' Scorch height using an isotherm
+#' @title flora
+#' @description Scorch height using an isotherm
 #'
 #' Calculates the height to which vegetation will be consumed,
 #' and the height to a designated temperature isotherm reached for one second.
@@ -270,9 +274,9 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
 }
 
 
-#####################################################################
 
-#' Finds radial bole necrosis depth
+#' @title cambium
+#' @description Finds radial bole necrosis depth
 #'
 #' Depth to which the cambium of a tree recieves lethal heating
 #'
@@ -314,8 +318,6 @@ flora <- function(Surf, Plant, Param = Param, Test = 70)
 #' hazard and time since fire. Int. J. Wildl. Fire 26, 866–876 (2017).
 #'
 #' Heats an area of 0.01m2
-#'
-#'
 #'
 #' @param Surf The dataframe produced by the function 'summary',
 #' @param Plant The dataframe produced by the function 'repFlame'.
@@ -722,8 +724,9 @@ cambium <- function(Surf, Plant, percentile = 0.95, Height = 0.1, woodDensity = 
 }
 
 
-#########################################################################
-#' Finds radial bole necrosis depth, dividing bark into four steps
+
+#' @title Girdling
+#' @description Finds radial bole necrosis depth, dividing bark into four steps
 #'
 #' Depth to which the stem of a plant recieves lethal heating
 #'
@@ -1125,7 +1128,8 @@ girdle <- function(Surf, Plant, Height = 0.1, woodDensity = 700, barkDensity = 5
 
 #####################################################################
 
-#' Air temperature above ambient at the tree bole behind the flame front
+#' @title bole
+#' @description Air temperature above ambient at the tree bole behind the flame front
 #'
 #' Dynamic air temperature at bole height, declining flame length exponentially
 #'
@@ -1135,12 +1139,12 @@ girdle <- function(Surf, Plant, Height = 0.1, woodDensity = 700, barkDensity = 5
 #'
 #' pAlphas is set to bole height - depth of surface litter
 #'
-#' @param lengthSurface 
-#' @param residence 
-#' @param depth 
-#' @param h 
-#' @param surfDecl 
-#' @param t 
+#' @param lengthSurface Length of the surface flame (m)
+#' @param residence Residence time of the flame (s)
+#' @param depth Depth of the surface litter (m)
+#' @param h Height of the bole above ground (m)
+#' @param surfDecl Rate of decline of the surface flame length (m/s)
+#' @param t Time since the flame front passed (s)
 #'
 #' @return value
 #' @export
@@ -1158,14 +1162,16 @@ bole <- function(lengthSurface = 2, residence = 300, depth = 0.05, h = 0.1, surf
 }
 
 
-#####################################################################
-#' Thermal conductivity of dry wood
+
+#' @title kWood
+#' @description Thermal conductivity of dry wood
 #'
 #' Model drawn from Kollmann, F. F. P. & Cote, W. A.
 #' Principles of wood science and technology I. Solid wood. (Springer-Verlag, 1968)
 #'
-#' @param rhoW 
-#' @param kAir 
+#' @param rhoW Density of the wood (kg/m3)
+#' @param kAir Thermal conductivity of air (W/m/deg)
+#' @param T Temperature of the wood (deg C)
 #'
 #' @return value
 #' @export
@@ -1182,7 +1188,8 @@ kWood <- function(T=100, rhoW=700, kAir = 0.026)
 }
 
 
-#' Collects flame segments for a specified plant in a stratum
+#' @title plantFlame
+#' @description Collects flame segments for a specified plant in a stratum
 #'
 #' @param paths Output table from the function repFlame
 #' @param Stratum Name of the stratum being studied
@@ -1191,8 +1198,6 @@ kWood <- function(T=100, rhoW=700, kAir = 0.026)
 #'
 #' @return dataframe
 #' @export
-#'
-#' @examples balga <- plantFlame(IPW, "NearSurface", "Xanthorrhoea preissii", 6)
 
 plantFlame <- function(paths, Stratum, Species, repId) {
   
@@ -1239,9 +1244,10 @@ plantFlame <- function(paths, Stratum, Species, repId) {
 }
 
 
-#' Calculates LAI for a slice of a plant
+#' @title LAIp
+#' @description Calculates LAI for a slice of a plant
 #'
-#' @param base.params 
+#' @param base.params Parameter input file 
 #' @param sp Number of the species
 #' @param yu Height at the top of the slice (m)
 #' @param yl Height at the base of the slice (m)
@@ -1326,9 +1332,10 @@ LAIp <- function(base.params, sp = 1, yu = 100, yl = 0)
 
 
 
-#' Calculates LAI for a horizontal slice of a plant community
+#' @title LAIcomm
+#' @description Calculates LAI for a horizontal slice of a plant community
 #'
-#' @param base.params 
+#' @param base.params Parameter input file 
 #' @param yu Top of slice (m)
 #' @param yl Base of slice (m)
 #'
@@ -1379,11 +1386,12 @@ LAIcomm <- function(base.params, yu = 100, yl = 0)
   return(LAI)
 }
 
-#' Title
+#' @title LAIcommX
+#' @description Calculates LAI for a horizontal slice of a plant community
 #'
-#' @param base.params 
-#' @param yu 
-#' @param yl 
+#' @param base.params Parameter input file 
+#' @param yu Upper height to measure (m)
+#' @param yl Lower height to measure (m)
 
 LAIcommX <- function(base.params, yu = 100, yl = 0)
 {
@@ -1433,9 +1441,10 @@ LAIcommX <- function(base.params, yu = 100, yl = 0)
 }
 
 
-#' Calculates a vertical wind profile
+#' @title profileDet
+#' @description Calculates a vertical wind profile
 #'
-#' @param base.params 
+#' @param base.params Parameter input file 
 #' @param slices Number of horizontal slices to use in calculation
 #'
 #' @return dataframe
@@ -1481,9 +1490,10 @@ profileDet <- function(base.params, slices = 10)
 }
 
 
-#' Finds the Wind Reduction Factor for a param file
+#' @title windReduction
+#' @description Finds the Wind Reduction Factor for a param file
 #'
-#' @param base.params 
+#' @param base.params Parameter input file 
 #' @param test Height at which the WRF is calculated (m)
 #'
 #' @return value
@@ -1502,36 +1512,37 @@ windReduction <- function(base.params, test = 1.2)
 }
 
 
-#' Calculates likelihood of basal scarring on a tree
+#' @title dryside
+#' @description Calculates likelihood of basal scarring on a tree
 #' 
 #' Assumes lee-side vortex at bole causes flame to lean backward to a distance 2.5*DBH
 #' Estimate taken from Malcolm Gill A 1974 
 #' Toward an understanding of fire scar formation: field observation and laboratory simulation 
 #' For. Sci. 20 198–205
 #'
-#' @param Surf 
-#' @param Plant 
-#' @param DBH 
-#' @param Height 
-#' @param woodDensity 
-#' @param barkDensity 
-#' @param bark 
-#' @param comBark 
-#' @param resBark 
-#' @param phloem 
-#' @param RH 
-#' @param moisture 
-#' @param bMoisture 
-#' @param distance 
-#' @param trail 
-#' @param var 
-#' @param diameter 
-#' @param Pressure 
-#' @param Altitude 
-#' @param startTemp 
-#' @param necT 
-#' @param surfDecl 
-#' @param updateProgress 
+#' @param Surf The dataframe produced by the function 'summary',
+#' @param Plant The dataframe produced by the function 'repFlame'.
+#' @param DBH Diameter at breast height (m)
+#' @param Height Height of the tree (m)
+#' @param woodDensity Density of the wood (kg/m^3)
+#' @param barkDensity Density of the bark (kg/m^3)
+#' @param bark Thickness of the bark (m)
+#' @param comBark Conductivity of the bark (W/m/deg)
+#' @param resBark Resistance of the bark (deg)
+#' @param phloem Thickness of the phloem (m)
+#' @param RH Relative humidity
+#' @param moisture Moisture content of the wood
+#' @param bMoisture Moisture content of the bark
+#' @param distance Distance from the flame front (m)
+#' @param trail Distance from the flame front to the tree (m)
+#' @param var Variability of the flame front
+#' @param diameter Diameter of the flame front (m)
+#' @param Pressure Atmospheric pressure (hPa)
+#' @param Altitude Altitude of the tree (m)
+#' @param startTemp Starting temperature (deg C)
+#' @param necT Temperature at which the tree is necrotic (deg C)
+#' @param surfDecl Decline of the surface temperature (deg C)
+#' @param updateProgress Function to update progress
 #'
 #' @return dataframe
 #'
@@ -1580,7 +1591,7 @@ dryside <- function(Surf, Plant, DBH = 1, Height = 0.1, woodDensity = 700, barkD
                                                     surfDecl = 10, t = Pt)},
            tempS = ifelse(Horiz <=0, pmax(tempAir, postS, comBark), tempAir),
            qc = h * (tempS - startTemp),
-           att = frame::tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+           att = tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
            qr = 0.86*qr*att,
            Qi = pmax(0, qc)+qr,
            
@@ -1719,7 +1730,7 @@ dryside <- function(Surf, Plant, DBH = 1, Height = 0.1, woodDensity = 700, barkD
                                                       surfDecl = 10, t = Pt)},
              tempS = ifelse(tS > Ta, tempAir, ifelse(Horiz <=0, pmax(tempAir, postS, comBark), tempAir)),
              qc = h * (tempS - tempA),
-             att = frame::tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
+             att = tau(D=Horiz, flameTemp=flameTemp, temperature=(temperature+273.15), rh=RH),
              qr = 0.86*qr*att,
              Qi = pmax(0, qc)+qr,
              

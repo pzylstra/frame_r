@@ -2,8 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{litter}
 \alias{litter}
-\title{Models the weight of surface litter from time since fire 
-using either an Olson negative exponential function or a Burr curve}
+\title{litter}
 \usage{
 litter(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = 10)
 }

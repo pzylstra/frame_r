@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{frameSurvey}
 \alias{frameSurvey}
-\title{Processes field survey data into tables formatted for fire modelling}
+\title{frameSurvey}
 \usage{
 frameSurvey(
   dat,
@@ -41,9 +41,9 @@ frameSurvey(
 
 \item{rate}{Growth rate for surface litter in a negative exponential function}
 
-\item{a}{}
+\item{a}{Parameter in the Burr equation}
 
-\item{b}{}
+\item{b}{Parameter in the Burr equation}
 
 \item{age}{Optional field with site age}
 
@@ -73,7 +73,7 @@ the maximum value to that age is maintained}
 
 \item{dec}{Logical - TRUE allows near surface surface litter to decline if the model does so, otherwise}
 
-\item{sepSig}{}
+\item{sepSig}{Threshold for determining significance}
 
 \item{messages}{T or F to display messages from component functions}
 

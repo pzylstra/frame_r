@@ -2,12 +2,12 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{mRSE}
 \alias{mRSE}
-\title{Finds the RSE for the mean of a vector}
+\title{mRSE}
 \usage{
 mRSE(dat)
 }
 \arguments{
-\item{vec}{A vector of the values being predicted}
+\item{dat}{A vector of values}
 }
 \value{
 value

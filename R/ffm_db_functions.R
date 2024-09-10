@@ -1,4 +1,5 @@
-#' Attempts to load the entire contents of a database into
+#' @title Database functions for the ffm package.
+#' @description Attempts to load the entire contents of a database into
 #' the R workspace.
 #' 
 #' Given a path and filename for a database of model results,
@@ -10,28 +11,9 @@
 #' 
 #' @return A named list of data frames corresponding to
 #'   database tables.
-#'   
-#' @examples 
-#' \dontrun{
-#' # Load the contents of a database and display the start
-#' # of the FlameSummaries table
-#' tbls <- ffm_db_load("c:/michael/somewhere/my_results.db")
-#' head( tbls$FlameSummaries)
-#' }
+
 #'
 #' @export
-#' @examples
-#' SPECIFY INPUTS AND RUN THE MODEL
-#' record <- 1
-#' data(site)
-#' data(structure)
-#' data(flora)
-#' data(traits)
-#' base.params <- paramBuilder(site, structure, flora, traits, record) 
-#' ffm_run(base.params, db.path = "out.db", db.recreate = TRUE)
-#' 
-#' LOAD RESULTS
-#' res<-ffm_db_load("out.db")
 #' 
 ffm_db_load <- function(db.path) {
   con <- .get_sqlite_connection(db.path)
@@ -49,7 +31,8 @@ ffm_db_load <- function(db.path) {
 }
 
 
-#' Summarize the contents of a model results database.
+#' @title ffm_db_summary
+#' @description Summarize the contents of a model results database.
 #' 
 #' At the moment this function simply prints the number of
 #' simulation runs found in the database.

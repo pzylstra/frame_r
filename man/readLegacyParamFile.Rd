@@ -2,7 +2,7 @@
 % Please edit documentation in R/readLegacyParamFile.R
 \name{readLegacyParamFile}
 \alias{readLegacyParamFile}
-\title{Reads a legacy format parameters file.}
+\title{readLegacyParamFile}
 \usage{
 readLegacyParamFile(path, raw = FALSE)
 }
@@ -18,6 +18,8 @@ If \code{raw} is \code{TRUE}, a data frame of parsed data
   suitable for use with \code{\link{ffm_run}}.
 }
 \description{
+Reads a legacy format parameters file.
+
 This function has been deprecated and will be removed in a future version of
 the package. New code should use function
 \code{\link{ffm_read_legacy_params}}.

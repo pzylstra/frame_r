@@ -2,19 +2,23 @@
 % Please edit documentation in R/Flora.R
 \name{kWood}
 \alias{kWood}
-\title{Thermal conductivity of dry wood}
+\title{kWood}
 \usage{
 kWood(T = 100, rhoW = 700, kAir = 0.026)
 }
 \arguments{
-\item{rhoW}{}
+\item{T}{Temperature of the wood (deg C)}
 
-\item{kAir}{}
+\item{rhoW}{Density of the wood (kg/m3)}
+
+\item{kAir}{Thermal conductivity of air (W/m/deg)}
 }
 \value{
 value
 }
 \description{
+Thermal conductivity of dry wood
+
 Model drawn from Kollmann, F. F. P. & Cote, W. A.
 Principles of wood science and technology I. Solid wood. (Springer-Verlag, 1968)
 }

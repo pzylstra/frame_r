@@ -1,13 +1,14 @@
-#' Configuration or view factor
+#' @title phi
+#' @description Configuration or view factor
 #'
 #' Calculates the configuration factor for radiative heat transfer as used
 #' in AS3959 for bushfire risk assessment of built structures
 #'
-#' @param Fl 
-#' @param Fa 
-#' @param S 
-#' @param D 
-#' @param H 
+#' @param Fl Flame length (m)
+#' @param Fa Flame angle (degrees)
+#' @param S Slope angle (degrees)
+#' @param D Horizontal distance from the flame origin to the point (m)
+#' @param H Vertical distance from the flame origin to the point (m)
 
 
 phi <- function(Fl, Fa, S, D, H)
@@ -29,8 +30,9 @@ phi <- function(Fl, Fa, S, D, H)
                                             (X2/X2a)*atan(Y1/X2a)+(Y1/Y1a)*atan(X2/Y1a)))))
 }
 
-#####################################################################
-#' Atmospheric attenuation
+
+#' @title tau
+#' @description Atmospheric attenuation
 #'
 #' Calculates the atmospheric transmissivity of radiation as used
 #' in AS3959 for bushfire risk assessment of built structures. Equations from
@@ -39,10 +41,10 @@ phi <- function(Fl, Fa, S, D, H)
 #' attenuation by atmospheric CO2and H2O.
 #' Fire Saf. J. 37, 181–190 (2002)
 #'
-#' @param D 
-#' @param flameTemp 
-#' @param temperature 
-#' @param rh 
+#' @param D Horizontal distance from the flame origin to the point (m)
+#' @param flameTemp Flame temperature 
+#' @param temperature Air temperature 
+#' @param rh Relative humidity
 
 
 tau <- function(D = 200, flameTemp = 1300, temperature = 288, rh = 0.51)
@@ -58,7 +60,8 @@ tau <- function(D = 200, flameTemp = 1300, temperature = 288, rh = 0.51)
 
 
 
-#' Calculates the convective and radiative heat from a flame that is 
+#' @title threat
+#' @description Calculates the convective and radiative heat from a flame that is 
 #' incident upon a designated point
 #'
 #' Finds the temperature, velocity, dynamic viscosity, atmospheric pressure, and density of a plume at a point
@@ -185,7 +188,7 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
            E = pmax(0, epsilon*0.0000000567*(flameTemp^4-(tempAir+273.15)^4)),
            repAngle = ifelse(repLength>lengthSurface, repAngle, angleSurface),
            repLength = max(repLength, lengthSurface),
-           phi = frame::phi(repLength,repAngle,slope_degrees,Horizontal,Height),
+           phi = phi(repLength,repAngle,slope_degrees,Horizontal,Height),
            qr = E * phi) %>%
     select(repId, ros_kph, wind_kph, temperature, lengthSurface, pAlpha, tempAir, cpAir,
            viscosity, presAtm, Density, Plume_velocity, flameTemp, epsilon, E, phi, qr)
@@ -193,8 +196,19 @@ threat <- function (Surf, repFlame, Horizontal = 10, Height = 10, var = 10, Pres
 }
 
 
-#####################################################################
 
+
+
+#' @title cp
+#' @description Specific heat capacity of a material
+#'
+#' @param Material Type of material, either 'bark' or 'wood'
+#' @param temp Temperature (C)
+#' @param moist Moisture content (proportion oven dry weight)
+#'
+#' @return value
+#' @export
+#'
 
 cp <- function(Material = "wood", temp, moist){
   cp <- if (Material == "bark") {
@@ -212,11 +226,21 @@ k <- function(Material = "bark", temp, moist, density){
     rhoM <- (moist+moist^2)*density
     (2.104*density+5.544*rhoM+3.266*temp-166.216)*10^-4
   } else {
-    frame::kWood(temp, density, kAir)
+    kWood(temp, density, kAir)
   }
   
   return(cp)
 }
+
+
+#' @title hFauna
+#'
+#' @param Shape Shape of the object, either 'Flat', 'Sphere' or 'Cylinder'
+#' @param Re Reynolds number
+#'
+#' @return value
+#' @export
+#'
 
 hFauna <- function(Shape = "Cylinder", Re) {
   hFlat <- ifelse(Re > 300000,0.037*Re^(4/5)*0.888, 0.66*Re^0.5*0.888)

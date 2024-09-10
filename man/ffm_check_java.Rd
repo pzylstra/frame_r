@@ -6,6 +6,9 @@
 \usage{
 ffm_check_java(quiet = FALSE)
 }
+\arguments{
+\item{quiet}{If \code{TRUE}, suppresses messages and warnings.}
+}
 \value{
 \code{TRUE} if a compatible version of Java is found; 
   \code{FALSE} otherwise.

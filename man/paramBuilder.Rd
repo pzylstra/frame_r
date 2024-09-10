@@ -2,7 +2,7 @@
 % Please edit documentation in R/Building.R
 \name{paramBuilder}
 \alias{paramBuilder}
-\title{Constructs parameter files from formatted datasets}
+\title{paramBuilder}
 \usage{
 paramBuilder(site, Structure, Flora, default.species.params, a)
 }
@@ -42,12 +42,4 @@ openness - proportion of plant canopy occupied by gaps between clumps}
 }
 \description{
 Constructs parameter files from formatted datasets
-}
-\examples{
-record <- 1
-data(site)
-data(structure)
-data(flora)
-data(traits)
-base.params <- paramBuilder(site, structure, flora, traits, record)
 }

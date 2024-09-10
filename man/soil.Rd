@@ -2,7 +2,7 @@
 % Please edit documentation in R/Earth.R
 \name{soil}
 \alias{soil}
-\title{Soil heating}
+\title{Soil}
 \usage{
 soil(
   Surf,
@@ -59,17 +59,18 @@ soil(
 
 \item{unfrozen}{Proportion of soil unfrozen, between 0 and 1}
 
-\item{updateProgress}{Progress bar for use in the dashboard}
+\item{startTemp}{The initial temperature of the soil (C)}
 
-\item{soilTemp}{The starting temperature under the ground (deg C)}
+\item{updateProgress}{Progress bar for use in the dashboard}
 }
 \value{
 dataframe
 }
 \description{
+Soil heating
+
 Calculates the dynamic heating of a soil at 1cm increments, to 5cm depth
-}
-\details{
+
 Assumes all to be A horizon, with constant, uncompacted density
 
 Utilises the output tables from 'threat' and adds to these

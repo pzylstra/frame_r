@@ -2,7 +2,7 @@
 % Please edit documentation in R/flora_dynamics.R
 \name{pHt}
 \alias{pHt}
-\title{Predicts plant Ht at a given age}
+\title{pHt}
 \usage{
 pHt(mods, sp, Age = 10)
 }
@@ -17,5 +17,7 @@ pHt(mods, sp, Age = 10)
 value
 }
 \description{
+Predicts plant Ht at a given age
+
 Selects model from tabled models per species
 }

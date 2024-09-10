@@ -2,7 +2,7 @@
 % Please edit documentation in R/Building.R
 \name{unitBuilder}
 \alias{unitBuilder}
-\title{Formats units for parameter files}
+\title{unitBuilder}
 \usage{
 unitBuilder(Flora, a)
 }
