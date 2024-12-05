@@ -842,6 +842,9 @@ updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplic
   cols_to_check <- c("name", "propDead", "leafForm", "leafThickness", "leafWidth", 
                      "leafLength", "leafSeparation", "stemOrder", "ignitionTemp", "moisture", "G.C_rat", "C.C_rat")
   
+  traitsNew <- traitsNew %>%
+    dplyr::select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leafSeparation, stemOrder, ignitionTemp, moisture, G.C_rat, C.C_rat)
+  
   for (colName in cols_to_check) {
     if(!colName %in% names(traits)) {
       traits$colName == ""
