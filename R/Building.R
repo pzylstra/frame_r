@@ -691,7 +691,7 @@ buildParams <- function(Structure, Flora, default.species.params, a,
 
 
 
-#' @title ausTraitTable
+#' @title Construct default.species.params table from ausTraits database
 #' @description Constructs a default.species.params table using traits available in the austraits database
 #' Collects traits from ausTraits for use in shade and fire effects modelling
 #'
@@ -742,18 +742,37 @@ ausTraitTable <- function(version = "3.0.2", path = "data/austraits", shadeToler
     mutate(leafThickness = value/1000) %>%
     select(taxon_name, leafThickness)
   
+  leaf_N  <- (austraits::extract_trait(Austraits, "leaf_N_per_dry_mass"))$traits %>%
+    group_by(taxon_name)%>%
+    summarise_if(is.numeric, median) %>%
+    mutate(leaf_N = value) %>%
+    select(taxon_name, leaf_N)
+  
+  leaf_P  <- (austraits::extract_trait(Austraits, "leaf_P_per_dry_mass"))$traits %>%
+    group_by(taxon_name)%>%
+    summarise_if(is.numeric, median) %>%
+    mutate(leaf_P = value) %>%
+    select(taxon_name, leaf_P)
+  
+  leaf_density  <- (austraits::extract_trait(Austraits, "leaf_density"))$traits %>%
+    group_by(taxon_name)%>%
+    summarise_if(is.numeric, median) %>%
+    mutate(leafDensity = value) %>%
+    select(taxon_name, leafDensity)
+  
+  
   # List species
   tNames <- unique(Austraits[[1]]$taxon_name)
   T_names <- tNames[!grepl("\\d+", tNames)]
   
   
   traits <- data.frame(taxon_name = T_names) 
-  list_of_dfs <- list(traits, leaf_length, leaf_width, leaf_shape, leaf_thickness)
+  list_of_dfs <- list(traits, leaf_length, leaf_width, leaf_shape, leaf_thickness, leaf_N, leaf_P, leaf_density)
   result <- list_of_dfs %>%
     purrr::reduce(left_join, by = "taxon_name") %>%
     mutate(name = taxon_name,
            propDead = 0) %>%
-    select(name, propDead, leafForm, leafThickness, leafWidth, leafLength) %>%
+    select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leaf_N, leaf_P, leafDensity) %>%
     mutate(leafSeparation = NA,
            stemOrder = NA,
            ignitionTemp = NA,
@@ -839,11 +858,9 @@ ausTraitTable <- function(version = "3.0.2", path = "data/austraits", shadeToler
 
 updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplicates = TRUE, fill = TRUE) {
   # Ensure traits table has all necessary columns
-  cols_to_check <- c("name", "propDead", "leafForm", "leafThickness", "leafWidth", 
-                     "leafLength", "leafSeparation", "stemOrder", "ignitionTemp", "moisture", "G.C_rat", "C.C_rat")
-  
-  traitsNew <- traitsNew %>%
-    dplyr::select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leafSeparation, stemOrder, ignitionTemp, moisture, G.C_rat, C.C_rat)
+  cols_to_check <- c("name", "propDead", "leafForm", "leafThickness", "leafWidth", "leafLength", 
+                     "leaf_N", "leaf_P", "leafDensity",  
+                     "leafSeparation", "stemOrder", "ignitionTemp", "moisture", "G.C_rat", "C.C_rat")
   
   for (colName in cols_to_check) {
     if(!colName %in% names(traits)) {
@@ -871,6 +888,9 @@ updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplic
            leafThickness = as.numeric(leafThickness),
            leafWidth = as.numeric(leafWidth),
            leafLength = as.numeric(leafLength),
+           leaf_N = as.numeric(leaf_N),
+           leaf_P = as.numeric(leaf_P),
+           leafDensity = as.numeric(leafDensity),
            leafSeparation = as.numeric(leafSeparation),
            stemOrder = as.numeric(stemOrder),
            ignitionTemp = as.numeric(ignitionTemp),
@@ -900,6 +920,9 @@ updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplic
              leafForm = ifelse(!is.na(leafForm.x), leafForm.x, leafForm.y),
              leafWidth = ifelse(!is.na(leafWidth.x), leafWidth.x,leafWidth.y),
              leafLength = ifelse(!is.na(leafLength.x), leafLength.x, leafLength.y),
+             leaf_N = ifelse(!is.na(leaf_N.x), leaf_N.x, leaf_N.y),
+             leaf_P = ifelse(!is.na(leaf_P.x), leaf_P.x, leaf_P.y),
+             leafDensity = ifelse(!is.na(leafDensity.x), leafDensity.x, leafLength.y),
              leafSeparation= ifelse(!is.na(leafSeparation.x), leafSeparation.x,leafSeparation.y),
              stemOrder = ifelse(!is.na(stemOrder.x), stemOrder.x, stemOrder.y),
              ignitionTemp = ifelse(!is.na(ignitionTemp.x), ignitionTemp.x, ignitionTemp.y),
@@ -909,10 +932,10 @@ updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplic
   }
   
   traits <- traits %>%
-    dplyr::select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leafSeparation, stemOrder, ignitionTemp, moisture, G.C_rat, C.C_rat)
+    dplyr::select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leaf_N, leaf_P, leafDensity, leafSeparation, stemOrder, ignitionTemp, moisture, G.C_rat, C.C_rat)
   genera <- genera %>%
     mutate(name = Genus) %>%
-    dplyr::select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leafSeparation, stemOrder, ignitionTemp, moisture, G.C_rat, C.C_rat)
+    dplyr::select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leaf_N, leaf_P, leafDensity, leafSeparation, stemOrder, ignitionTemp, moisture, G.C_rat, C.C_rat)
   traits <- genera  %>%
     rbind(traits)
   
@@ -920,6 +943,9 @@ updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplic
   traits$leafThickness[which(is.nan(traits$leafThickness))] <- NA
   traits$leafWidth[which(is.nan(traits$leafWidth))] <- NA
   traits$leafLength[which(is.nan(traits$leafLength))] <- NA
+  traits$leaf_N[which(is.nan(traits$leaf_N))] <- NA
+  traits$leaf_P[which(is.nan(traits$leaf_P))] <- NA
+  traits$leafDensity[which(is.nan(traits$leafDensity))] <- NA
   traits$leafSeparation[which(is.nan(traits$leafSeparation))] <- NA
   traits$stemOrder[which(is.nan(traits$stemOrder))] <- NA
   traits$ignitionTemp[which(is.nan(traits$ignitionTemp))] <- NA
