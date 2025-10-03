@@ -1,7 +1,5 @@
-#' @title Soil
-#' @description Soil heating
-#'
-#' Calculates the dynamic heating of a soil at 1cm increments, to 5cm depth
+#' @title Calculate soil heating
+#' @description Uses 1cm increments, to 5cm depth
 #'
 #' Assumes all to be A horizon, with constant, uncompacted density
 #'
@@ -561,10 +559,8 @@ cpSoil <- function(temp = 300, texture="loam", peat = 0.2, moisture=0.3)
 
 #####################################################################
 
-#' @title satSoil
-#' @description Find soil saturation
-#'
-#' Finds saturation from ODW moisture and texture
+#' @title Find soil saturation
+#' @description Finds saturation from ODW moisture and texture
 #'
 #' Field capacity of soils taken from Salter, P. J. & Williams, J. B.
 #' The influence of texture on the moisture characteristics of soil.
