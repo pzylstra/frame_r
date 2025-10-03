@@ -1,3 +1,11 @@
+utils::globalVariables(c(
+  "leafDensity", "leaf_N", "leaf_P",
+  "leafDensity.x", "leafDensity.y",
+  "leaf_N.x", "leaf_N.y",
+  "leaf_P.x", "leaf_P.y"
+))
+
+
 #' @title siteBuilder
 #' @description Builds the dataframe site.meta from input tables
 #' 
@@ -772,7 +780,10 @@ ausTraitTable <- function(version = "3.0.2", path = "data/austraits", shadeToler
     purrr::reduce(left_join, by = "taxon_name") %>%
     mutate(name = taxon_name,
            propDead = 0) %>%
-    select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leaf_N, leaf_P, leafDensity) %>%
+    select(
+      .data$name, .data$propDead, .data$leafForm, .data$leafThickness,
+      .data$leafWidth, .data$leafLength, .data$leaf_N, .data$leaf_P, .data$leafDensity
+    ) %>%
     mutate(leafSeparation = NA,
            stemOrder = NA,
            ignitionTemp = NA,
@@ -932,10 +943,14 @@ updateTraits <- function(traits, traitsNew, deleteReplicates = TRUE, printReplic
   }
   
   traits <- traits %>%
-    dplyr::select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leaf_N, leaf_P, leafDensity, leafSeparation, stemOrder, ignitionTemp, moisture, G.C_rat, C.C_rat)
+    dplyr::select(.data$name, .data$propDead, .data$leafForm, .data$leafThickness, .data$leafWidth, .data$leafLength, 
+                  .data$leaf_N, .data$leaf_P, .data$leafDensity, .data$leafSeparation, .data$stemOrder, .data$ignitionTemp, 
+                  .data$moisture, .data$G.C_rat, .data$C.C_rat)
   genera <- genera %>%
     mutate(name = Genus) %>%
-    dplyr::select(name, propDead, leafForm, leafThickness, leafWidth, leafLength, leaf_N, leaf_P, leafDensity, leafSeparation, stemOrder, ignitionTemp, moisture, G.C_rat, C.C_rat)
+    dplyr::select(.data$name, .data$propDead, .data$leafForm, .data$leafThickness, .data$leafWidth, .data$leafLength, 
+                  .data$leaf_N, .data$leaf_P, .data$leafDensity, .data$leafSeparation, .data$stemOrder, .data$ignitionTemp, 
+                  .data$moisture, .data$G.C_rat, .data$C.C_rat)
   traits <- genera  %>%
     rbind(traits)
   
