@@ -165,7 +165,7 @@ ffm_check_java <- function(quiet = FALSE) {
   
   ver <- 
     if (!found) NA
-  else as.numeric(stringr::str_extract(x[1], "\\d\\.\\d+"))
+  else as.numeric(stringr::str_extract(x[1], "\\d+\\.\\d+"))
   
   if (is.na(ver)) {
     if (!quiet)
