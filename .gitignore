@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 inst/doc
+
+# local jar backups
+inst/java/*.bak
