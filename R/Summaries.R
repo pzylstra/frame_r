@@ -118,7 +118,8 @@ frameSummary <- function(flames, sites, ros, surface)
 
 #' Summary table of fire behaviour, beta version
 #'
-#' Summarises FRaME generated fire behaviour by RepId
+#' Summarises FRaME generated fire behaviour by RepId,
+#' including the mean height from $IgnitionPaths
 #'
 #' @param flames The dataframe $FlameSummaries
 #' @param sites The dataframe $Sites
@@ -133,21 +134,29 @@ frameSummaryBeta <- function(flames, sites, ros, surface, IP)
 {
   Stratum <- stratum(flames, sites, ros, surface)
   Surf <- surf(surface)
-  top <- IP %>%
-    mutate(angle = abs(atan((y1 - y0)/(x1 - x0))),
-           repHeight = flameLength*sin(angle)+y0)%>%
-    group_by(repId) %>%
-    summarize_all(max) %>%
-    select(repId, repHeight)
   
-  repFlame <- suppressMessages(IP %>%
-                                 mutate(repAngle = atan((y1 - y0)/(x1 - x0))) %>%
-                                 select(repId, repAngle)%>%
-                                 group_by(repId) %>%
-                                 summarize_all(mean) %>%
-                                 left_join(top) %>%
-                                 mutate(repLength = repHeight/abs(sin(repAngle))) %>%
-                                 select(repId, repHeight, repLength, repAngle))
+  if(nrow(IP) > 0){
+    top <- IP %>%
+      mutate(angle = abs(atan((y1 - y0)/(x1 - x0))),
+             repHeight = flameLength*sin(angle)+y0)%>%
+      group_by(repId) %>%
+      summarize_all(max) %>%
+      select(repId, repHeight)  
+    
+    repFlame <- suppressMessages(IP %>%
+                                   mutate(repAngle = atan((y1 - y0)/(x1 - x0))) %>%
+                                   select(repId, repAngle)%>%
+                                   group_by(repId) %>%
+                                   summarize_all(max) %>%
+                                   left_join(top) %>%
+                                   mutate(repLength = repHeight/abs(sin(repAngle))) %>%
+                                   select(repId, repHeight, repLength, repAngle))
+  } else {
+    top <- data.frame(repId = 1, repHeight = 0)
+    repFlame <- data.frame(repId = 1, repHeight = 0, repLength = 0, repAngle = 0)
+  }
+  
+  
   
   out <- suppressMessages(Stratum %>%
                             select(repId, slope_degrees, wind_kph, deadFuelMoistureProp, temperature,
