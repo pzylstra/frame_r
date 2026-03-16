@@ -6,7 +6,7 @@
 \usage{
 threat(
   Surf,
-  repFlame,
+  IP,
   Horizontal = 10,
   Height = 10,
   var = 10,
@@ -19,7 +19,7 @@ threat(
 \arguments{
 \item{Surf}{The dataframe produced by the function 'summary',}
 
-\item{repFlame}{The dataframe produced by the function 'repFlame'.}
+\item{IP}{The dataframe produced by the function 'repFlame'.}
 
 \item{Horizontal}{The horizontal distance in metres from the flame origin to the point}
 
@@ -39,7 +39,7 @@ threat(
 dataframe
 }
 \description{
-Calculates the convective and radiative heat from a flame that is 
+Calculates the convective and radiative heat from a flame that is
 incident upon a designated point
 
 Finds the temperature, velocity, dynamic viscosity, atmospheric pressure, and density of a plume at a point
@@ -81,7 +81,7 @@ epsilon: The emissivity of a flame is calculated from mean flame thickness using
 Experimental study of the emissivity of flames resulting from the combustion of forest fuels.
 Int. J. Therm. Sci. 49, 543–554 (2010)
 
-phi: The configuration factor is calculated using the function phi, from
+phi: The configuration factor is calculated using the function phi_fn, from
 Tan, Z., Midgley, S. & Douglas, G.
 A computerised model for bushfire attack assessment and its applications in bushfire protection planning.
 Int. Congr. Model. Simul. Adv. Appl. Manag. Decis. Making, MODSIM05 538–545 (2005)
