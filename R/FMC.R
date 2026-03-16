@@ -1,6 +1,6 @@
 
-#' @title insol
-#' @description Finds solar radiation reaching the ground surface
+#' @title Finds solar radiation reaching the ground surface
+#' @description Accounts for latitude, terrain, cloud cover, and leaf area index
 #' 
 #' @param lat Latitude in degrees
 #' @param hr Hour of the day, 0-24, decimal format
@@ -35,8 +35,8 @@ insol <- function(lat = -32, hr = 12, month = "December", aspect = 0, slope = 0,
 }
 
 
-#' @title QSat
-#' @description Finds saturation specific humidity from Stull (1988) Eqn 7.5.2c and d
+#' @title saturation specific humidity
+#' @description Uses Stull (1988) Eqn 7.5.2c and d
 #' @param tAir Temperature in Kelvin
 #' @param pAir Atmospheric pressure in Pascals
 #'
@@ -46,9 +46,8 @@ QSat <- function(tAir = 293.46, pAir = 101180){
   return(Q)
 }
 
-#' @title Ema
-#' @description Finds water vapour flux
-#' Calculates RH at the litter surface from inversion of Nelson (1984) EMC equation
+#' @title Finds water vapour flux
+#' @description Calculates RH at the litter surface from inversion of Nelson (1984) EMC equation
 #' @param m The starting moisture (proportion ODW)
 #' @param nelsonA Constant from Nelson FMC model
 #' @param nelsonB Constant from Nelson FMC model
@@ -253,10 +252,8 @@ tidyWeather <- function(clim) {
 }
 
 
-#' @title frameWeather
-#' @description Formats hourly weather data for frame, with DFMC
-#' 
-#' Function uses the 'Single differential equation model' of Matthews et al (2010)
+#' @title Formats hourly weather data for frame, with DFMC
+#' @description Uses the 'Single differential equation model' of Matthews et al (2010)
 #' 
 #' @param clim A dataset with the fields:
 #' tAM (9am temp, degC)
