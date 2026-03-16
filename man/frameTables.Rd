@@ -72,6 +72,6 @@ frameTables(
 \item{minCov}{Minimum cover for a species to be included}
 }
 \description{
-Constructs parameter files for FRaME using 
+Constructs parameter files for FRaME using
 outputs from plant
 }

@@ -12,12 +12,12 @@ ffm_run_command(
 )
 }
 \arguments{
-\item{param.path}{Path and name of a CSV-format file of simulation 
+\item{param.path}{Path and name of a CSV-format file of simulation
 parameters.}
 
 \item{db.path}{Path and name of the output SQLite database file.}
 
-\item{db.recreate}{A logical value indicating, if the file specified 
+\item{db.recreate}{A logical value indicating, if the file specified
 by \code{db.path} exists, whether to recreating the database (\code{TRUE})
 or append to it (\code{FALSE}). Default is to append.}
 

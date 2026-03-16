@@ -16,9 +16,9 @@ parameters.}
 }
 \value{
 If \code{raw} is \code{TRUE}, a data frame of parsed data
-  in raw form (useful for testing).
-  If \code{raw} is \code{FALSE} (the default), a data frame in a form 
-  suitable for use with \code{\link{ffm_run}}.
+in raw form (useful for testing).
+If \code{raw} is \code{FALSE} (the default), a data frame in a form
+suitable for use with \code{\link{ffm_run}}.
 }
 \description{
 The legacy parameters file format was designed for use with a C++

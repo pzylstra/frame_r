@@ -72,6 +72,6 @@ frameDynTab(
 \item{minCov}{Minimum cover for a species to be included}
 }
 \description{
-Constructs an age sequence of parameter files 
+Constructs an age sequence of parameter files
 built from plant modelling
 }

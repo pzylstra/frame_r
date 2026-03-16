@@ -2,7 +2,7 @@
 % Please edit documentation in R/FMC.R
 \name{frameWeather}
 \alias{frameWeather}
-\title{frameWeather}
+\title{Formats hourly weather data for frame, with DFMC}
 \usage{
 frameWeather(
   clim,
@@ -32,8 +32,8 @@ tAM (9am temp, degC)
 tPM (3pm temp, degC)
 tMin (Minimum daily temp, degC)
 tMax (Maximum daily temp, degC)
-rhAM (9am Relative humidity, %)
-rhPM (3pm Relative humidity, %)
+rhAM (9am Relative humidity, \%)
+rhPM (3pm Relative humidity, \%)
 wAM (9am wind, km/h)
 wPM (3pm wind, km/h)
 cAM (Morning cloud, oktas)
@@ -78,7 +78,5 @@ Rain (Daily rainfall, mm)}
 \item{EPS}{Sensitivity of iteration}
 }
 \description{
-Formats hourly weather data for frame, with DFMC
-
-Function uses the 'Single differential equation model' of Matthews et al (2010)
+Uses the 'Single differential equation model' of Matthews et al (2010)
 }

@@ -4,7 +4,20 @@
 \alias{buildFlora}
 \title{buildFlora}
 \usage{
-buildFlora(veg, surf = 20, sepSig = 0.001)
+buildFlora(
+  veg,
+  surf = 20,
+  sepSig = 0.001,
+  pN = "Point",
+  spName = "spName",
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht",
+  Site = "Site",
+  sN = "sN",
+  wid = "wid"
+)
 }
 \arguments{
 \item{veg}{A dataframe listing plant species with columns describing crown dimensions using standardised names:
@@ -13,6 +26,24 @@ veg, pN, spName, base, top, he, ht, wid, Site, sN}
 \item{surf}{Weight of surface litter in t/ha}
 
 \item{sepSig}{Significance at which to recognise separate strata}
+
+\item{pN}{Name of the column designating the point identifier}
+
+\item{spName}{Name of the column designating the species name}
+
+\item{base}{Name of the column with the canopy base height}
+
+\item{top}{Name of the column with the canopy top height}
+
+\item{he}{Name of the column with the he height}
+
+\item{ht}{Name of the column with the ht height}
+
+\item{Site}{A number identifying the transect}
+
+\item{sN}{A name identifying the transect}
+
+\item{wid}{Width of the plant crown (m)}
 }
 \value{
 dataframe

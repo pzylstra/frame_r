@@ -10,11 +10,11 @@ ffm_check_java(quiet = FALSE)
 \item{quiet}{If \code{TRUE}, suppresses messages and warnings.}
 }
 \value{
-\code{TRUE} if a compatible version of Java is found; 
-  \code{FALSE} otherwise.
+\code{TRUE} if a compatible version of Java is found;
+\code{FALSE} otherwise.
 }
 \description{
-Checks that Java version 1.8 or higher (aka Java 8) is installed 
+Checks that Java version 1.8 or higher (aka Java 8) is installed
 on the local system and available from the command line. This is
 required to run simulations with \code{\link{ffm_run}}.
 }

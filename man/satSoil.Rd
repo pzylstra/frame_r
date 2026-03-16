@@ -2,7 +2,7 @@
 % Please edit documentation in R/Earth.R
 \name{satSoil}
 \alias{satSoil}
-\title{satSoil}
+\title{Find soil saturation}
 \usage{
 satSoil(texture = "loam", moisture = 0.3)
 }
@@ -12,8 +12,6 @@ satSoil(texture = "loam", moisture = 0.3)
 \item{moisture}{Volumetric water content}
 }
 \description{
-Find soil saturation
-
 Finds saturation from ODW moisture and texture
 
 Field capacity of soils taken from Salter, P. J. & Williams, J. B.

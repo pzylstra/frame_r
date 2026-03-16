@@ -4,15 +4,7 @@
 \alias{datClean}
 \title{datClean}
 \usage{
-datClean(
-  veg,
-  base = "base",
-  top = "top",
-  he = "he",
-  ht = "ht",
-  weight = "weight",
-  messages = F
-)
+datClean(veg, base = "base", top = "top", he = "he", ht = "ht", messages = F)
 }
 \arguments{
 \item{veg}{A dataframe listing plant species with columns describing crown dimensions using standardised names}
@@ -25,14 +17,12 @@ datClean(
 
 \item{ht}{Name of the field with dimension ht}
 
-\item{weight}{Name of the field with dimension weight (litter weight)}
-
 \item{messages}{T or F to display messages}
 }
 \value{
 dataframe
 }
 \description{
-Performs basic data checks on survey data, 
+Performs basic data checks on survey data,
 fixes or removes data and lists changes
 }
