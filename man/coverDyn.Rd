@@ -4,18 +4,34 @@
 \alias{coverDyn}
 \title{coverDyn}
 \usage{
-coverDyn(dat, thres = 5, pnts = 10, p = 0.05, bTest = 10, maxiter = 1000)
+coverDyn(
+  dat,
+  species_col = "Species",
+  grouping = "Age",
+  thres = 5,
+  pN = "Point",
+  pntGap = 5,
+  p = 0.05,
+  bTest = 10,
+  maxiter = 1000
+)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}
 
+\item{species_col}{The name of the column giving the name of the species (string)}
+
+\item{grouping}{The name of the column that groups sites, eg by age or location (string)}
+
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
-\item{pnts}{The number of points measured in a transect}
+\item{pN}{The name of the column giving the number of the vertical transect (string)}
+
+\item{pntGap}{The distance (m) between each vertical transect point}
 
 \item{p}{The maximum allowable p value for a model}
 
-\item{bTest}{Multiples of mean + mRSE for which Burr & quadratic models can predict 
+\item{bTest}{Multiples of mean + mRSE for which Burr & quadratic models can predict
 beyond the observed mean + standard deviation}
 
 \item{maxiter}{The maximum number of iterations for model fitting}
@@ -25,11 +41,5 @@ dataframe
 }
 \description{
 Builds models for cover dynamics of surveyed Species
-
-Input table requires the following fields:
-Point - numbered point in a transect
-Species - name of the surveyed Species
-Age - age of the site since the triggering disturbance
-
 Species that are less common than the set threshold are combined as "Minor Species"
 }

@@ -10,11 +10,11 @@ buildSpeciesValues(Flora, default.species.params, a)
 \item{Flora}{A dataframe with the fields:
 record - a unique, consecutively numbered identifier per site
 site - A name for the site
-species - the name of the species, which will call trait data from 
+species - the name of the species, which will call trait data from
 'default.species.params'
 stratum - numeric value from 1 to 4, counting from lowest stratum
-comp - Percent composition of that species in the stratum. 
-   If absent, all species will be considered equally.
+comp - Percent composition of that species in the stratum.
+If absent, all species will be considered equally.
 base - base height of plant crowns (m)
 he - he height of plant crowns (m)
 ht - ht height of plant crowns (m)
@@ -22,8 +22,8 @@ top - top height of plant crowns (m)
 w - width of plant crowns (m)
 Hs - standard deviation of the top height of plant crowns (m)
 Hr - range of the top height of plant crowns (m)
-weight - weight in t/ha of fine dead organic material forming 
-   the surface and suspNS layers
+weight - weight in t/ha of fine dead organic material forming
+the surface and suspNS layers
 diameter - mean diameter of surface and suspNS litter in m}
 
 \item{default.species.params}{Plant traits database}

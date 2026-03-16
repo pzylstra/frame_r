@@ -7,7 +7,7 @@
 ffm_assemble_table(lst)
 }
 \arguments{
-\item{lst}{A named list of table components. 
+\item{lst}{A named list of table components.
 See \code{\link{ffm_disassemble_table}} for details of valid names.}
 }
 \value{

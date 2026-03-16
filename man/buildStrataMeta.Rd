@@ -12,9 +12,9 @@ record - a unique, consecutively numbered identifier per site
 site - a unique identifier per site
 NS, El, Mid & Can - the mean separation between plants (m) per stratum
 ns_e, ns_m, e_m, e_c, m_c - Logical field indicating whether plants in the stratum
-on the left grow directly beneath those in the stratum on the right. 
-   Acceptable values are TRUE, FALSE, or blank, where the outcome 
-   will be decided by the relative stratum heights.
+on the left grow directly beneath those in the stratum on the right.
+Acceptable values are TRUE, FALSE, or blank, where the outcome
+will be decided by the relative stratum heights.
 nsR, eR, mR, cR. Species richness (number of species) in each stratum}
 
 \item{a}{The number of the record for the site}

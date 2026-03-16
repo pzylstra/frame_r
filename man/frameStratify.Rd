@@ -4,7 +4,17 @@
 \alias{frameStratify}
 \title{frameStratify}
 \usage{
-frameStratify(veg, mStrat = 4, sepSig = 0.001)
+frameStratify(
+  veg,
+  mStrat = 4,
+  sepSig = 0.001,
+  pN = "pN",
+  spName = "spName",
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht"
+)
 }
 \arguments{
 \item{veg}{A dataframe listing plant species with columns describing crown dimensions using standardised names:
@@ -13,6 +23,18 @@ veg, pN, spName, base, top, he, ht, wid, Site, sN}
 \item{mStrat}{Maximum number of strata}
 
 \item{sepSig}{p value to define significant stratum separation}
+
+\item{pN}{Name of the column designating the point identifier}
+
+\item{spName}{Name of the column designating the species name}
+
+\item{base}{Name of the column with the canopy base height}
+
+\item{top}{Name of the column with the canopy top height}
+
+\item{he}{Name of the column with the he height}
+
+\item{ht}{Name of the column with the ht height}
 }
 \value{
 Dataframe
@@ -20,7 +42,7 @@ Dataframe
 \description{
 Arranges survey data into strata using k-means clustering
 
-Data are stratified into 2-4 strata, then the largest number of strata 
+Data are stratified into 2-4 strata, then the largest number of strata
 are chosen where p<0.01. If none qualify, then the most significant
 division is chosen.
 
