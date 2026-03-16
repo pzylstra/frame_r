@@ -6,7 +6,8 @@
 \usage{
 hollow(
   Surf,
-  Plant,
+  IP,
+  base.params,
   Height = 1,
   woodDensity = 700,
   barkDensity = 500,
@@ -23,18 +24,27 @@ hollow(
   Pressure = 1013.25,
   Altitude = 0,
   Dimension = 0.3,
+  diameterHollow = 0.2,
   Area = 0.03,
   diameter = 6,
   surfDecl = 2,
   startTemp = 21,
   Shape = "Cylinder",
-  updateProgress = NULL
+  wind_is_from = TRUE,
+  hollow_az_deg = 90,
+  hollow_tilt_deg = 0,
+  wind_az_deg = 270,
+  mortalityEnd = TRUE
 )
 }
 \arguments{
 \item{Surf}{The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'}
 
-\item{Plant}{The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.}
+\item{IP}{The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.}
+
+\item{base.params}{A parameter table used by the FRaME workflow
+Numeric. Hollow azimuth in degrees, measured clockwise from
+North. Defines the horizontal orientation of the hollow’s outward axis.}
 
 \item{Height}{The height directly over ground (m) at which the species is expected to shelter from a fire.}
 
@@ -68,6 +78,8 @@ hollow(
 
 \item{Dimension}{The "Characteristic length" of the hollow (m)}
 
+\item{diameterHollow}{Diameter of the hollow (m)}
+
 \item{Area}{The surface area of the thinnest side of the hollow (m^2)}
 
 \item{diameter}{depth of the litter layer (mm)}
@@ -78,7 +90,20 @@ hollow(
 
 \item{Shape}{The approximate shape of the hollow exterior - either "Flat", "Sphere", or "Cylinder"}
 
-\item{updateProgress}{Progress bar for use in the dashboard}
+\item{wind_is_from}{Logical. If \code{TRUE} (default), the \code{wind_az_deg} value is the
+direction from which the wind blows (meteorological convention). If \code{FALSE},
+it is interpreted as the direction towards which the wind is moving.}
+
+\item{hollow_az_deg}{Numeric. Hollow azimuth in degrees, measured clockwise from
+North (0° = North, 90° = East, 180° = South, 270° = West).}
+
+\item{hollow_tilt_deg}{Numeric. Hollow tilt angle in degrees above the horizontal
+(positive = tilted upward, negative = downward). Default is 0 (horizontal).}
+
+\item{wind_az_deg}{Numeric. Wind azimuth in degrees, measured clockwise from
+North (0° = North, 90° = East, 180° = South, 270° = West).}
+
+\item{mortalityEnd}{Stops loop if mortality occurs}
 }
 \value{
 dataframe
