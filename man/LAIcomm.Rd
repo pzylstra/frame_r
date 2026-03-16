@@ -2,20 +2,37 @@
 % Please edit documentation in R/Flora.R
 \name{LAIcomm}
 \alias{LAIcomm}
-\title{LAIcomm}
+\title{Community Leaf Area Index}
 \usage{
 LAIcomm(base.params, yu = 100, yl = 0)
 }
 \arguments{
-\item{base.params}{Parameter input file}
+\item{base.params}{A parameter table used by the FRaME workflow. Must be
+compatible with \code{species()}, \code{strata()}, and \code{LAIp()}. It should contain
+per-species rows and a \code{param} and \code{value} column for species parameters.}
 
-\item{yu}{Top of slice (m)}
+\item{yu}{Numeric. Upper height of the slice (same units as species heights).}
 
-\item{yl}{Base of slice (m)}
+\item{yl}{Numeric. Lower height of the slice (same units as species heights).}
 }
 \value{
-value
+Numeric scalar. The total community LAI for the slice.
 }
 \description{
-Calculates LAI for a horizontal slice of a plant community
+Computes the community-level leaf area index (LAI) for a vertical slice,
+using vectorized lookups from \code{species(base.params)} and \code{strata(base.params)}
+and per-species \code{LAIp()} values.
+}
+\details{
+For each species, \code{LAIp()} is evaluated for the slice \verb{[yl, yu]}. Species
+weights are taken from \code{species(base.params)$comp}, and cover is taken from
+\code{strata(base.params)$cover[species$st]}. The returned value is the sum of
+\code{LAIp * Cover * Weight} across species.
+}
+\examples{
+\dontrun{
+# Example with user project structures:
+LAIcomm(base.params, yu = 10, yl = 8)
+}
+
 }
