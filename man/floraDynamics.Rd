@@ -7,7 +7,15 @@
 floraDynamics(
   dat,
   thres = 5,
-  pnts = 10,
+  species_col = "Species",
+  grouping = "Age",
+  pN = "Point",
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht",
+  width = "wid",
+  pntGap = 5,
   p = 0.01,
   bTest = 2,
   cTest = 10,
@@ -29,7 +37,23 @@ floraDynamics(
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
-\item{pnts}{The number of points measured in a transect}
+\item{species_col}{The name of the column giving the name of the species (string)}
+
+\item{grouping}{The name of the column that groups sites, eg by age or location (string)}
+
+\item{pN}{The name of the column giving the number of the vertical transect (string)}
+
+\item{base}{Name of the base height field}
+
+\item{top}{Name of the field containing the height of the tree canopy}
+
+\item{he}{Name of the field with dimension he}
+
+\item{ht}{Name of the field with dimension ht}
+
+\item{width}{Name of the field containing the width of the tree canopy}
+
+\item{pntGap}{The distance (m) between each vertical transect point}
 
 \item{p}{The maximum allowable p value for a model}
 

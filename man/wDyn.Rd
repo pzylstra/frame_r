@@ -6,10 +6,13 @@
 \usage{
 wDyn(
   dat,
-  width = "width",
+  width = "wid",
   top = "top",
+  species_col = "Species",
+  grouping = "Age",
+  pN = "Point",
+  pntGap = 5,
   thres = 5,
-  pnts = 10,
   p = 0.05,
   bTest = 10,
   maxiter = 1000
@@ -22,13 +25,19 @@ wDyn(
 
 \item{top}{Name of the field containing the height of the tree canopy}
 
-\item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
+\item{species_col}{The name of the column giving the name of the species (string)}
 
-\item{pnts}{The number of points measured in a transect}
+\item{grouping}{The name of the column that groups sites, eg by age or location (string)}
+
+\item{pN}{The name of the column giving the number of the vertical transect (string)}
+
+\item{pntGap}{The distance (m) between each vertical transect point}
+
+\item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
 \item{p}{The maximum allowable p value for a model}
 
-\item{bTest}{Multiples of mean + mRSE for which Burr & quadratic models can predict 
+\item{bTest}{Multiples of mean + mRSE for which Burr & quadratic models can predict
 beyond the observed mean + standard deviation}
 
 \item{maxiter}{The maximum number of iterations for model fitting}

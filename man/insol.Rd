@@ -2,7 +2,7 @@
 % Please edit documentation in R/FMC.R
 \name{insol}
 \alias{insol}
-\title{insol}
+\title{Finds solar radiation reaching the ground surface}
 \usage{
 insol(
   lat = -32,
@@ -30,5 +30,5 @@ insol(
 \item{cloud}{Proportion cloud cover (0-1)}
 }
 \description{
-Finds solar radiation reaching the ground surface
+Accounts for latitude, terrain, cloud cover, and leaf area index
 }

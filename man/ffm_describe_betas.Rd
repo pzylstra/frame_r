@@ -21,10 +21,10 @@ ffm_describe_betas(
 }
 \value{
 Invisibly returns a list with elements:
-  \describe{
-    \item{plot}{A ggplot object showing the distributions.}
-    \item{summary}{A data frame summarizing the moments of the distributions.}
-  }
+\describe{
+\item{plot}{A ggplot object showing the distributions.}
+\item{summary}{A data frame summarizing the moments of the distributions.}
+}
 }
 \description{
 This function can be used to explore the shapes and parameters of
@@ -40,6 +40,6 @@ function only accepts distributions where both parameters are greater
 than one to ensure that the mode exists.
 }
 \seealso{
-\code{\link{ffm_param_variance}} which has an option to use 
-  a Beta distribution to vary parameter values.
+\code{\link{ffm_param_variance}} which has an option to use
+a Beta distribution to vary parameter values.
 }

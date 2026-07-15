@@ -2,7 +2,7 @@
 % Please edit documentation in R/FMC.R
 \name{QSat}
 \alias{QSat}
-\title{QSat}
+\title{saturation specific humidity}
 \usage{
 QSat(tAir = 293.46, pAir = 101180)
 }
@@ -12,5 +12,5 @@ QSat(tAir = 293.46, pAir = 101180)
 \item{pAir}{Atmospheric pressure in Pascals}
 }
 \description{
-Finds saturation specific humidity from Stull (1988) Eqn 7.5.2c and d
+Uses Stull (1988) Eqn 7.5.2c and d
 }

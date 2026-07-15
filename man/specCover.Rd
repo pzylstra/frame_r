@@ -4,25 +4,25 @@
 \alias{specCover}
 \title{specCover}
 \usage{
-specCover(dat, thres = 5, pnts = 10)
+specCover(dat, species_col, grouping, pN, thres, pntGap)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}
 
-\item{thres}{The minimum percent cover (0-100) of a Species that will be kept single}
+\item{species_col}{The name of the column giving the name of the species (string)}
 
-\item{pnts}{The number of points measured in a transect}
+\item{grouping}{The name of the column that groups sites, eg by age or location (string)}
+
+\item{pN}{The name of the column giving the number of the vertical transect (string)}
+
+\item{thres}{The minimum percent cover (0-100) of a Species that will be analysed
+Species with lower cover are combined as "Minor Species"}
+
+\item{pntGap}{The distance (m) between each vertical transect point}
 }
 \value{
 dataframe
 }
 \description{
 Finds percent cover of surveyed Species and groups minor Species
-
-Input table requires the following fields:
-Point - numbered point in a transect
-Species - name of the surveyed Species
-Age - age of the site since the triggering disturbance
-
-Species that are less common than the set threshold are combined as "Minor Species"
 }

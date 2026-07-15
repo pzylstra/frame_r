@@ -4,16 +4,36 @@
 \alias{htDyn}
 \title{htDyn}
 \usage{
-htDyn(dat, thres = 5, pnts = 10, p = 0.05)
+htDyn(
+  dat,
+  thres = 5,
+  species_col = "Species",
+  grouping = "Age",
+  pN = "Point",
+  pntGap = 5,
+  p = 0.05,
+  ht = "ht",
+  top = "top"
+)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data,}
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
-\item{pnts}{The number of points measured in a transect}
+\item{species_col}{The name of the column giving the name of the species (string)}
+
+\item{grouping}{The name of the column that groups sites, eg by age or location (string)}
+
+\item{pN}{The name of the column giving the number of the vertical transect (string)}
+
+\item{pntGap}{The distance (m) between each vertical transect point}
 
 \item{p}{The maximum allowable p value for a model}
+
+\item{ht}{Name of the field with dimension ht}
+
+\item{top}{Name of the field containing the height of the tree canopy}
 }
 \value{
 dataframe

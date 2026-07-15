@@ -2,18 +2,37 @@
 % Please edit documentation in R/Flora.R
 \name{profileDet}
 \alias{profileDet}
-\title{profileDet}
+\title{Vertical wind attenuation profile by canopy slices}
 \usage{
 profileDet(base.params, slices = 10)
 }
 \arguments{
-\item{base.params}{Parameter input file}
+\item{base.params}{A parameter table used by the FRaME workflow. Must be
+compatible with \code{species()}, \code{strata()}, and \code{LAIcomm()}.}
 
-\item{slices}{Number of horizontal slices to use in calculation}
+\item{slices}{Integer. Number of vertical slices between ground and
+the top height.}
 }
 \value{
-dataframe
+A data frame with one row per slice plus an initial baseline row,
+containing:
+\itemize{
+\item \code{l}: LAI per slice (first row is zero).
+\item \code{gam}: Slice-level attenuation coefficient (first row is zero).
+\item \code{w}: Cumulative wind multiplier starting at 1.
+\item \code{Slice}: Slice index starting at 1.
+\item \code{z}: Relative height from 1 (top) to 0 (bottom).
+\item \code{hm}: Absolute height corresponding to \code{z}.
+}
 }
 \description{
-Calculates a vertical wind profile
+Builds a height profile by slicing the canopy and accumulating a
+multiplicative wind factor across slices.
+}
+\examples{
+\dontrun{
+prof <- profileDet_fast(base.params, slices = 20)
+head(prof)
+}
+
 }

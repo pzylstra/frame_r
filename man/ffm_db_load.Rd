@@ -11,7 +11,7 @@ ffm_db_load(db.path)
 }
 \value{
 A named list of data frames corresponding to
-  database tables.
+database tables.
 }
 \description{
 Attempts to load the entire contents of a database into

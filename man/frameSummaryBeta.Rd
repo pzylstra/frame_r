@@ -21,5 +21,6 @@ frameSummaryBeta(flames, sites, ros, surface, IP)
 dataframe
 }
 \description{
-Summarises FRaME generated fire behaviour by RepId
+Summarises FRaME generated fire behaviour by RepId,
+including the mean height from $IgnitionPaths
 }

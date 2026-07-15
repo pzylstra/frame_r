@@ -6,15 +6,18 @@
 \usage{
 mammal(
   Surf,
-  Plant,
+  IP,
   Height = 1,
   distance = 5,
+  xRate = 0,
   trail = 360,
   diameter = 6,
   surfDecl = 10,
   var = 10,
   Pressure = 1013.25,
   Altitude = 0,
+  yRate = 0.65,
+  yMax = 10,
   RH = 0.51,
   bodyLength = 0.1,
   surfaceArea = 0.2,
@@ -28,18 +31,19 @@ mammal(
   skinDensity = 1020,
   skinK = 0.187,
   bodyTemp = 37,
-  Shape = "Cylinder",
-  updateProgress = NULL
+  Shape = "Cylinder"
 )
 }
 \arguments{
 \item{Surf}{The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'}
 
-\item{Plant}{The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.}
+\item{IP}{The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.}
 
 \item{Height}{The height directly over ground (m) at which the species is expected to shelter from a fire.}
 
 \item{distance}{The starting horizontal distance between the flame origin and the point (m)}
+
+\item{xRate}{Horizontal speed of animal movement (m/s)}
 
 \item{trail}{Number of seconds to continue modelling after the fire has passed}
 
@@ -52,6 +56,10 @@ mammal(
 \item{Pressure}{Sea level atmospheric pressure (hPa)}
 
 \item{Altitude}{Height above sea level (m)}
+
+\item{yRate}{Vertical speed of animal movement (m/s)}
+
+\item{yMax}{Maximum height animal can reach (m)}
 
 \item{RH}{Relative humidity (0-1)}
 
@@ -80,13 +88,11 @@ mammal(
 \item{bodyTemp}{The body temperature of the animal (deg C)}
 
 \item{Shape}{The approximate shape of the animal - either "Flat", "Sphere", or "Cylinder"}
-
-\item{updateProgress}{Progress bar for use in the dashboard}
 }
 \value{
 dataframe
 }
 \description{
-Calculates the degree of injury or likelihood of mortality 
+Calculates the degree of injury or likelihood of mortality
 to an exposed mammal caused by an approaching fire front
 }

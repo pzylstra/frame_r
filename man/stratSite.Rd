@@ -4,7 +4,17 @@
 \alias{stratSite}
 \title{stratSite}
 \usage{
-stratSite(dat, thres = 0, sepSig = 0.001)
+stratSite(
+  dat,
+  thres = 0,
+  sepSig = 0.001,
+  pN = "Point",
+  spName = "spName",
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht"
+)
 }
 \arguments{
 \item{dat}{A dataframe listing plant species with columns describing crown dimensions using standardised names:
@@ -13,6 +23,18 @@ veg, pN, spName, base, top, he, ht, wid, Site, sN}
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
 \item{sepSig}{Threshold for determining significance}
+
+\item{pN}{Name of the column designating the point identifier}
+
+\item{spName}{Name of the column designating the species name}
+
+\item{base}{Name of the column with the canopy base height}
+
+\item{top}{Name of the column with the canopy top height}
+
+\item{he}{Name of the column with the he height}
+
+\item{ht}{Name of the column with the ht height}
 }
 \value{
 dataframe

@@ -13,9 +13,9 @@ units (unit abbreviation or \code{NA} if dimensionless).
 ParamInfo
 }
 \description{
-This data frame contains all valid parameter labels with their corresponding 
+This data frame contains all valid parameter labels with their corresponding
 section (site, stratum or species) and default units.
-A value of \code{NA} for units indicates that a parameter is dimensionless 
+A value of \code{NA} for units indicates that a parameter is dimensionless
 (e.g. a proportional quantity or a text value).
 }
 \keyword{datasets}

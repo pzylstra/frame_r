@@ -1,6 +1,6 @@
 #' frame: Fire Research and Modelling Environment
 #' 
-#' This package provides an interface to the Forest Flammability Model of
+#' @description This package provides an interface to the Forest Flammability Model of
 #' Zylstra et al, adding functions for complex fire simulation and first-order 
 #' fire effects modelling. It provides  the primary functions required to prepare input 
 #' parameters, run model simulations, and query the output database of model results,
@@ -26,7 +26,6 @@
 #' Zylstra, P. J. (2023) Quantifying the direct fire threat to a critically endangered 
 #' arboreal marsupial using biophysical, mechanistic modelling. Austral Ecol. 48, 266–288.
 #'
-#' @docType _PACKAGE
 #' @name frame
-#'
-NULL
+#' @keywords internal
+"_PACKAGE"

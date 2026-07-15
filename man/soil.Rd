@@ -2,7 +2,7 @@
 % Please edit documentation in R/Earth.R
 \name{soil}
 \alias{soil}
-\title{Soil}
+\title{Calculate soil heating}
 \usage{
 soil(
   Surf,
@@ -67,9 +67,7 @@ soil(
 dataframe
 }
 \description{
-Soil heating
-
-Calculates the dynamic heating of a soil at 1cm increments, to 5cm depth
+Uses 1cm increments, to 5cm depth
 
 Assumes all to be A horizon, with constant, uncompacted density
 

@@ -7,7 +7,7 @@
 litter(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = 10)
 }
 \arguments{
-\item{negEx}{Value determining the model used. 
+\item{negEx}{Value determining the model used.
 1 = olson, 2 = Burr}
 
 \item{max}{Maximum weight (t/ha)}
@@ -24,6 +24,6 @@ litter(negEx = 1, max = 54.22, rate = 0.026, a = 3.35, b = 0.832, age = 10)
 value
 }
 \description{
-Models the weight of surface litter from time since fire 
+Models the weight of surface litter from time since fire
 using either an Olson negative exponential function or a Burr curve
 }

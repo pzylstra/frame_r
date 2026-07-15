@@ -14,7 +14,7 @@ written to the console.}
 }
 \value{
 \code{TRUE} is all required parameters are present; \code{FALSE}
-  otherwise.
+otherwise.
 }
 \description{
 A parameter table is considered complete if it contains all parameters specified

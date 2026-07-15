@@ -11,7 +11,7 @@ a data frame with 13 columns, and a row for each species per stratum, per site
 \item{site}{A string to name the row}
 \item{species}{The name of the species, e.g. Eucalyptus rossii}
 \item{moisture}{Moisture of live leaves (proportion oven dry weight) e.g 0.8}
-\item{stratum}{Numbered from 1 (near surface) to 4 (canopy)}     
+\item{stratum}{Numbered from 1 (near surface) to 4 (canopy)}
 \item{comp}{Integer giving the count of this species}
 \item{base}{Height (m) of the base of the plant crown}
 \item{he}{Height (m) of the lower edge of the plant crown}

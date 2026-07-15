@@ -2,7 +2,7 @@
 % Please edit documentation in R/Building.R
 \name{ausTraitTable}
 \alias{ausTraitTable}
-\title{ausTraitTable}
+\title{Construct default.species.params table from ausTraits database}
 \usage{
 ausTraitTable(version = "3.0.2", path = "data/austraits", shadeTolerance = 3)
 }
@@ -11,7 +11,7 @@ ausTraitTable(version = "3.0.2", path = "data/austraits", shadeTolerance = 3)
 
 \item{path}{Path to austraits database}
 
-\item{shadeTolerance}{The Whole Plant Light Compensation Point below which 
+\item{shadeTolerance}{The Whole Plant Light Compensation Point below which
 plants are considered shade tolerant}
 }
 \value{

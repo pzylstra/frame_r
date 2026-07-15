@@ -4,7 +4,7 @@
 \alias{plantFlame}
 \title{plantFlame}
 \usage{
-plantFlame(paths, Stratum, Species, repId)
+plantFlame(paths, Stratum, Species, repId, site)
 }
 \arguments{
 \item{paths}{Output table from the function repFlame}
@@ -14,10 +14,14 @@ plantFlame(paths, Stratum, Species, repId)
 \item{Species}{Name of the species being studied}
 
 \item{repId}{Number of the repId being studied}
+
+\item{site}{Name of the site being studied}
 }
 \value{
 dataframe
 }
 \description{
 Collects flame segments for a specified plant in a stratum
+For each segment, points A-C mark the origin, end of burning foliage,
+and tip of the flame segment, respectively.
 }

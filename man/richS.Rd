@@ -4,7 +4,20 @@
 \alias{richS}
 \title{richS}
 \usage{
-richS(dat, thres = 0, pnts = 10, sepSig = 0.001)
+richS(
+  dat,
+  thres = 0,
+  species_col = "Species",
+  grouping = "Age",
+  pN = "Point",
+  spName = "spName",
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht",
+  pntGap = 5,
+  sepSig = 0.001
+)
 }
 \arguments{
 \item{dat}{A dataframe listing plant species with columns describing crown dimensions using standardised names:
@@ -12,7 +25,23 @@ veg, pN, spName, base, top, he, ht, wid, Site, sN}
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
-\item{pnts}{The number of points measured in a transect}
+\item{species_col}{The name of the column giving the name of the species (string)}
+
+\item{grouping}{The name of the column that groups sites, eg by age or location (string)}
+
+\item{pN}{The name of the column giving the number of the vertical transect (string)}
+
+\item{spName}{Name of the column designating the species name}
+
+\item{base}{Name of the column with the canopy base height}
+
+\item{top}{Name of the column with the canopy top height}
+
+\item{he}{Name of the column with the he height}
+
+\item{ht}{Name of the column with the ht height}
+
+\item{pntGap}{The distance (m) between each vertical transect point}
 
 \item{sepSig}{Threshold for determining significance}
 }

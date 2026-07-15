@@ -6,13 +6,16 @@
 #}
 
 .onLoad <- function(libname, pkgname) {
-  # Print a startup message
-  packageStartupMessage("FRaME: Fire Research And Modelling Environment")
-  
-  # Assign the settings to the package's namespace environment
+  # initialise settings in the namespace
   pkg_env <- getNamespace(pkgname)
   assign(".ffm_settings", list(), envir = pkg_env)
 }
+
+.onAttach <- function(libname, pkgname) {
+  # only print the startup message
+  packageStartupMessage("FRaME: Fire Research And Modelling Environment")
+}
+
 
 
 # Original
@@ -31,10 +34,10 @@
 
 
 # Declare global variables and functions
-utils::globalVariables(c("Age", "Alpha", "Altitude", "Angle", "C", "C.C_rat", "C.C_rat.x", "C.C_rat.y", "Cloud", "Co", "Cover",
-                         "Day", "Declination", "Density", "E", "El", "Extinction", "FF16_expand_state", "Flora",
+utils::globalVariables(c("Age", "Alpha", "AlphaP", "Altitude", "Angle", "C", "C.C_rat", "C.C_rat.x", "C.C_rat.y", "Cloud", "Co", "CP", "Cover",
+                         "Day", "Declination", "Density", "E", "El", "Extinction", "FF16_expand_state", "flameTempP", "Flora",
                          "G.C_rat", "G.C_rat.x", "G.C_rat.y", "Genus", "Hc", "He", "Height", "Hour", "Hp", "Ht", "InsolationA",
-                         "InsolationB", "InsolationC", "InsolationD", "Intercept", "LegacyParamLookup", "MSLP",
+                         "InsolationB", "InsolationC", "InsolationD", "Intercept", "InterceptP", "LegacyParamLookup", "MSLP",
                          "Mr", "Ms", "ParamInfo", "Plume_velocity", "Pm", "Point", "Pt", "Q", "Qi", "QiA", "QiB", "QiC", "QiD", "QiE", "R",
                          "RH", "RHA", "RainAdj", "Reach", "Richness", "Separation", "Shade", "ShadeA", "ShadeB", "ShadeC",
                          "ShadeD", "Site", "Slice", "Species", "Spotting", "Stratum", "Structure", "TempA", "TerrainA",
@@ -79,4 +82,4 @@ utils::globalVariables(c("Age", "Alpha", "Altitude", "Angle", "C", "C.C_rat", "C
                          "tempSoil", "temp_pointP", "temp_pointS", "temp_point_post", "temperature", "testN",
                          "top", "topM", "trail", "txtProgressBar", "vAir500", "value", "var", "viscosity", "w", "wAM", "wM",
                          "wPM", "wR", "weighted.mean", "weightedW", "wetBulb", "where", "wid", "windSpeed", "wind_kph",
-                         "woodDensity", "word", "write.csv", "x", "x0", "x1", "y", "y0", "y1", "z", "zeta"))
+                         "woodDensity", "word", "write.csv", "x", "x0", "x1", "y", "y0", "y1", "z", "zeta", "phi"))

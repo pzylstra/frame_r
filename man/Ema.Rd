@@ -2,7 +2,7 @@
 % Please edit documentation in R/FMC.R
 \name{Ema}
 \alias{Ema}
-\title{Ema}
+\title{Finds water vapour flux}
 \usage{
 Ema(
   m,
@@ -36,6 +36,5 @@ Ema(
 \item{rhAir}{Relative humidity (Percent)}
 }
 \description{
-Finds water vapour flux
 Calculates RH at the litter surface from inversion of Nelson (1984) EMC equation
 }

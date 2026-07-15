@@ -16,14 +16,14 @@ A named list of table components.
 Given a parameter table, this function returns a list with
 the following named elements:
 \describe{
-  \item{site.meta}{Data frame of rows from the input table for
-    site attributes.}
-  \item{strata.meta}{Data frame of rows from the input table for
-    stratum meta-data.}
-  \item{species.values}{Data frame of species parameter values in
-    wide format, ie. species as rows, parameters as columns.}
-  \item{species.units}{Data frame of species parameter units in
-    wide format.}
+\item{site.meta}{Data frame of rows from the input table for
+site attributes.}
+\item{strata.meta}{Data frame of rows from the input table for
+stratum meta-data.}
+\item{species.values}{Data frame of species parameter values in
+wide format, ie. species as rows, parameters as columns.}
+\item{species.units}{Data frame of species parameter units in
+wide format.}
 }
 For the \code{species.values} data frame, all columns for numeric
 parameters are converted from character to numeric.

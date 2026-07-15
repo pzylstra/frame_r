@@ -6,7 +6,7 @@
 \usage{
 underground(
   Surf,
-  Plant,
+  IP,
   diameter = 6,
   surface = 677,
   percentile = 0.5,
@@ -29,7 +29,7 @@ underground(
 \arguments{
 \item{Surf}{The dataframe 'runs' exported from Monte Carlos as 'Summary.csv'}
 
-\item{Plant}{The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.}
+\item{IP}{The dataframe 'IP' exported from Monte Carlos as 'IP.csv'.}
 
 \item{diameter}{Diameter of the surface fuels burning (mm)}
 

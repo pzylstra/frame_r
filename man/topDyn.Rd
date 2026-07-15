@@ -6,12 +6,12 @@
 \usage{
 topDyn(
   dat,
-  base = "base",
   top = "top",
-  he = "he",
-  ht = "ht",
+  species_col = "Species",
+  grouping = "Age",
+  pN = "Point",
+  pntGap = 5,
   thres = 5,
-  pnts = 10,
   p = 0.05,
   bTest = 10,
   maxiter = 1000
@@ -20,21 +20,21 @@ topDyn(
 \arguments{
 \item{dat}{The dataframe containing the input data,}
 
-\item{base}{Name of the base height field}
-
 \item{top}{Name of the top height field}
 
-\item{he}{Name of the lower edge height (he) field}
+\item{species_col}{The name of the column giving the name of the species (string)}
 
-\item{ht}{Name of the upper edge height (ht) field}
+\item{grouping}{The name of the column that groups sites, eg by age or location (string)}
+
+\item{pN}{The name of the column giving the number of the vertical transect (string)}
+
+\item{pntGap}{The distance (m) between each vertical transect point}
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
-\item{pnts}{The number of points measured in a transect}
-
 \item{p}{The maximum allowable p value for a model}
 
-\item{bTest}{Multiples of mean + mRSE for which Burr & quadratic models can predict 
+\item{bTest}{Multiples of mean + mRSE for which Burr & quadratic models can predict
 beyond the observed mean + standard deviation}
 
 \item{maxiter}{The maximum number of iterations for model fitting}
@@ -44,11 +44,5 @@ dataframe
 }
 \description{
 Builds models for top height dynamics of surveyed Species
-
-Input table requires the following fields:
-Point - numbered point in a transect
-Species - name of the surveyed Species
-Age - age of the site since the triggering disturbance
-
 Species that are less common than the set threshold are combined as "Minor Species"
 }

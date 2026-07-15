@@ -6,36 +6,36 @@
 \title{Structure data}
 \format{
 a dataframe with 11 columns and 1 row for each site
-\describe{  
-\item{record}{Consecutive integer to reference the row} 
+\describe{
+\item{record}{Consecutive integer to reference the row}
 \item{site}{A string to name the row}
-\item{NS}{Separation between plants in the near surface stratum (m from centre to centre)}   
-\item{El}{Separation between plants in the elevated stratum (m from centre to centre)}      
-\item{Mid}{Separation between plants in the midstorey stratum (m from centre to centre)}       
-\item{Can}{Separation between plants in the canopy stratum (m from centre to centre)}        
-\item{ns_e}{Near surface plants grow directly beneath elevated plants. 
-Acceptable values are t, f, or blank, 
-where the outcome will be decided by the relative stratum heights.}         
-\item{ns_m}{Near surface plants grow directly beneath midstorey plants. 
-Acceptable values are t, f, or blank, where the outcome will be decided by the 
-relative stratum heights.}          
+\item{NS}{Separation between plants in the near surface stratum (m from centre to centre)}
+\item{El}{Separation between plants in the elevated stratum (m from centre to centre)}
+\item{Mid}{Separation between plants in the midstorey stratum (m from centre to centre)}
+\item{Can}{Separation between plants in the canopy stratum (m from centre to centre)}
+\item{ns_e}{Near surface plants grow directly beneath elevated plants.
+Acceptable values are t, f, or blank,
+where the outcome will be decided by the relative stratum heights.}
+\item{ns_m}{Near surface plants grow directly beneath midstorey plants.
+Acceptable values are t, f, or blank, where the outcome will be decided by the
+relative stratum heights.}
 \item{e_m}{Elevated plants grow directly beneath midstorey plants.
- Acceptable values are t, f, or blank, where the outcome will be 
- decided by the relative stratum heights.}          
-\item{e_c}{Elevated plants grow directly beneath canopy plants. 
-Acceptable values are t, f, or blank, where the outcome will be decided by 
-the relative stratum heights.}        
-\item{m_c}{Midstorey plants grow directly beneath canopy plants. 
-Acceptable values are t, f, or blank, where the outcome will be 
-decided by the relative stratum heights.}            
+Acceptable values are t, f, or blank, where the outcome will be
+decided by the relative stratum heights.}
+\item{e_c}{Elevated plants grow directly beneath canopy plants.
+Acceptable values are t, f, or blank, where the outcome will be decided by
+the relative stratum heights.}
+\item{m_c}{Midstorey plants grow directly beneath canopy plants.
+Acceptable values are t, f, or blank, where the outcome will be
+decided by the relative stratum heights.}
 \item{nsR}{Optional field used only by the function frame::specPoint().
- Gives the maximum recorded species richness for the near-surface stratum.}         
-\item{eR}{Optional field used only by the function frame::specPoint(). 
-Gives the maximum recorded species richness for the elevated stratum.}          
-\item{mR}{Optional field used only by the function frame::specPoint(). 
-Gives the maximum recorded species richness for the midstorey stratum.}               
+Gives the maximum recorded species richness for the near-surface stratum.}
+\item{eR}{Optional field used only by the function frame::specPoint().
+Gives the maximum recorded species richness for the elevated stratum.}
+\item{mR}{Optional field used only by the function frame::specPoint().
+Gives the maximum recorded species richness for the midstorey stratum.}
 \item{cR}{Optional field used only by the function frame::specPoint().
- Gives the maximum recorded species richness for the canopy stratum.}        
+Gives the maximum recorded species richness for the canopy stratum.}
 }
 }
 \usage{

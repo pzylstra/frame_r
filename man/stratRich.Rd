@@ -4,20 +4,54 @@
 \alias{stratRich}
 \title{stratRich}
 \usage{
-stratRich(dat, thres = 5, pnts = 10)
+stratRich(
+  dat,
+  species_col = "Species",
+  grouping = "Age",
+  pN = "Point",
+  pntGap = 5,
+  thres = 5,
+  pnts = 10,
+  sepSig = 0.001,
+  spName = "spName",
+  base = "base",
+  top = "top",
+  he = "he",
+  ht = "ht"
+)
 }
 \arguments{
 \item{dat}{The dataframe containing the input data}
 
+\item{species_col}{The name of the column giving the name of the species (string)}
+
+\item{grouping}{The name of the column that groups sites, eg by age or location (string)}
+
+\item{pN}{The name of the column giving the number of the vertical transect (string)}
+
+\item{pntGap}{The distance (m) between each vertical transect point}
+
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
 \item{pnts}{The number of points measured in a transect}
+
+\item{sepSig}{Significance at which to recognise separate strata}
+
+\item{spName}{Name of the column designating the species name}
+
+\item{base}{Name of the column with the canopy base height}
+
+\item{top}{Name of the column with the canopy top height}
+
+\item{he}{Name of the column with the he height}
+
+\item{ht}{Name of the column with the ht height}
 }
 \value{
 dataframe
 }
 \description{
-Calculates the range, mean and sd of 
+Calculates the range, mean and sd of
 species richness in each plant stratum
 
 Input table requires the following fields:

@@ -17,12 +17,12 @@ the function returns NULL when there is no unique match.}
 }
 \value{
 Parameter info as a single row data frame; or \code{NULL}
-  if no matching label was found and \code{no.match.error} is
-  \code{FALSE}.
+if no matching label was found and \code{no.match.error} is
+\code{FALSE}.
 }
 \description{
 Searches for a row in the \code{\link{ParamInfo}} table with a matching
-parameter label. The comparison ignores case and white-space. 
+parameter label. The comparison ignores case and white-space.
 If a non-NULL value is supplied for \code{section} the check is restricted
 to parameter labels in that section (site, stratum or species).
 }

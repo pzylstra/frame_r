@@ -30,5 +30,5 @@ Height - overall scorch height (m)
 ns, e, m, c - height of consumption in each stratum (m)
 b1, b2, b3, b4 - percentage of strata 1 (ns) to strata 4 (c) consumed
 sc1, sc2, sc3, sc4 - percentage of strata 1 (ns) to strata 4 (c) scorched
-d1, d2, d3, d4 - death (1) or survival (0) of standing foliage per stratum (50% or more scorch)
+d1, d2, d3, d4 - death (1) or survival (0) of standing foliage per stratum (50\% or more scorch)
 }

@@ -4,12 +4,14 @@
 \alias{transectLong}
 \title{transectLong}
 \usage{
-transectLong(alldata, pN = "Point")
+transectLong(alldata, pN = "Point", grouping = "Site")
 }
 \arguments{
 \item{alldata}{Raw survey data with one or more transects}
 
 \item{pN}{The name of the column that will be the number of the measurement point}
+
+\item{grouping}{The name of the column that groups sites, eg by age or location (string)}
 }
 \value{
 dataframe

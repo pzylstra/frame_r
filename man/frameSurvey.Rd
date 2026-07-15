@@ -7,6 +7,15 @@
 frameSurvey(
   dat,
   default.species.params,
+  Site = "Site",
+  sN = "sN",
+  Point = "pN",
+  top = "top",
+  base = "base",
+  width = "wid",
+  he = "he",
+  ht = "ht",
+  spName = "spName",
   negEx = 1,
   max = 54.22,
   rate = 0.026,
@@ -34,6 +43,24 @@ frameSurvey(
 \item{dat}{The dataframe containing the formatted field survey data}
 
 \item{default.species.params}{Plant traits database}
+
+\item{Site}{A number identifying the transect}
+
+\item{sN}{A name identifying the transect}
+
+\item{Point}{Name of the column designating the point identifier}
+
+\item{top}{Name of the field containing the height of the tree canopy}
+
+\item{base}{Name of the base height field}
+
+\item{width}{Name of the field containing the width of the tree canopy}
+
+\item{he}{Name of the field with dimension he}
+
+\item{ht}{Name of the field with dimension ht}
+
+\item{spName}{Name of the column designating the species name}
 
 \item{negEx}{Value determining the model used. 1 = olson, 2 = Burr}
 
@@ -71,14 +98,14 @@ otherwise plant cover remains at the highest point it has reached by that age}
 \item{sLit}{Logical - TRUE allows surface litter to decline if the model does so, otherwise
 the maximum value to that age is maintained}
 
-\item{dec}{Logical - TRUE allows near surface surface litter to decline if the model does so, otherwise}
+\item{dec}{Logical - TRUE allows near surface surface litter to decline if the model does so, otherwise
+the maximum value to that age is maintained}
 
 \item{sepSig}{Threshold for determining significance}
 
 \item{messages}{T or F to display messages from component functions}
 
-\item{overlap}{Either 'automatic', or threshold occurrence at which overlap is set to TRUE.
-the maximum value to that age is maintained}
+\item{overlap}{Either 'automatic', or threshold occurrence at which overlap is set to TRUE.}
 }
 \value{
 list

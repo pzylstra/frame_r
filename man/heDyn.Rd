@@ -7,12 +7,13 @@
 heDyn(
   dat,
   thres = 5,
-  pnts = 10,
   p = 0.05,
-  base = "base",
+  species_col = "Species",
+  grouping = "Age",
+  pN = "Point",
+  pntGap = 5,
   top = "top",
-  he = "he",
-  ht = "ht"
+  he = "he"
 )
 }
 \arguments{
@@ -20,28 +21,24 @@ heDyn(
 
 \item{thres}{The minimum percent cover (0-100) of a Species that will be analysed}
 
-\item{pnts}{The number of points measured in a transect}
-
 \item{p}{The maximum allowable p value for a model}
 
-\item{base}{Name of the base height field}
+\item{species_col}{The name of the column giving the name of the species (string)}
+
+\item{grouping}{The name of the column that groups sites, eg by age or location (string)}
+
+\item{pN}{The name of the column giving the number of the vertical transect (string)}
+
+\item{pntGap}{The distance (m) between each vertical transect point}
 
 \item{top}{Name of the top height field}
 
 \item{he}{Name of the field with the height of the lower edge (he)}
-
-\item{ht}{Name of the field with the height of the upper edge (ht)}
 }
 \value{
 dataframe
 }
 \description{
 Builds models for top-he height allometry dynamics of surveyed Species
-
-Input table requires the following fields:
-Point - numbered point in a transect
-Species - name of the surveyed Species
-Age - age of the site since the triggering disturbance
-
 Species that are less common than the set threshold are combined as "Minor Species"
 }

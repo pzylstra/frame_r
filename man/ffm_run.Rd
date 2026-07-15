@@ -28,7 +28,7 @@ will be appended to the database with an incremented replicate ID value
 }
 \value{
 \code{TRUE} if the run completed and results were written to
-  the output database successfully; \code{FALSE} otherwise.
+the output database successfully; \code{FALSE} otherwise.
 }
 \description{
 This function requests the Scala model application to run a simulation with
@@ -36,7 +36,7 @@ the given input parameters and write results to a SQLite database file. For a
 related set of simulations (e.g. when exploring the effects of variation over
 a subset of parameters), the function can be called repeatedly (once for each
 realization of the parameters) with the same database file specified, and each
-set of results will be appended to the database with an incremented replicate 
+set of results will be appended to the database with an incremented replicate
 ID number.
 }
 \details{

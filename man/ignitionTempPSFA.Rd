@@ -7,7 +7,7 @@
 ignitionTempPSFA(prop)
 }
 \arguments{
-\item{prop}{Value(s) in the interval (0, 1] for the proportion of 
+\item{prop}{Value(s) in the interval (0, 1] for the proportion of
 silica free ash,}
 }
 \value{
