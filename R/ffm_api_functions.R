@@ -36,19 +36,31 @@
 #'   If \code{FALSE} (default) and the file exists, the simulation results
 #'   will be appended to the database with an incremented replicate ID value
 #'   (field \code{repId} in all tables).
-#' 
+#'
+#' @param engine Which fire engine to run. \code{"java"} (default) uses the
+#'   Scala JVM model via \code{\link{ffm_run_command}}. \code{"framecpp"} routes to
+#'   the in-process C++ engine via \code{\link{ffm_run_framecpp}}, writing the same
+#'   results database (validation bridge; requires the \pkg{framecpp} package).
+#'
 #' @return \code{TRUE} if the run completed and results were written to
 #'   the output database successfully; \code{FALSE} otherwise.
 #'
 #' @export
 #' 
 #'
-ffm_run <- function(params, db.path, 
-                    default.species.params = NULL, 
-                    db.recreate = FALSE) {
-  
+ffm_run <- function(params, db.path,
+                    default.species.params = NULL,
+                    db.recreate = FALSE,
+                    engine = c("java", "framecpp")) {
+
+  engine <- match.arg(engine)
+  if (engine == "framecpp")
+    return(ffm_run_framecpp(params, db.path,
+                          default.species.params = default.species.params,
+                          db.recreate = db.recreate))
+
   db.path <- normalizePath(db.path, mustWork = FALSE)
-  
+
   if (!.check_setting("java", TRUE)) {
     message("Checking for Java...\n")
     
